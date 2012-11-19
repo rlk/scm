@@ -10,26 +10,25 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 // more details.
 
-#ifndef SCM_ITEM_HPP
-#define SCM_ITEM_HPP
+#ifndef SCM_FIFO_HPP
+#define SCM_FIFO_HPP
+
+#include <list>
 
 //------------------------------------------------------------------------------
 
-struct scm_item
+template <typename T> class scm_fifo : public std::list <T>
 {
-    scm_item()                   : f(-1), i(-1) { }
-    scm_item(int f, long long i) : f( f), i( i) { }
+public:
 
-    int       f;
-    long long i;
+    void enq(T p) {
+        this->push_back(p);
+    }
 
-    bool valid() const { return (f >= 0 && i >= 0); }
-
-    bool operator<(const scm_item& that) const {
-        if (i == that.i)
-            return f < that.f;
-        else
-            return i < that.i;
+    T deq() {
+        T p = this->front();
+        this->pop_front();
+        return p;
     }
 };
 

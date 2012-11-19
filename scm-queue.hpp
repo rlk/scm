@@ -1,14 +1,14 @@
 // Copyright (C) 2011-2012 Robert Kooima
 //
-//  LIBSCM is free software; you can redistribute it and/or modify it under the
-//  terms of the GNU General Public License as published by the Free Software
-//  Foundation; either version 2 of the License, or (at your option) any later
-//  version.
+// LIBSCM is free software; you can redistribute it and/or modify it under the
+// terms of the GNU General Public License as published by the Free Software
+// Foundation; either version 2 of the License, or (at your option) any later
+// version.
 //
-//  This program is distributed in the hope that it will be useful, but WITH-
-//  OUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-//  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-//  more details.
+// This program is distributed in the hope that it will be useful, but WITH-
+// OUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
 
 #ifndef SCM_QUEUE_HPP
 #define SCM_QUEUE_HPP
@@ -20,12 +20,12 @@
 
 //------------------------------------------------------------------------------
 
-template <typename T> class queue
+template <typename T> class scm_queue
 {
 public:
 
-    queue(int);
-   ~queue();
+    scm_queue(int);
+   ~scm_queue();
 
     bool try_insert(T&);
     bool try_remove(T&);
@@ -44,14 +44,14 @@ private:
 
 //------------------------------------------------------------------------------
 
-template <typename T> queue<T>::queue(int n)
+template <typename T> scm_queue<T>::scm_queue(int n)
 {
     full_slots = SDL_CreateSemaphore(0);
     free_slots = SDL_CreateSemaphore(n);
     data_mutex = SDL_CreateMutex();
 }
 
-template <typename T> queue<T>::~queue()
+template <typename T> scm_queue<T>::~scm_queue()
 {
     SDL_DestroyMutex(data_mutex);
     SDL_DestroySemaphore(free_slots);
@@ -60,7 +60,7 @@ template <typename T> queue<T>::~queue()
 
 //------------------------------------------------------------------------------
 
-template <typename T> bool queue<T>::try_insert(T& d)
+template <typename T> bool scm_queue<T>::try_insert(T& d)
 {
     if (SDL_SemTryWait(free_slots) == 0)
     {
@@ -75,7 +75,7 @@ template <typename T> bool queue<T>::try_insert(T& d)
     return false;
 }
 
-template <typename T> bool queue<T>::try_remove(T& d)
+template <typename T> bool scm_queue<T>::try_remove(T& d)
 {
     if (SDL_SemTryWait(full_slots) == 0)
     {
@@ -93,7 +93,7 @@ template <typename T> bool queue<T>::try_remove(T& d)
 
 //------------------------------------------------------------------------------
 
-template <typename T> void queue<T>::insert(T d)
+template <typename T> void scm_queue<T>::insert(T d)
 {
     SDL_SemWait(free_slots);
     SDL_mutexP(data_mutex);
@@ -104,7 +104,7 @@ template <typename T> void queue<T>::insert(T d)
     SDL_SemPost(full_slots);
 }
 
-template <typename T> T queue<T>::remove()
+template <typename T> T scm_queue<T>::remove()
 {
     T d;
 

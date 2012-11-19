@@ -1,21 +1,20 @@
-//  Copyright (C) 2005-2011 Robert Kooima
+// Copyright (C) 2011-2012 Robert Kooima
 //
-//  THUMB is free software; you can redistribute it and/or modify it under
-//  the terms of  the GNU General Public License as  published by the Free
-//  Software  Foundation;  either version 2  of the  License,  or (at your
-//  option) any later version.
+// LIBSCM is free software; you can redistribute it and/or modify it under the
+// terms of the GNU General Public License as published by the Free Software
+// Foundation; either version 2 of the License, or (at your option) any later
+// version.
 //
-//  This program  is distributed in the  hope that it will  be useful, but
-//  WITHOUT   ANY  WARRANTY;   without  even   the  implied   warranty  of
-//  MERCHANTABILITY  or FITNESS  FOR A  PARTICULAR PURPOSE.   See  the GNU
-//  General Public License for more details.
+// This program is distributed in the hope that it will be useful, but WITH-
+// OUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
 
 #ifndef SCM_CACHE_HPP
 #define SCM_CACHE_HPP
 
 #include <vector>
 #include <string>
-#include <list>
 
 #include <GL/glew.h>
 #include <tiffio.h>
@@ -23,26 +22,10 @@
 #include <SDL_thread.h>
 
 #include "scm-queue.hpp"
+#include "scm-fifo.hpp"
 #include "scm-file.hpp"
 #include "scm-task.hpp"
 #include "scm-set.hpp"
-
-//------------------------------------------------------------------------------
-
-template <typename T> class fifo : public std::list <T>
-{
-public:
-
-    void enq(T p) {
-        this->push_back(p);
-    }
-
-    T deq() {
-        T p = this->front();
-        this->pop_front();
-        return p;
-    }
-};
 
 //------------------------------------------------------------------------------
 
@@ -81,10 +64,10 @@ private:
     scm_set pages;                 // Page set currently in cache
     scm_set waits;                 // Page set currently being loaded
 
-    queue<scm_task> needs;         // Page loader thread input  queue
-    queue<scm_task> loads;         // Page loader thread output queue
+    scm_queue<scm_task> needs;     // Page loader thread input  queue
+    scm_queue<scm_task> loads;     // Page loader thread output queue
 
-    fifo<GLuint> pbos;             // Asynchronous upload ring
+    scm_fifo<GLuint> pbos;         // Asynchronous upload ring
 
     GLuint  texture;
     int     next;
