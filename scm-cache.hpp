@@ -38,21 +38,20 @@ public:
 
     int    add_file(const std::string&);
     int    get_page(int, long long, int, int&);
-    int    get_size() const { return size; }
-    float  get_r0()   const { return r0;   }
-    float  get_r1()   const { return r1;   }
-    int    get_n()    const { return n;    }
+    GLuint get_texture() const { return texture; }
+    float  get_r0()      const { return r0;      }
+    float  get_r1()      const { return r1;      }
+    int    get_s()       const { return s;       }
+    int    get_n()       const { return n;       }
 
-    void get_page_bounds(int, long long, float&, float&);
-    bool get_page_status(int, long long);
+    void   get_page_bounds(int, long long, float&, float&);
+    bool   get_page_status(int, long long);
 
     void update(int);  // Cycle the cache once
     void sync  (int);  // Cycle the cache until all needs are served
-
-    void clear(int);
-    void flush();
-    void draw();
-    void bind() const { glBindTexture(GL_TEXTURE_TARGET, texture); }
+    void clear (int);
+    void flush ();
+    void draw  ();
 
 private:
 
@@ -60,23 +59,23 @@ private:
     static const int load_queue_size      =  8;   //  8
     static const int max_loads_per_update =  2;   //  2
 
-    std::vector<scm_file *> files; // SCM TIFF data files
-    scm_set pages;                 // Page set currently in cache
-    scm_set waits;                 // Page set currently being loaded
+    std::vector<scm_file *> files;  // SCM TIFF data files
+    scm_set                 pages;  // Page set currently active
+    scm_set                 waits;  // Page set currently being loaded
+    scm_queue<scm_task>     needs;  // Page loader thread input  queue
+    scm_queue<scm_task>     loads;  // Page loader thread output queue
+    scm_fifo<GLuint>        pbos;   // Asynchronous upload ring
 
-    scm_queue<scm_task> needs;     // Page loader thread input  queue
-    scm_queue<scm_task> loads;     // Page loader thread output queue
+    GLuint  texture;                // Atlas texture object
+    int     s;                      // Atlas width and height in pages
+    int     l;                      // Atlas current page
+    int     n;                      // Page width and height in pixels
+    int     c;                      // Page channel count
+    int     b;                      // Page channel size in bytes
+    float   r0;                     // Height map minimum radius
+    float   r1;                     // Height map maximum radius
 
-    scm_fifo<GLuint> pbos;         // Asynchronous upload ring
-
-    GLuint  texture;
-    int     next;
-    int     size;
-    int     n;
-    int     c;
-    int     b;
-    float   r0;
-    float   r1;
+    int get_slot(int, long long);
 
     std::vector<SDL_Thread *> threads;
     friend int loader(void *);

@@ -45,7 +45,6 @@ public:
     void     remove(scm_page);
 
     scm_page eject(int, long long);
-    void     draw();
 
 private:
 

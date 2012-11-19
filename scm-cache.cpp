@@ -27,7 +27,8 @@ scm_cache::scm_cache(int s, int n, int c, int b, int t, float r0, float r1) :
     needs(need_queue_size),
     loads(load_queue_size),
     texture(0),
-    next(1),
+    s(s),
+    l(1),
     n(n),
     c(c),
     b(b),
@@ -50,13 +51,6 @@ scm_cache::scm_cache(int s, int n, int c, int b, int t, float r0, float r1) :
         pbos.push_back(b);
     }
 
-    // Limit the cache size to the maximum array texture depth.
-
-    GLint max;
-    glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &max);
-
-    size = std::min(max, s);
-
     // Generate the array texture object.
 
     GLenum i = scm_internal_form(c, b, 0);
@@ -64,25 +58,17 @@ scm_cache::scm_cache(int s, int n, int c, int b, int t, float r0, float r1) :
     GLenum y = scm_external_type(c, b, 0);
 
     glGenTextures  (1, &texture);
-    glBindTexture  (GL_TEXTURE_TARGET,  texture);
-    // glTexParameteri(GL_TEXTURE_TARGET, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    // glTexParameteri(GL_TEXTURE_TARGET, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_TARGET, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_TARGET, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_TARGET, GL_TEXTURE_WRAP_S,     GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_TARGET, GL_TEXTURE_WRAP_T,     GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_TARGET, GL_TEXTURE_WRAP_R,     GL_CLAMP);
+    glBindTexture  (GL_TEXTURE_RECTANGLE, texture);
+    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Initialize it with a buffer of zeros.
 
-    const int m = n + 2;
-    GLubyte  *p;
+    const int m = s * (n + 2);
 
-    if ((p = (GLubyte *) malloc(size * m * m * c * b)))
+    if (GLubyte *p = (GLubyte *) calloc(m * m, c * b))
     {
-        memset(p, 0, size * m * m * c * b);
-        // glTexImage3D(GL_TEXTURE_TARGET, 0, i, n, n, size, 1, e, y, p);
-        glTexImage3D(GL_TEXTURE_TARGET, 0, i, m, m, size, 0, e, y, p);
+        glTexImage2D(GL_TEXTURE_RECTANGLE, 0, i, m, m, 0, e, y, p);
         free(p);
     }
 }
@@ -108,19 +94,20 @@ scm_cache::~scm_cache()
 
     for (t = threads.begin(); t != threads.end(); ++t)
         SDL_WaitThread(*t, &s);
-#else
+#endif
+#if 0
     for (t = threads.begin(); t != threads.end(); ++t)
         SDL_KillThread(*t);
 #endif
 
     // Release the pixel buffer objects.
-
+#if 0
     while (!pbos.empty())
     {
         glDeleteBuffers(1, &pbos.back());
         pbos.pop_back();
     }
-
+#endif
     // Release the texture.
 
     glDeleteTextures(1, &texture);
@@ -205,8 +192,28 @@ int scm_cache::get_page(int f, long long i, int t, int& n)
     //     waits.insert(scm_page(f, i, 0), t);
     // }
 
+    // If there is no PBO available, punt and let the app request again.
+
     n = t;
     return 0;
+}
+
+// Find a slot for an incoming page. Either take the next unused slot or eject
+// a page to make room. Return 0 on failure.
+
+int scm_cache::get_slot(int t, long long i)
+{
+    if (l < s * s)
+        return l++;
+    else
+    {
+        scm_page victim = pages.eject(t, i);
+
+        if (victim.valid())
+            return victim.l;
+        else
+            return 0;
+    }
 }
 
 // Handle incoming textures on the loads queue.
@@ -215,36 +222,29 @@ void scm_cache::update(int t)
 {
     scm_task task;
 
-    glBindTexture(GL_TEXTURE_TARGET, texture);
+    glBindTexture(GL_TEXTURE_RECTANGLE, texture);
 
     for (int c = 0; c < max_loads_per_update && loads.try_remove(task); ++c)
     {
-        scm_page page(task.f, task.i);
-
-        waits.remove(page);
-
         if (task.d)
         {
-            if (next < size)
-                page.l = next++;
-            else
-            {
-                scm_page victim = pages.eject(t, page.i);
+            scm_page page(task.f, task.i);
 
-                if (victim.valid())
-                    page.l = victim.l;
-            }
+            waits.remove(page);
 
-            if (page.l >= 0)
+            if (int l = get_slot(t, page.i))
             {
+                page.l = l;
                 page.t = t;
                 pages.insert(page, t);
 
-                task.make_page(page.l, files[task.f]->get_w(),
-                                       files[task.f]->get_h(),
-                                       files[task.f]->get_c(),
-                                       files[task.f]->get_b(),
-                                       files[task.f]->get_g());
+                task.make_page((l % s) * (n + 2),
+                               (l / s) * (n + 2),
+                               files[task.f]->get_w(),
+                               files[task.f]->get_h(),
+                               files[task.f]->get_c(),
+                               files[task.f]->get_b(),
+                               files[task.f]->get_g());
             }
             else task.dump_page();
         }
@@ -259,18 +259,58 @@ void scm_cache::flush()
     while (!pages.empty())
         pages.eject(0, -1);
 
-    next = 1;
-}
-
-void scm_cache::draw()
-{
-    pages.draw();
+    l = 1;
 }
 
 void scm_cache::sync(int t)
 {
     // while (!needs.empty())
     //     update(t);
+}
+
+void scm_cache::draw()
+{
+    glPushAttrib(GL_ENABLE_BIT);
+    {
+        GLint v[4];
+
+        glGetIntegerv(GL_VIEWPORT, v);
+
+        GLdouble a = GLdouble(v[2]) / GLdouble(v[3]);
+
+        glDisable(GL_LIGHTING);
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_TEXTURE_RECTANGLE);
+
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(-a, +a, -1, +1, -1, +1);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+
+        glUseProgram(0);
+        glBindTexture(GL_TEXTURE_RECTANGLE, texture);
+        glColor4f(1.f, 1.f, 1.f, 1.f);
+
+        glBegin(GL_QUADS);
+        {
+            const GLint m = s * (n + 2);
+
+            glTexCoord2i(0, 0); glVertex2f(-0.75f, -0.75f);
+            glTexCoord2i(m, 0); glVertex2f( 0.75f, -0.75f);
+            glTexCoord2i(m, m); glVertex2f( 0.75f,  0.75f);
+            glTexCoord2i(0, m); glVertex2f(-0.75f,  0.75f);
+        }
+        glEnd();
+
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+    }
+    glPopAttrib();
 }
 
 //------------------------------------------------------------------------------

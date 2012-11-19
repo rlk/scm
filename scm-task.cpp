@@ -33,19 +33,15 @@ scm_task::scm_task(int f, long long i, uint64 o, GLuint u, GLsizei s)
 
 // Upload the pixel buffer to the OpenGL texture object.
 
-void scm_task::make_page(GLint l, uint32 w, uint32 h,
-                                  uint16 c, uint16 b, uint16 g)
+void scm_task::make_page(int x, int y, uint32 w, uint32 h,
+                                       uint16 c, uint16 b, uint16 g)
 {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, u);
     {
         glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-
-        // glTexSubImage3D(GL_TEXTURE_TARGET, 0, -1, -1, l, w, h, 1,
-        //                                 scm_external_form(c, b, g),
-        //                                 scm_external_type(c, b, g), 0);
-        glTexSubImage3D(GL_TEXTURE_TARGET, 0, 0, 0, l, w, h, 1,
-                                       scm_external_form(c, b, g),
-                                       scm_external_type(c, b, g), 0);
+        glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, x, y, w, h,
+                                  scm_external_form(c, b, g),
+                                  scm_external_type(c, b, g), 0);
     }
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }

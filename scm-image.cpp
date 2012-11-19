@@ -48,13 +48,13 @@ void scm_image::bind(GLint unit, GLuint program) const
                      GLfloat(cache->get_n()));
 
     glActiveTexture(GL_TEXTURE0 + unit);
-    cache->bind();
+    glBindTexture(GL_TEXTURE_RECTANGLE, cache->get_texture());
 }
 
 void scm_image::free(GLint unit) const
 {
     glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_TARGET, 0);
+    glBindTexture(GL_TEXTURE_RECTANGLE, 0);
 }
 
 //------------------------------------------------------------------------------
@@ -79,28 +79,28 @@ void scm_image::touch(long long i, int t) const
 
 void scm_image::set_texture(GLuint program, int d, int t, long long i) const
 {
-    GLint idx = glsl_uniform(program, "%s.idx[%d]", name.c_str(), d);
+    GLint pos = glsl_uniform(program, "%s.pos[%d]", name.c_str(), d);
     GLint age = glsl_uniform(program, "%s.age[%d]", name.c_str(), d);
 
-    int u, n = cache->get_page(file, i, t, u);
+    int u, l = cache->get_page(file, i, t, u);
 
     double a = (t - u) / 60.0;
 
-    if      (n ==  0) a = 0.0;
+    if      (l ==  0) a = 0.0;
     else if (a > 1.0) a = 1.0;
     else if (a < 0.0) a = 0.0;
 
-    glUniform1f(idx, GLfloat(n + 0.5) / cache->get_size());
-//  glUniform1f(idx, GLfloat(n));
     glUniform1f(age, GLfloat(a));
+    glUniform2f(pos, GLfloat((l % cache->get_s()) * (cache->get_n() + 2)),
+                     GLfloat((l / cache->get_s()) * (cache->get_n() + 2)));
 }
 
 void scm_image::clr_texture(GLuint program, int d) const
 {
-    GLint idx = glsl_uniform(program, "%s.idx[%d]", name.c_str(), d);
+    GLint pos = glsl_uniform(program, "%s.pos[%d]", name.c_str(), d);
     GLint age = glsl_uniform(program, "%s.age[%d]", name.c_str(), d);
 
-    glUniform1f(idx, 0.0);
+    glUniform1f(pos, 0.0);
     glUniform1f(age, 0.0);
 }
 
