@@ -432,11 +432,11 @@ void scm_model::draw_page(scm_frame *frame, int d, long long i)
                 GLfloat x = m * c - C;
                 GLfloat y = m * r - R;
 
-                GLint a = glsl_uniform(program, "page_a[%d]", l);
-                GLint b = glsl_uniform(program, "page_b[%d]", l);
+                GLint A = glsl_uniform(program, "A[%d]", l);
+                GLint B = glsl_uniform(program, "B[%d]", l);
 
-                glUniform2f(a, m, m);
-                glUniform2f(b, x, y);
+                glUniform2f(A, m, m);
+                glUniform2f(B, x, y);
 
                 C /= 2;
                 R /= 2;
@@ -526,7 +526,7 @@ void scm_model::draw(scm_frame *frame, const double *P,
             { -1.f,  0.f,  0.f,  0.f,  1.f,  0.f,  0.f,  0.f, -1.f },
         };
 
-        GLint face_M = glsl_uniform(program, "face_M");
+        GLint face_M = glsl_uniform(program, "M");
 
         glUniform1f(u_zoomk, GLfloat(zoomk));
         glUniform3f(u_zoomv, GLfloat(zoomv[0]),

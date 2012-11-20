@@ -41,11 +41,11 @@ void scm_image::bind(GLint unit, GLuint program) const
     }
 
     GLuint img = glsl_uniform(program, "%s.img", name.c_str());
-    GLuint siz = glsl_uniform(program, "%s.siz", name.c_str());
+    GLuint A   = glsl_uniform(program, "%s.A",   name.c_str());
 
     glUniform1i(img, unit);
-    glUniform2f(siz, GLfloat(cache->get_n()),
-                     GLfloat(cache->get_n()));
+    glUniform2f(A, GLfloat(cache->get_n()),
+                   GLfloat(cache->get_n()));
 
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_RECTANGLE, cache->get_texture());
@@ -79,8 +79,8 @@ void scm_image::touch(long long i, int t) const
 
 void scm_image::set_texture(GLuint program, int d, int t, long long i) const
 {
-    GLint pos = glsl_uniform(program, "%s.pos[%d]", name.c_str(), d);
-    GLint age = glsl_uniform(program, "%s.age[%d]", name.c_str(), d);
+    GLint K = glsl_uniform(program, "%s.K[%d]", name.c_str(), d);
+    GLint B = glsl_uniform(program, "%s.B[%d]", name.c_str(), d);
 
     int u, l = cache->get_page(file, i, t, u);
 
@@ -90,18 +90,18 @@ void scm_image::set_texture(GLuint program, int d, int t, long long i) const
     else if (a > 1.0) a = 1.0;
     else if (a < 0.0) a = 0.0;
 
-    glUniform1f(age, GLfloat(a));
-    glUniform2f(pos, GLfloat((l % cache->get_s()) * (cache->get_n() + 2)),
-                     GLfloat((l / cache->get_s()) * (cache->get_n() + 2)));
+    glUniform4f(K, 1.f, 1.f, 1.f, GLfloat(a));
+    glUniform2f(B, GLfloat((l % cache->get_s()) * (cache->get_n() + 2)),
+                   GLfloat((l / cache->get_s()) * (cache->get_n() + 2)));
 }
 
 void scm_image::clr_texture(GLuint program, int d) const
 {
-    GLint pos = glsl_uniform(program, "%s.pos[%d]", name.c_str(), d);
-    GLint age = glsl_uniform(program, "%s.age[%d]", name.c_str(), d);
+    GLint K = glsl_uniform(program, "%s.K[%d]", name.c_str(), d);
+    GLint B = glsl_uniform(program, "%s.B[%d]", name.c_str(), d);
 
-    glUniform1f(pos, 0.0);
-    glUniform1f(age, 0.0);
+    glUniform4f(K, 0.f, 0.f, 0.f, 0.f);
+    glUniform2f(B, 0.f, 0.f);
 }
 
 //------------------------------------------------------------------------------
