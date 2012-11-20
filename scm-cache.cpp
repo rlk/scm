@@ -277,7 +277,6 @@ void scm_cache::draw(int ii, int nn)
         glGetIntegerv(GL_VIEWPORT, v);
 
         const GLdouble a = GLdouble(v[2]) / GLdouble(v[3]);
-        const GLdouble b = 0.5;
 
         glDisable(GL_LIGHTING);
         glDisable(GL_TEXTURE_2D);
@@ -287,10 +286,11 @@ void scm_cache::draw(int ii, int nn)
         glPushMatrix();
         glLoadIdentity();
         glOrtho(-a, +a, -1, +1, -1, +1);
+
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
-        glTranslatef(2.1 * b * (ii - 0.5 * (nn - 1)), 0.f, 0.f);
+        glTranslatef(1.10f * ii - 0.55f * (nn - 1), 0.f, 0.f);
 
         glUseProgram(0);
         glBindTexture(GL_TEXTURE_RECTANGLE, texture);
@@ -300,10 +300,10 @@ void scm_cache::draw(int ii, int nn)
         {
             const GLint m = s * (n + 2);
 
-            glTexCoord2i(0, 0); glVertex2f(-b, -b);
-            glTexCoord2i(m, 0); glVertex2f( b, -b);
-            glTexCoord2i(m, m); glVertex2f( b,  b);
-            glTexCoord2i(0, m); glVertex2f(-b,  b);
+            glTexCoord2i(0, 0); glVertex2f(-0.5f, -0.5f);
+            glTexCoord2i(m, 0); glVertex2f( 0.5f, -0.5f);
+            glTexCoord2i(m, m); glVertex2f( 0.5f,  0.5f);
+            glTexCoord2i(0, m); glVertex2f(-0.5f,  0.5f);
         }
         glEnd();
 
