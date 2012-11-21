@@ -57,7 +57,7 @@ private:
 
     static const int need_queue_size      = 32;   // 32
     static const int load_queue_size      =  8;   //  8
-    static const int max_loads_per_update =  2;   //  2
+    static const int max_loads_per_update =  4;   //  2
 
     std::vector<scm_file *> files;  // SCM TIFF data files
     scm_set                 pages;  // Page set currently active

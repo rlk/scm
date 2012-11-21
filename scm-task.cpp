@@ -39,9 +39,9 @@ void scm_task::make_page(int x, int y, uint32 w, uint32 h,
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, u);
     {
         glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-        glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, x, y, w, h,
-                                  scm_external_form(c, b, g),
-                                  scm_external_type(c, b, g), 0);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h,
+                           scm_external_form(c, b, g),
+                           scm_external_type(c, b, g), 0);
     }
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }

@@ -58,9 +58,10 @@ scm_cache::scm_cache(int s, int n, int c, int b, int t, float r0, float r1) :
     GLenum y = scm_external_type(c, b, 0);
 
     glGenTextures  (1, &texture);
-    glBindTexture  (GL_TEXTURE_RECTANGLE, texture);
-    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture  (GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 
     // Initialize it with a buffer of zeros.
 
@@ -68,7 +69,7 @@ scm_cache::scm_cache(int s, int n, int c, int b, int t, float r0, float r1) :
 
     if (GLubyte *p = (GLubyte *) calloc(m * m, c * b))
     {
-        glTexImage2D(GL_TEXTURE_RECTANGLE, 0, i, m, m, 0, e, y, p);
+        glTexImage2D(GL_TEXTURE_2D, 0, i, m, m, 0, e, y, p);
         free(p);
     }
 }
@@ -222,7 +223,7 @@ void scm_cache::update(int t)
 {
     scm_task task;
 
-    glBindTexture(GL_TEXTURE_RECTANGLE, texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
     for (int c = 0; c < max_loads_per_update && loads.try_remove(task); ++c)
     {
@@ -279,8 +280,7 @@ void scm_cache::draw(int ii, int nn)
         const GLdouble a = GLdouble(v[2]) / GLdouble(v[3]);
 
         glDisable(GL_LIGHTING);
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_TEXTURE_RECTANGLE);
+        glEnable(GL_TEXTURE_2D);
 
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
@@ -293,17 +293,15 @@ void scm_cache::draw(int ii, int nn)
         glTranslatef(1.10f * ii - 0.55f * (nn - 1), 0.f, 0.f);
 
         glUseProgram(0);
-        glBindTexture(GL_TEXTURE_RECTANGLE, texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
         glColor4f(1.f, 1.f, 1.f, 1.f);
 
         glBegin(GL_QUADS);
         {
-            const GLint m = s * (n + 2);
-
             glTexCoord2i(0, 0); glVertex2f(-0.5f, -0.5f);
-            glTexCoord2i(m, 0); glVertex2f( 0.5f, -0.5f);
-            glTexCoord2i(m, m); glVertex2f( 0.5f,  0.5f);
-            glTexCoord2i(0, m); glVertex2f(-0.5f,  0.5f);
+            glTexCoord2i(1, 0); glVertex2f( 0.5f, -0.5f);
+            glTexCoord2i(1, 1); glVertex2f( 0.5f,  0.5f);
+            glTexCoord2i(0, 1); glVertex2f(-0.5f,  0.5f);
         }
         glEnd();
 
