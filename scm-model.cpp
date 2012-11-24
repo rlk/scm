@@ -526,7 +526,7 @@ void scm_model::draw(scm_frame *frame, const double *P,
             { -1.f,  0.f,  0.f,  0.f,  1.f,  0.f,  0.f,  0.f, -1.f },
         };
 
-        GLint face_M = glsl_uniform(program, "M");
+        GLint uM = glsl_uniform(program, "M");
 
         glUniform1f(u_zoomk, GLfloat(zoomk));
         glUniform3f(u_zoomv, GLfloat(zoomv[0]),
@@ -535,32 +535,32 @@ void scm_model::draw(scm_frame *frame, const double *P,
 
         if (is_set(0))
         {
-            glUniformMatrix3fv(face_M, 1, GL_TRUE, M[0]);
+            glUniformMatrix3fv(uM, 1, GL_TRUE, M[0]);
             draw_page(frame, 0, 0);
         }
         if (is_set(1))
         {
-            glUniformMatrix3fv(face_M, 1, GL_TRUE, M[1]);
+            glUniformMatrix3fv(uM, 1, GL_TRUE, M[1]);
             draw_page(frame, 0, 1);
         }
         if (is_set(2))
         {
-            glUniformMatrix3fv(face_M, 1, GL_TRUE, M[2]);
+            glUniformMatrix3fv(uM, 1, GL_TRUE, M[2]);
             draw_page(frame, 0, 2);
         }
         if (is_set(3))
         {
-            glUniformMatrix3fv(face_M, 1, GL_TRUE, M[3]);
+            glUniformMatrix3fv(uM, 1, GL_TRUE, M[3]);
             draw_page(frame, 0, 3);
         }
         if (is_set(4))
         {
-            glUniformMatrix3fv(face_M, 1, GL_TRUE, M[4]);
+            glUniformMatrix3fv(uM, 1, GL_TRUE, M[4]);
             draw_page(frame, 0, 4);
         }
         if (is_set(5))
         {
-            glUniformMatrix3fv(face_M, 1, GL_TRUE, M[5]);
+            glUniformMatrix3fv(uM, 1, GL_TRUE, M[5]);
             draw_page(frame, 0, 5);
         }
     }

@@ -20,6 +20,10 @@
 
 //------------------------------------------------------------------------------
 
+// scm_queue implements a producer-consumer queue. A "needs" queue is used by
+// the render thread to delegate work to a set of loader threads. One "loads"
+// queue is used by the loader threads to returning their results.
+
 template <typename T> class scm_queue
 {
 public:
@@ -53,12 +57,13 @@ template <typename T> scm_queue<T>::scm_queue(int n)
 
 template <typename T> scm_queue<T>::~scm_queue()
 {
-    SDL_DestroyMutex(data_mutex);
+    SDL_DestroyMutex    (data_mutex);
     SDL_DestroySemaphore(free_slots);
     SDL_DestroySemaphore(full_slots);
 }
 
 //------------------------------------------------------------------------------
+// Non-blocking queue operations for use by the render thread.
 
 template <typename T> bool scm_queue<T>::try_insert(T& d)
 {
@@ -92,6 +97,7 @@ template <typename T> bool scm_queue<T>::try_remove(T& d)
 }
 
 //------------------------------------------------------------------------------
+// Blocking queue operations for use by the loader threads.
 
 template <typename T> void scm_queue<T>::insert(T d)
 {

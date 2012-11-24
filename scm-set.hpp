@@ -36,8 +36,6 @@ class scm_set
 {
 public:
 
-    // int  count() const { return int(m.size()); }
-    // bool full()  const { return (count() >= size); }
     bool empty() const { return m.empty(); }
 
     scm_page search(scm_page, int);

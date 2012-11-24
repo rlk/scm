@@ -26,6 +26,7 @@ scm_cache::scm_cache(int s, int n, int c, int b, int t, float r0, float r1) :
     waits(),
     needs(need_queue_size),
     loads(load_queue_size),
+    run(true),
     texture(0),
     s(s),
     l(1),
@@ -77,38 +78,35 @@ scm_cache::scm_cache(int s, int n, int c, int b, int t, float r0, float r1) :
 scm_cache::~scm_cache()
 {
     std::vector<SDL_Thread *>::iterator t;
-
-#if 0
     int c = 1;
     int s = 0;
 
-    // Continue servicing the loads queue until the needs queue is emptied.
+    // Notify the loaders that they need not complete their assigned tasks.
+
+    run.set(false);
+
+    // Drain any completed loads to ensure that the loaders aren't blocked.
 
     sync(0);
 
-    // Enqueue an exit command for each loader thread.
+    // Enqueue an exit command for each loader.
 
     for (t = threads.begin(); t != threads.end(); ++t, ++c)
         needs.insert(scm_task(-c, -c));
 
-    // Await their exit.
+    // Await the exit of each loader.
 
     for (t = threads.begin(); t != threads.end(); ++t)
         SDL_WaitThread(*t, &s);
-#endif
-#if 0
-    for (t = threads.begin(); t != threads.end(); ++t)
-        SDL_KillThread(*t);
-#endif
 
     // Release the pixel buffer objects.
-#if 0
+
     while (!pbos.empty())
     {
         glDeleteBuffers(1, &pbos.back());
         pbos.pop_back();
     }
-#endif
+
     // Release the texture.
 
     glDeleteTextures(1, &texture);
@@ -140,7 +138,7 @@ int scm_cache::add_file(const std::string& name)
     return -1;
 }
 
-// Return the layer for the requested page. Request the page if necessary.
+// Return the index for the requested page. Request the page if necessary.
 
 int scm_cache::get_page(int f, long long i, int t, int& n)
 {
@@ -161,7 +159,7 @@ int scm_cache::get_page(int f, long long i, int t, int& n)
         return wait.l;
     }
 
-    // If this page is loaded, return the layer.
+    // If this page is loaded, return the index.
 
     scm_page page = pages.search(scm_page(f, i), t);
 
@@ -187,12 +185,6 @@ int scm_cache::get_page(int f, long long i, int t, int& n)
         }
     }
 
-    // if (!needs.full() && !pbos.empty())
-    // {
-    //     needs.insert(scm_task(f, i, o, pbos.deq(), files[f]->length()));
-    //     waits.insert(scm_page(f, i, 0), t);
-    // }
-
     // If there is no PBO available, punt and let the app request again.
 
     n = t;
@@ -217,17 +209,19 @@ int scm_cache::get_slot(int t, long long i)
     }
 }
 
-// Handle incoming textures on the loads queue.
+// Handle any incoming textures on the loads queue. Return false if none.
 
-void scm_cache::update(int t)
+bool scm_cache::update(int t)
 {
+    int c;
+
     scm_task task;
 
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    for (int c = 0; c < max_loads_per_update && loads.try_remove(task); ++c)
+    for (c = 0; c < max_loads_per_update && loads.try_remove(task); ++c)
     {
-        if (task.d)
+        if (task.d && is_running())
         {
             scm_page page(task.f, task.i);
 
@@ -253,6 +247,7 @@ void scm_cache::update(int t)
 
         pbos.enq(task.u);
     }
+    return (c > 0);
 }
 
 void scm_cache::flush()
@@ -265,8 +260,8 @@ void scm_cache::flush()
 
 void scm_cache::sync(int t)
 {
-    // while (!needs.empty())
-    //     update(t);
+    while (update(t))
+        ;
 }
 
 void scm_cache::draw(int ii, int nn)
@@ -331,8 +326,8 @@ bool scm_cache::get_page_status(int f, long long i)
 //------------------------------------------------------------------------------
 
 // Load textures. Remove a task from the cache's needed queue, open and read
-// the TIFF image file, and insert the task in the cache's loaded queue. Exit
-// when given a negative file index.
+// the TIFF image file, and insert the task in the cache's loaded queue. Ignore
+// the task if the cache is quitting. Exit when given a negative file index.
 
 int loader(void *data)
 {
@@ -341,24 +336,25 @@ int loader(void *data)
 
     while ((task = cache->needs.remove()).f >= 0)
     {
-        assert(task.valid());
-
-        if (TIFF *T = TIFFOpen(cache->files[task.f]->get_path(), "r"))
+        if (cache->is_running())
         {
-            if (TIFFSetSubDirectory(T, task.o))
+            if (TIFF *T = TIFFOpen(cache->files[task.f]->get_path(), "r"))
             {
-                uint32 w = cache->files[task.f]->get_w();
-                uint32 h = cache->files[task.f]->get_h();
-                uint16 c = cache->files[task.f]->get_c();
-                uint16 b = cache->files[task.f]->get_b();
-                uint16 g = cache->files[task.f]->get_g();
+                if (TIFFSetSubDirectory(T, task.o))
+                {
+                    uint32 w = cache->files[task.f]->get_w();
+                    uint32 h = cache->files[task.f]->get_h();
+                    uint16 c = cache->files[task.f]->get_c();
+                    uint16 b = cache->files[task.f]->get_b();
+                    uint16 g = cache->files[task.f]->get_g();
 
-                task.load_page(T, w, h, c, b, g);
-                task.d = true;
+                    task.load_page(T, w, h, c, b, g);
+                    task.d = true;
+                }
+                TIFFClose(T);
             }
-            TIFFClose(T);
+            cache->loads.insert(task);
         }
-        cache->loads.insert(task);
     }
     return 0;
 }

@@ -22,6 +22,7 @@
 #include <SDL_thread.h>
 
 #include "scm-queue.hpp"
+#include "scm-guard.hpp"
 #include "scm-fifo.hpp"
 #include "scm-file.hpp"
 #include "scm-task.hpp"
@@ -47,17 +48,18 @@ public:
     void   get_page_bounds(int, long long, float&, float&);
     bool   get_page_status(int, long long);
 
-    void update(int);  // Cycle the cache once
-    void sync  (int);  // Cycle the cache until all needs are served
-    void draw  (int, int);
-    void draw  ();
-    void flush ();
+    bool   is_running() { return run.get(); }
+
+    bool   update(int);
+    void   sync  (int);
+    void   draw  (int, int);
+    void   flush ();
 
 private:
 
     static const int need_queue_size      = 32;   // 32
     static const int load_queue_size      =  8;   //  8
-    static const int max_loads_per_update =  4;   //  2
+    static const int max_loads_per_update =  2;   //  2
 
     std::vector<scm_file *> files;  // SCM TIFF data files
     scm_set                 pages;  // Page set currently active
@@ -65,6 +67,7 @@ private:
     scm_queue<scm_task>     needs;  // Page loader thread input  queue
     scm_queue<scm_task>     loads;  // Page loader thread output queue
     scm_fifo<GLuint>        pbos;   // Asynchronous upload ring
+    scm_guard<bool>         run;    // Is-running flag
 
     GLuint  texture;                // Atlas texture object
     int     s;                      // Atlas width and height in pages
