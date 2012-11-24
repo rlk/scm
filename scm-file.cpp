@@ -134,35 +134,11 @@ scm_file::~scm_file()
 
 //------------------------------------------------------------------------------
 
-static int xcmp(const void *p, const void *q)
-{
-    const uint64 *a = (const uint64 *) p;
-    const uint64 *b = (const uint64 *) q;
-
-    if      (a[0] < b[0]) return -1;
-    else if (a[0] > b[0]) return +1;
-    else                  return  0;
-}
-
-uint64 scm_file::index(uint64 i) const
-{
-    void *p;
-
-    if (xc)
-    {
-        if ((p = bsearch(&i, xv, xc, sizeof (uint64), xcmp)))
-        {
-            return (uint64) ((uint64 *) p - xv);
-        }
-    }
-    return (uint64) (-1);
-}
-
 // Determine whether page i is given by this file.
 
 bool scm_file::status(uint64 i) const
 {
-    if (index(i) < xc)
+    if (toindex(i) < xc)
         return true;
     else
         return false;
@@ -174,7 +150,7 @@ uint64 scm_file::offset(uint64 i) const
 {
     uint64 oj;
 
-    if ((oj = index(i)) < oc)
+    if ((oj = toindex(i)) < oc)
     {
         return ov[oj];
     }
@@ -190,12 +166,9 @@ void scm_file::bounds(uint64 i, float& r0, float& r1) const
     uint64 aj = (uint64) (-1);
     uint64 zj = (uint64) (-1);
 
-    r0 = 1.0;
-    r1 = 1.0;
-
     while (aj >= ac || zj >= zc)
     {
-        uint64 j = index(i);
+        uint64 j = toindex(i);
 
         if (aj >= ac) aj = j;
         if (zj >= zc) zj = j;
@@ -206,40 +179,11 @@ void scm_file::bounds(uint64 i, float& r0, float& r1) const
             i = scm_page_parent(i);
     }
 
-    if (b == 8)
-    {
-        if (g == 2)
-        {
-            if (aj < ac) r0 = ((char *) av)[aj * c] / 127.f;
-            if (zj < zc) r1 = ((char *) zv)[zj * c] / 127.f;
-        }
-        else
-        {
-            if (aj < ac) r0 = ((unsigned char *) av)[aj * c] / 255.f;
-            if (zj < zc) r1 = ((unsigned char *) zv)[zj * c] / 255.f;
-        }
-    }
-    else if (b == 16)
-    {
-        if (g == 2)
-        {
-            if (aj < ac) r0 = ((short *) av)[aj * c] / 32767.f;
-            if (zj < zc) r1 = ((short *) zv)[zj * c] / 32767.f;
-        }
-        else
-        {
-            if (aj < ac) r0 = ((unsigned short *) av)[aj * c] / 65535.f;
-            if (zj < zc) r1 = ((unsigned short *) zv)[zj * c] / 65535.f;
-        }
-    }
-    else if (b == 32)
-    {
-        if (aj < ac) r0 = ((float *) av)[aj * c];
-        if (zj < zc) r1 = ((float *) zv)[zj * c];
-    }
+    r0 = (aj < ac) ? tofloat(av, aj * c) : 1.f;
+    r1 = (zj < zc) ? tofloat(zv, zj * c) : 1.f;
 }
 
-// Return the buffer length for a page of this file.  24-bit is padded to 32.
+// Return the buffer length for a page of this file. 24-bit is padded to 32.
 
 size_t scm_file::length() const
 {
@@ -247,6 +191,59 @@ size_t scm_file::length() const
         return w * h * 4 * b / 8;
     else
         return w * h * c * b / 8;
+}
+
+//------------------------------------------------------------------------------
+
+static int xcmp(const void *p, const void *q)
+{
+    const uint64 *a = (const uint64 *) p;
+    const uint64 *b = (const uint64 *) q;
+
+    if      (a[0] < b[0]) return -1;
+    else if (a[0] > b[0]) return +1;
+    else                  return  0;
+}
+
+// Determine where SCM index i appears in the sorted index list xv. This will
+// indicate where the file offset and extrema appear in ov, av, and zv.
+
+uint64 scm_file::toindex(uint64 i) const
+{
+    void *p;
+
+    if (xc)
+    {
+        if ((p = bsearch(&i, xv, xc, sizeof (uint64), xcmp)))
+        {
+            return (uint64) ((uint64 *) p - xv);
+        }
+    }
+    return (uint64) (-1);
+}
+
+// Return sample i of the given buffer as a float.
+
+float scm_file::tofloat(const void *v, uint64 i) const
+{
+    if (b == 8)
+    {
+        if (g == 2)
+            return ((         char *) v)[i] / 127.f;
+        else
+            return ((unsigned char *) v)[i] / 255.f;
+    }
+    else if (b == 16)
+    {
+        if (g == 2)
+            return ((         short *) v)[i] / 32767.f;
+        else
+            return ((unsigned short *) v)[i] / 65535.f;
+    }
+    else if (b == 32)
+        return ((float *) v)[i];
+
+    return 0.f;
 }
 
 //------------------------------------------------------------------------------

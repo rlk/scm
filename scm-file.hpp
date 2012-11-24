@@ -45,25 +45,26 @@ private:
     std::string path;
     std::string name;
 
-    uint32 w;
-    uint32 h;
-    uint16 c;
-    uint16 b;
-    uint16 g;
+    uint32 w;   // Page width
+    uint32 h;   // Page height
+    uint16 c;   // Sample count
+    uint16 b;   // Sample depth
+    uint16 g;   // Sample format
 
-    uint64 index(uint64) const;
-
-    uint64 *xv;
+    uint64 *xv; // Page indices
     uint64  xc;
 
-    uint64 *ov;
+    uint64 *ov; // Page offsets
     uint64  oc;
 
-    void   *av;
+    void   *av; // Page minima
     uint64  ac;
 
-    void   *zv;
+    void   *zv; // Page maxima
     uint64  zc;
+
+    float  tofloat(const void *, uint64) const;
+    uint64 toindex(uint64)               const;
 };
 
 //------------------------------------------------------------------------------

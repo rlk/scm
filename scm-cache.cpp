@@ -77,6 +77,8 @@ scm_cache::scm_cache(int s, int n, int c, int b, int t, float r0, float r1) :
 
 scm_cache::~scm_cache()
 {
+    // The following dance courts deadlock to terminate all synchronous IPC.
+
     std::vector<SDL_Thread *>::iterator t;
     int c = 1;
     int s = 0;
