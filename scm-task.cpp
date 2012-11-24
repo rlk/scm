@@ -15,6 +15,7 @@
 #include <tiffio.h>
 
 #include "scm-task.hpp"
+#include "scm-file.hpp"
 
 //------------------------------------------------------------------------------
 
@@ -55,6 +56,14 @@ void scm_task::dump_page()
         glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
     }
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+}
+
+// Load the page at offset o in file f of array v. Store it in pixel buffer p.
+// On success, mark the buffer as dirty.
+
+void scm_task::load_page(scm_file *v)
+{
+    d = v[f].load_page(p, o);
 }
 
 //------------------------------------------------------------------------------

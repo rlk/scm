@@ -340,7 +340,7 @@ int loader(void *data)
     {
         if (cache->is_running())
         {
-            task.d = cache->files[task.f]->load_page(task.p, task.o);
+            task.load_page(cache->files.front());
             cache->loads.insert(task);
         }
     }
