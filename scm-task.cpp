@@ -57,64 +57,6 @@ void scm_task::dump_page()
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-// Load the current TIFF directory image data into the mapped pixel buffer.
-// This executes in a loader thread.
-
-void scm_task::load_page(TIFF *T, uint32 w, uint32 h,
-                                  uint16 c, uint16 b, uint16 g)
-{
-    // Confirm the page format.
-
-    uint32 W, H;
-    uint16 C, B, G;
-
-    TIFFGetField(T, TIFFTAG_IMAGEWIDTH,      &W);
-    TIFFGetField(T, TIFFTAG_IMAGELENGTH,     &H);
-    TIFFGetField(T, TIFFTAG_BITSPERSAMPLE,   &B);
-    TIFFGetField(T, TIFFTAG_SAMPLESPERPIXEL, &C);
-    TIFFGetField(T, TIFFTAG_SAMPLEFORMAT,    &G);
-
-    if (W == w && H == h && B == b && C == c)
-    {
-        // Pad a 24-bit image to 32-bit BGRA. TODO: eliminate this malloc.
-
-        if (c == 3 && b == 8)
-        {
-            if (void *q = malloc(TIFFScanlineSize(T)))
-            {
-                const uint32 S = w * 4 * b / 8;
-
-                for (uint32 r = 0; r < h; ++r)
-                {
-                    TIFFReadScanline(T, q, r, 0);
-
-                    for (int j = w - 1; j >= 0; --j)
-                    {
-                        uint8 *s = (uint8 *) q         + j * c * b / 8;
-                        uint8 *d = (uint8 *) p + r * S + j * 4 * b / 8;
-
-                        d[0] = s[2];
-                        d[1] = s[1];
-                        d[2] = s[0];
-                        d[3] = 0xFF;
-                    }
-                }
-                free(q);
-            }
-        }
-
-        // Load a non-24-bit image normally.
-
-        else
-        {
-            const uint32 S = (uint32) TIFFScanlineSize(T);
-
-            for (uint32 r = 0; r < h; ++r)
-                TIFFReadScanline(T, (uint8 *) p + r * S, r, 0);
-        }
-    }
-}
-
 //------------------------------------------------------------------------------
 
 // Select an OpenGL internal texture format for an image with c channels and
@@ -138,13 +80,13 @@ GLenum scm_internal_form(uint16 c, uint16 b, uint16 g)
         case  3: return GL_RGB16;
         default: return GL_RGBA16;
         }
-    else // (b == 8)
+    else
         switch (c)
         {
-        case  1: return GL_LUMINANCE8;
+        case  1: return GL_LUMINANCE;
         case  2: return GL_LUMINANCE_ALPHA;
-        case  3: return GL_RGBA8; // *
-        default: return GL_RGBA8;
+        case  3: return GL_RGBA; // *
+        default: return GL_RGBA;
         }
 }
 
@@ -176,15 +118,17 @@ GLenum scm_external_type(uint16 c, uint16 b, uint16 g)
 {
     if      (b ==  8 && c == 3) return GL_UNSIGNED_INT_8_8_8_8_REV; // *
     else if (b ==  8 && c == 4) return GL_UNSIGNED_INT_8_8_8_8_REV;
+    else if (b == 32)           return GL_FLOAT;
+    else if (b == 16)           return GL_UNSIGNED_SHORT;
+    else                        return GL_UNSIGNED_BYTE;
+
 #if 0
+    // Signed texture support does not seem common yet. Save for later.
     else if (b ==  8) return (g == 2) ? GL_BYTE  : GL_UNSIGNED_BYTE;
     else if (b == 16) return (g == 2) ? GL_SHORT : GL_UNSIGNED_SHORT;
 #endif
-    else if (b == 32) return GL_FLOAT;
-    else if (b == 16) return GL_UNSIGNED_SHORT;
-    else              return GL_UNSIGNED_BYTE;
 }
 
-// * 24-bit images are always padded to 32 bits.  BGRA order.
+// * BGRA order. 24-bit images are always padded to 32 bits.
 
 //------------------------------------------------------------------------------

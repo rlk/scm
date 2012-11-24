@@ -119,6 +119,9 @@ scm_file::scm_file(const std::string& tiff) :
                     zc = n;
                 }
             }
+
+            tmp = malloc(TIFFScanlineSize(T));
+
             TIFFClose(T);
         }
     }
@@ -126,10 +129,65 @@ scm_file::scm_file(const std::string& tiff) :
 
 scm_file::~scm_file()
 {
+    free(tmp);
     free(zv);
     free(av);
     free(ov);
     free(xv);
+}
+
+//------------------------------------------------------------------------------
+
+bool scm_file::load_page(void *p, uint64 o)
+{
+    uint32 r = 0;
+
+    if (TIFF *T = TIFFOpen(path.c_str(), "r"))
+    {
+        if (TIFFSetSubDirectory(T, o))
+        {
+            uint32 W, H;
+            uint16 C, B;
+
+            TIFFGetField(T, TIFFTAG_IMAGEWIDTH,      &W);
+            TIFFGetField(T, TIFFTAG_IMAGELENGTH,     &H);
+            TIFFGetField(T, TIFFTAG_BITSPERSAMPLE,   &B);
+            TIFFGetField(T, TIFFTAG_SAMPLESPERPIXEL, &C);
+
+            if (W == w && H == h && B == b && C == c)
+            {
+                if (c == 3 && b == 8)
+                {
+                    const uint32 S = w * 4 * b / 8;
+
+                    for (r = 0; r < h; ++r)
+                    {
+                        TIFFReadScanline(T, tmp, r, 0);
+
+                        for (int j = w - 1; j >= 0; --j)
+                        {
+                            uint8 *s = (uint8 *) tmp       + j * c * b / 8;
+                            uint8 *d = (uint8 *) p + r * S + j * 4 * b / 8;
+
+                            d[0] = s[2];
+                            d[1] = s[1];
+                            d[2] = s[0];
+                            d[3] = 0xFF;
+                        }
+                    }
+                }
+                else
+                {
+                    const uint32 S = (uint32) TIFFScanlineSize(T);
+
+                    for (r = 0; r < h; ++r)
+                        TIFFReadScanline(T, (uint8 *) p + r * S, r, 0);
+                }
+            }
+        }
+        TIFFClose(T);
+    }
+    return (r > 0);
 }
 
 //------------------------------------------------------------------------------
@@ -229,9 +287,9 @@ float scm_file::tofloat(const void *v, uint64 i) const
     if (b == 8)
     {
         if (g == 2)
-            return ((         char *) v)[i] / 127.f;
+            return ((          char *) v)[i] / 127.f;
         else
-            return ((unsigned char *) v)[i] / 255.f;
+            return ((unsigned  char *) v)[i] / 255.f;
     }
     else if (b == 16)
     {

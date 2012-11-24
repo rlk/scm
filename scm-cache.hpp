@@ -17,7 +17,6 @@
 #include <string>
 
 #include <GL/glew.h>
-#include <tiffio.h>
 #include <SDL.h>
 #include <SDL_thread.h>
 

@@ -40,6 +40,8 @@ public:
     const char *get_path() const { return path.c_str(); }
     const char *get_name() const { return name.c_str(); }
 
+    bool load_page(void *p, uint64);
+
 private:
 
     std::string path;
@@ -62,6 +64,8 @@ private:
 
     void   *zv; // Page maxima
     uint64  zc;
+
+    void  *tmp; // Swizzle temporary buffer
 
     float  tofloat(const void *, uint64) const;
     uint64 toindex(uint64)               const;

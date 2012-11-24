@@ -327,8 +327,8 @@ bool scm_cache::get_page_status(int f, long long i)
 
 //------------------------------------------------------------------------------
 
-// Load textures. Remove a task from the cache's needed queue, open and read
-// the TIFF image file, and insert the task in the cache's loaded queue. Ignore
+// Load textures. Remove a task from the cache's needed queue, load the texture
+// to the task buffer, and insert the task in the cache's loaded queue. Ignore
 // the task if the cache is quitting. Exit when given a negative file index.
 
 int loader(void *data)
@@ -340,21 +340,7 @@ int loader(void *data)
     {
         if (cache->is_running())
         {
-            if (TIFF *T = TIFFOpen(cache->files[task.f]->get_path(), "r"))
-            {
-                if (TIFFSetSubDirectory(T, task.o))
-                {
-                    uint32 w = cache->files[task.f]->get_w();
-                    uint32 h = cache->files[task.f]->get_h();
-                    uint16 c = cache->files[task.f]->get_c();
-                    uint16 b = cache->files[task.f]->get_b();
-                    uint16 g = cache->files[task.f]->get_g();
-
-                    task.load_page(T, w, h, c, b, g);
-                    task.d = true;
-                }
-                TIFFClose(T);
-            }
+            task.d = cache->files[task.f]->load_page(task.p, task.o);
             cache->loads.insert(task);
         }
     }

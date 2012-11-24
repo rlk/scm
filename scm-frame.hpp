@@ -37,9 +37,6 @@ public:
     bool  page_status(long long)                  const;
     void  page_touch (long long, int);
 
-    float get_r0() const;
-    float get_r1() const;
-
     void  set_channel(int c) { channel = c; }
 
 private:
