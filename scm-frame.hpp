@@ -25,19 +25,22 @@ public:
 
     scm_frame();
 
-    void  add_image(scm_image *);
+    void add_image(scm_image *);
 
-    void  bind(GLuint) const;
-    void  free()       const;
+    void bind(GLuint) const;
+    void free()       const;
 
-    void  set_texture(GLuint, int, int, long long) const;
-    void  clr_texture(GLuint, int)                 const;
+    void set_texture(GLuint, int, int, long long) const;
+    void clr_texture(GLuint, int)                 const;
 
-    void  page_bounds(long long, float&, float &) const;
-    bool  page_status(long long)                  const;
-    void  page_touch (long long, int);
+    void page_bounds(long long, float&, float &) const;
+    bool page_status(long long)                  const;
+    void page_touch (long long, int);
 
-    void  set_channel(int c) { channel = c; }
+    void set_channel(int c) { channel = c; }
+
+    double get_height(const double *) const;
+    double min_height()               const;
 
 private:
 

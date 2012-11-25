@@ -118,7 +118,8 @@ static inline long long scm_page_order(long long i)
 
 //------------------------------------------------------------------------------
 
-void scm_vector(long long, double, double, double *);
+void scm_locate(long long *, double *, double *, const double *);
+void scm_vector(long long,   double,   double,         double *);
 
 long long scm_page_north(long long);
 long long scm_page_south(long long);

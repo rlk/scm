@@ -32,12 +32,16 @@ public:
     void set_texture(GLuint, int, int, long long) const;
     void clr_texture(GLuint, int)                 const;
 
-    void bounds(long long, float &, float &) const;
-    bool status(long long)                   const;
-    void touch (long long, int)              const;
+    float sample(const double *)              const;
+    void  bounds(long long, float &, float &) const;
+    bool  status(long long)                   const;
+    void  touch (long long, int)              const;
 
     bool is_channel(int c) const { return (chan == -1 || chan == c); }
     bool is_height()       const { return height; }
+
+    float minimum() const { return cache->get_r0(); }
+    float maximum() const { return cache->get_r1(); }
 
 private:
 

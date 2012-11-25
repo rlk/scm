@@ -14,7 +14,35 @@
 
 #include "scm-index.hpp"
 
-// Calculate the vector toward (x, y) on root face a. --------------------------
+// Transform between a face-local vector u and a world vector v. ---------------
+
+static inline void face_to_world(long long a, const double *u, double *v)
+{
+    switch (a)
+    {
+        case 0: v[0] =  u[2]; v[1] =  u[1]; v[2] = -u[0]; break;
+        case 1: v[0] = -u[2]; v[1] =  u[1]; v[2] =  u[0]; break;
+        case 2: v[0] =  u[0]; v[1] =  u[2]; v[2] = -u[1]; break;
+        case 3: v[0] =  u[0]; v[1] = -u[2]; v[2] =  u[1]; break;
+        case 4: v[0] =  u[0]; v[1] =  u[1]; v[2] =  u[2]; break;
+        case 5: v[0] = -u[0]; v[1] =  u[1]; v[2] = -u[2]; break;
+    }
+}
+
+static inline void world_to_face(long long a, const double *v, double *u)
+{
+    switch (a)
+    {
+        case 0: u[2] =  v[0]; u[1] =  v[1]; u[0] = -v[2]; break;
+        case 1: u[2] = -v[0]; u[1] =  v[1]; u[0] =  v[2]; break;
+        case 2: u[0] =  v[0]; u[2] =  v[1]; u[1] = -v[2]; break;
+        case 3: u[0] =  v[0]; u[2] = -v[1]; u[1] =  v[2]; break;
+        case 4: u[0] =  v[0]; u[1] =  v[1]; u[2] =  v[2]; break;
+        case 5: u[0] = -v[0]; u[1] =  v[1]; u[2] = -v[2]; break;
+    }
+}
+
+// Calculate the vector v toward (x, y) on root face a. ------------------------
 
 void scm_vector(long long a, double y, double x, double *v)
 {
@@ -33,15 +61,29 @@ void scm_vector(long long a, double y, double x, double *v)
     u[1] *= k;
     u[2] *= k;
 
-    switch (a)
-    {
-        case 0: v[0] =  u[2]; v[1] =  u[1]; v[2] = -u[0]; break;
-        case 1: v[0] = -u[2]; v[1] =  u[1]; v[2] =  u[0]; break;
-        case 2: v[0] =  u[0]; v[1] =  u[2]; v[2] = -u[1]; break;
-        case 3: v[0] =  u[0]; v[1] = -u[2]; v[2] =  u[1]; break;
-        case 4: v[0] =  u[0]; v[1] =  u[1]; v[2] =  u[2]; break;
-        case 5: v[0] = -u[0]; v[1] =  u[1]; v[2] = -u[2]; break;
-    }
+    face_to_world(a, u, v);
+}
+
+// Calculate the root face a and coordinate (x, y) along vector v. -------------
+
+void scm_locate(long long *a, double *y, double *x, const double *v)
+{
+    double u[3];
+
+    if      (v[0] >  fabs(v[1]) && v[0] >  fabs(v[2])) *a = 0;
+    else if (v[0] < -fabs(v[1]) && v[0] < -fabs(v[2])) *a = 1;
+    else if (v[1] >  fabs(v[0]) && v[1] >  fabs(v[2])) *a = 2;
+    else if (v[1] < -fabs(v[0]) && v[1] < -fabs(v[2])) *a = 3;
+    else if (v[2] >  fabs(v[0]) && v[2] >  fabs(v[1])) *a = 4;
+    else if (v[2] < -fabs(v[0]) && v[2] < -fabs(v[1])) *a = 5;
+
+    world_to_face(*a, v, u);
+
+    double s = -atan2(u[0], u[2]);
+    double t = -atan2(u[1], u[2]);
+
+    *x = (t + M_PI_4) / M_PI_2;
+    *y = (s + M_PI_4) / M_PI_2;
 }
 
 // Determine the page to the north of page i. ----------------------------------

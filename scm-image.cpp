@@ -62,6 +62,11 @@ void scm_image::free(GLint unit) const
 
 //------------------------------------------------------------------------------
 
+float scm_image::sample(const double *v) const
+{
+    return cache->get_page_sample(file, v);
+}
+
 void scm_image::bounds(long long i, float& r0, float& r1) const
 {
     return cache->get_page_bounds(file, i, r0, r1);

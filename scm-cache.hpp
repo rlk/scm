@@ -38,6 +38,7 @@ public:
 
     int    add_file(const std::string&);
     int    get_page(int, long long, int, int&);
+
     GLuint get_texture() const { return texture; }
     float  get_r0()      const { return r0;      }
     float  get_r1()      const { return r1;      }
@@ -46,6 +47,7 @@ public:
 
     void   get_page_bounds(int, long long, float&, float&);
     bool   get_page_status(int, long long);
+    float  get_page_sample(int, const double *);
 
     bool   is_running() { return run.get(); }
 

@@ -28,8 +28,8 @@ public:
     bool   status(uint64)                 const;
     uint64 offset(uint64)                 const;
     void   bounds(uint64, float&, float&) const;
-
-    size_t length() const;
+    float  sample(const double *)         const;
+    size_t length()                       const;
 
     uint32 get_w() const { return w; }
     uint32 get_h() const { return h; }

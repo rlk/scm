@@ -22,6 +22,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef _WIN32
+#define PATH_LIST_SEP ';'
+#else
+#define PATH_LIST_SEP ':'
+#endif
+
+// Does the given path name an existing regular file?
+
 static bool exists(const std::string& path)
 {
     struct stat info;
@@ -34,13 +42,8 @@ static bool exists(const std::string& path)
 
 //------------------------------------------------------------------------------
 
-#ifdef _WIN32
-#define PATH_LIST_SEP ';'
-#else
-#define PATH_LIST_SEP ':'
-#endif
-
-// Construct a file table entry. Open the TIFF briefly to determine its format.
+// Construct a file table entry. Open the TIFF briefly to determine its format
+// and cache its meta-data.
 
 scm_file::scm_file(const std::string& tiff) :
     name(tiff),
@@ -137,6 +140,10 @@ scm_file::~scm_file()
 }
 
 //------------------------------------------------------------------------------
+
+// Open the TIFF and read the page at offset o into pixel buffer p. We re-open
+// the file each time because this function may be invoked by any one of many
+// sub-threads.
 
 bool scm_file::load_page(void *p, uint64 o)
 {
@@ -241,17 +248,32 @@ void scm_file::bounds(uint64 i, float& r0, float& r1) const
     r1 = (zj < zc) ? tofloat(zv, zj * c) : 1.f;
 }
 
+// Sample this file along vector v using linear filtering.
+
+float scm_file::sample(const double *v) const
+{
+    long long a;
+    double    y;
+    double    x;
+
+    scm_locate(&a, &y, &x, v);
+
+    return 1.f;
+}
+
 // Return the buffer length for a page of this file. 24-bit is padded to 32.
 
 size_t scm_file::length() const
 {
     if (c == 3 && b == 8)
-        return w * h * 4 * b / 8;
+        return size_t(w) * size_t(h) * 4 * b / 8;
     else
-        return w * h * c * b / 8;
+        return size_t(w) * size_t(h) * c * b / 8;
 }
 
 //------------------------------------------------------------------------------
+
+// Compare two uint64s, for use by bsearch and qsort.
 
 static int xcmp(const void *p, const void *q)
 {
@@ -299,9 +321,10 @@ float scm_file::tofloat(const void *v, uint64 i) const
             return ((unsigned short *) v)[i] / 65535.f;
     }
     else if (b == 32)
+    {
         return ((float *) v)[i];
-
-    return 0.f;
+    }
+    else return 0.f;
 }
 
 //------------------------------------------------------------------------------

@@ -41,9 +41,6 @@ void scm_frame::bind(GLuint program) const
         (*c)->bind(unit++, program);
 
     glActiveTexture(GL_TEXTURE0);
-
-    // glUniform1f(u_r0, GLfloat(cache.get_r0()));
-    // glUniform1f(u_r1, GLfloat(cache.get_r1()));
 }
 
 void scm_frame::free() const
@@ -104,6 +101,22 @@ void scm_frame::page_touch(long long i, int time)
 {
     FOR_ALL_OF_CHANNEL(c)
         (*c)->touch(i, time);
+}
+
+double scm_frame::get_height(const double *v) const
+{
+    if (height)
+        return height->sample(v);
+    else
+        return 1.0;
+}
+
+double scm_frame::min_height() const
+{
+    if (height)
+        return height->minimum();
+    else
+        return 1.0;
 }
 
 //------------------------------------------------------------------------------

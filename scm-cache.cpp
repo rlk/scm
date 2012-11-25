@@ -325,6 +325,11 @@ bool scm_cache::get_page_status(int f, long long i)
     return files[f]->status(uint64(i));
 }
 
+float scm_cache::get_page_sample(int f, const double *v)
+{
+    return files[f]->sample(v) * (r1 - r0) + r1;
+}
+
 //------------------------------------------------------------------------------
 
 // Load textures. Remove a task from the cache's needed queue, load the texture
