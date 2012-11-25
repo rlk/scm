@@ -124,13 +124,10 @@ scm_file::scm_file(const std::string& tiff) :
                 }
             }
 
-            tmp = malloc(TIFFScanlineSize(T));
+            tmp     = malloc(TIFFScanlineSize(T));
+            cache_p = malloc(TIFFScanlineSize(T) * h);
+            cache_i = (uint64) (-1);
 
-            for (int i = 0; i < 6; ++i)
-            {
-                if ((dat[i] = malloc(h * TIFFScanlineSize(T))))
-                    load_page(dat[i], ov[i]);
-            }
             TIFFClose(T);
         }
     }
@@ -138,9 +135,7 @@ scm_file::scm_file(const std::string& tiff) :
 
 scm_file::~scm_file()
 {
-    for (int i = 0; i < 6; ++i)
-        free(dat[i]);
-
+    free(cache_p);
     free(tmp);
     free(zv);
     free(av);
@@ -261,27 +256,67 @@ void scm_file::bounds(uint64 i, float& r0, float& r1) const
 
 // Sample this file along vector v using linear filtering.
 
-float scm_file::sample(const double *v) const
+float scm_file::sample(const double *v)
 {
+    // Locate the face and coordinates of vector v.
+
     long long a;
     double    y;
     double    x;
 
     scm_locate(&a, &y, &x, v);
 
-    double i = (      y) * (h - 2.0) + 0.5, ii = i - floor(i);
-    double j = (1.0 - x) * (w - 2.0) + 0.5, jj = j - floor(j);
+    // Assume for now that height height maps are for planets, thus inside-out.
 
-    int i0 = int(floor(i)), i1 = i0 + 1;
-    int j0 = int(floor(j)), j1 = j0 + 1;
+    x = 1 - x;
 
-    float s00 = tofloat(dat[a], (w * i0 + j0) * c);
-    float s01 = tofloat(dat[a], (w * i0 + j1) * c);
-    float s10 = tofloat(dat[a], (w * i1 + j0) * c);
-    float s11 = tofloat(dat[a], (w * i1 + j1) * c);
+    // Seek the deepest page at this location.
 
-    return LERP(LERP(s00, s01, jj),
-                LERP(s10, s11, jj), ii);
+    long long n = 1;
+    long long l = 1;
+    uint64    i = a;
+    uint64    j = 0;
+    uint64    o = ov[a];
+
+    while ((j = toindex(scm_page_index(a, l, int(2 * n * y),
+                                             int(2 * n * x)))) < oc)
+        if (ov[j])
+        {
+            i = xv[j];
+            o = ov[j];
+            l = l + 1;
+            n = n * 2;
+        }
+        else break;
+
+    // If this is not the cached page, load it.
+
+    if (cache_i != i)
+    {
+        load_page(cache_p, o);
+        cache_i  = i;
+    }
+
+    // Convert the root face coordinate to a local face coordinate.
+
+    x = (x * n) - floor(x * n);
+    y = (y * n) - floor(y * n);
+
+    // Sample this page with linear filtering.
+
+    double r = y * (h - 2.0) + 0.5, rr = r - floor(r);
+    double c = x * (w - 2.0) + 0.5, cc = c - floor(c);
+
+    int r0 = int(floor(r)), r1 = r0 + 1;
+    int c0 = int(floor(c)), c1 = c0 + 1;
+
+    float s00 = tofloat(cache_p, (this->w * r0 + c0) * this->c);
+    float s01 = tofloat(cache_p, (this->w * r0 + c1) * this->c);
+    float s10 = tofloat(cache_p, (this->w * r1 + c0) * this->c);
+    float s11 = tofloat(cache_p, (this->w * r1 + c1) * this->c);
+
+    return LERP(LERP(s00, s01, cc),
+                LERP(s10, s11, cc), rr);
 }
 
 // Return the buffer length for a page of this file. 24-bit is padded to 32.

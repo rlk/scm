@@ -25,11 +25,11 @@ public:
     scm_file(const std::string& name);
    ~scm_file();
 
+    size_t length()                       const;
     bool   status(uint64)                 const;
     uint64 offset(uint64)                 const;
     void   bounds(uint64, float&, float&) const;
-    float  sample(const double *)         const;
-    size_t length()                       const;
+    float  sample(const double *);
 
     uint32 get_w() const { return w; }
     uint32 get_h() const { return h; }
@@ -65,7 +65,9 @@ private:
     void   *zv; // Page maxima
     uint64  zc;
 
-    void  *dat[6];
+    uint64 cache_i;
+    void  *cache_p;
+
     void  *tmp; // Swizzle temporary buffer
 
     float  tofloat(const void *, uint64) const;
