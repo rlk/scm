@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
+#include <cmath>
 
 #include "scm-index.hpp"
 #include "scm-file.hpp"
@@ -125,6 +126,11 @@ scm_file::scm_file(const std::string& tiff) :
 
             tmp = malloc(TIFFScanlineSize(T));
 
+            for (int i = 0; i < 6; ++i)
+            {
+                if ((dat[i] = malloc(h * TIFFScanlineSize(T))))
+                    load_page(dat[i], ov[i]);
+            }
             TIFFClose(T);
         }
     }
@@ -132,6 +138,9 @@ scm_file::scm_file(const std::string& tiff) :
 
 scm_file::~scm_file()
 {
+    for (int i = 0; i < 6; ++i)
+        free(dat[i]);
+
     free(tmp);
     free(zv);
     free(av);
@@ -248,6 +257,8 @@ void scm_file::bounds(uint64 i, float& r0, float& r1) const
     r1 = (zj < zc) ? tofloat(zv, zj * c) : 1.f;
 }
 
+#define LERP(a, b, t) ((1.f - (t)) * (a) + (t) * (b))
+
 // Sample this file along vector v using linear filtering.
 
 float scm_file::sample(const double *v) const
@@ -258,7 +269,19 @@ float scm_file::sample(const double *v) const
 
     scm_locate(&a, &y, &x, v);
 
-    return 1.f;
+    double i = (      y) * (h - 2.0) + 0.5, ii = i - floor(i);
+    double j = (1.0 - x) * (w - 2.0) + 0.5, jj = j - floor(j);
+
+    int i0 = int(floor(i)), i1 = i0 + 1;
+    int j0 = int(floor(j)), j1 = j0 + 1;
+
+    float s00 = tofloat(dat[a], (w * i0 + j0) * c);
+    float s01 = tofloat(dat[a], (w * i0 + j1) * c);
+    float s10 = tofloat(dat[a], (w * i1 + j0) * c);
+    float s11 = tofloat(dat[a], (w * i1 + j1) * c);
+
+    return LERP(LERP(s00, s01, jj),
+                LERP(s10, s11, jj), ii);
 }
 
 // Return the buffer length for a page of this file. 24-bit is padded to 32.

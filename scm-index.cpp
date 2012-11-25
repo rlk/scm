@@ -82,8 +82,8 @@ void scm_locate(long long *a, double *y, double *x, const double *v)
     double s = -atan2(u[0], u[2]);
     double t = -atan2(u[1], u[2]);
 
-    *x = (t + M_PI_4) / M_PI_2;
-    *y = (s + M_PI_4) / M_PI_2;
+    *x = (s + M_PI_4) / M_PI_2;
+    *y = (t + M_PI_4) / M_PI_2;
 }
 
 // Determine the page to the north of page i. ----------------------------------

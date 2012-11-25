@@ -327,7 +327,7 @@ bool scm_cache::get_page_status(int f, long long i)
 
 float scm_cache::get_page_sample(int f, const double *v)
 {
-    return files[f]->sample(v) * (r1 - r0) + r1;
+    return files[f]->sample(v) * (r1 - r0) + r0;
 }
 
 //------------------------------------------------------------------------------

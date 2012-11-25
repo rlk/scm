@@ -65,6 +65,7 @@ private:
     void   *zv; // Page maxima
     uint64  zc;
 
+    void  *dat[6];
     void  *tmp; // Swizzle temporary buffer
 
     float  tofloat(const void *, uint64) const;
