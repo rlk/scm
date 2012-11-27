@@ -65,10 +65,12 @@ private:
     void   *zv; // Page maxima
     uint64  zc;
 
-    uint64 cache_i;
-    void  *cache_p;
-
     void  *tmp; // Swizzle temporary buffer
+
+    double cache_v[3];  // Sample cache last vector
+    float  cache_k;     // Sample cache last value
+    void  *cache_p;     // Sample cache last page buffer
+    uint64 cache_i;     // Sample cache last page index
 
     float  tofloat(const void *, uint64) const;
     uint64 toindex(uint64)               const;

@@ -15,6 +15,7 @@
 #include <sstream>
 #include <cmath>
 
+#include "util3d/math3d.h"
 #include "scm-index.hpp"
 #include "scm-file.hpp"
 
@@ -124,9 +125,13 @@ scm_file::scm_file(const std::string& tiff) :
                 }
             }
 
-            tmp     = malloc(TIFFScanlineSize(T));
-            cache_p = malloc(TIFFScanlineSize(T) * h);
-            cache_i = (uint64) (-1);
+            tmp        = malloc(TIFFScanlineSize(T));
+            cache_p    = malloc(TIFFScanlineSize(T) * h);
+            cache_i    = (uint64) (-1);
+            cache_v[0] = 0;
+            cache_v[1] = 0;
+            cache_v[2] = 0;
+            cache_k    = 0;
 
             TIFFClose(T);
         }
@@ -258,65 +263,73 @@ void scm_file::bounds(uint64 i, float& r0, float& r1) const
 
 float scm_file::sample(const double *v)
 {
-    // Locate the face and coordinates of vector v.
-
-    long long a;
-    double    y;
-    double    x;
-
-    scm_locate(&a, &y, &x, v);
-
-    // Assume for now that height height maps are for planets, thus inside-out.
-
-    x = 1 - x;
-
-    // Seek the deepest page at this location.
-
-    long long n = 1;
-    long long l = 1;
-    uint64    i = a;
-    uint64    j = 0;
-    uint64    o = ov[a];
-
-    while ((j = toindex(scm_page_index(a, l, int(2 * n * y),
-                                             int(2 * n * x)))) < oc)
-        if (ov[j])
-        {
-            i = xv[j];
-            o = ov[j];
-            l = l + 1;
-            n = n * 2;
-        }
-        else break;
-
-    // If this is not the cached page, load it.
-
-    if (cache_i != i)
+    if (v[0] != cache_v[0] || v[1] != cache_v[1] || v[2] != cache_v[2])
     {
-        load_page(cache_p, o);
-        cache_i  = i;
+        // Locate the face and coordinates of vector v.
+
+        long long a;
+        double    y;
+        double    x;
+
+        scm_locate(&a, &y, &x, v);
+
+        // Assume for now that height height maps are for planets, thus inside-out.
+
+        x = 1 - x;
+
+        // Seek the deepest page at this location.
+
+        long long n = 1;
+        long long l = 1;
+        uint64    i = a;
+        uint64    j = 0;
+        uint64    o = ov[a];
+
+        while ((j = toindex(scm_page_index(a, l, int(2 * n * y),
+                                                 int(2 * n * x)))) < oc)
+            if (ov[j])
+            {
+                i = xv[j];
+                o = ov[j];
+                l = l + 1;
+                n = n * 2;
+            }
+            else break;
+
+        // If this is not the cached page, load it.
+
+        if (cache_i != i)
+        {
+            load_page(cache_p, o);
+            cache_i  = i;
+        }
+
+        // Convert the root face coordinate to a local face coordinate.
+
+        x = (x * n) - floor(x * n);
+        y = (y * n) - floor(y * n);
+
+        // Sample this page with linear filtering.
+
+        double r = y * (h - 2.0) + 0.5, rr = r - floor(r);
+        double c = x * (w - 2.0) + 0.5, cc = c - floor(c);
+
+        int r0 = int(floor(r)), r1 = r0 + 1;
+        int c0 = int(floor(c)), c1 = c0 + 1;
+
+        float s00 = tofloat(cache_p, (this->w * r0 + c0) * this->c);
+        float s01 = tofloat(cache_p, (this->w * r0 + c1) * this->c);
+        float s10 = tofloat(cache_p, (this->w * r1 + c0) * this->c);
+        float s11 = tofloat(cache_p, (this->w * r1 + c1) * this->c);
+
+        // Cache the request and its result.
+
+        cache_v[0] = v[0];
+        cache_v[1] = v[1];
+        cache_v[2] = v[2];
+        cache_k    = lerp(lerp(s00, s01, cc), lerp(s10, s11, cc), rr);
     }
-
-    // Convert the root face coordinate to a local face coordinate.
-
-    x = (x * n) - floor(x * n);
-    y = (y * n) - floor(y * n);
-
-    // Sample this page with linear filtering.
-
-    double r = y * (h - 2.0) + 0.5, rr = r - floor(r);
-    double c = x * (w - 2.0) + 0.5, cc = c - floor(c);
-
-    int r0 = int(floor(r)), r1 = r0 + 1;
-    int c0 = int(floor(c)), c1 = c0 + 1;
-
-    float s00 = tofloat(cache_p, (this->w * r0 + c0) * this->c);
-    float s01 = tofloat(cache_p, (this->w * r0 + c1) * this->c);
-    float s10 = tofloat(cache_p, (this->w * r1 + c0) * this->c);
-    float s11 = tofloat(cache_p, (this->w * r1 + c1) * this->c);
-
-    return LERP(LERP(s00, s01, cc),
-                LERP(s10, s11, cc), rr);
+    return cache_k;
 }
 
 // Return the buffer length for a page of this file. 24-bit is padded to 32.
