@@ -93,8 +93,8 @@ void scm_image::set_texture(GLuint program, int d, int t, long long i) const
     int u;
     int l = cache->get_page(file, i, t, u);
 
-//  double a = (t - u) / 60.0;
-    double a = 1.0;
+    double a = (t - u) / 60.0;
+//  double a = 1.0;
 
     if      (l ==  0) a = 0.0;
     else if (a > 1.0) a = 1.0;
