@@ -84,7 +84,14 @@ scm_model::scm_model(const char *vert,
     frame(1),
     size(s)
 {
-    init_program(vert, frag);
+    glsl_source(&render, vert, frag);
+
+    glUseProgram(render.program);
+
+    u_fader = glGetUniformLocation(render.program, "fader");
+    u_zoomk = glGetUniformLocation(render.program, "zoomk");
+    u_zoomv = glGetUniformLocation(render.program, "zoomv");
+
     init_arrays(n);
 
     zoomv[0] =  0;
@@ -96,7 +103,7 @@ scm_model::scm_model(const char *vert,
 scm_model::~scm_model()
 {
     free_arrays();
-    free_program();
+    glsl_delete(&render);
 }
 
 GLfloat scm_model::age(int then)
@@ -358,7 +365,7 @@ bool scm_model::prep_page(scm_scene *scene,
 
 void scm_model::draw_page(scm_scene *scene, int channel, int depth, long long i)
 {
-    scene->bind_page(program, channel, depth, frame, i);
+    scene->bind_page(render.program, channel, depth, frame, i);
     {
         long long i0 = scm_page_child(i, 0);
         long long i1 = scm_page_child(i, 1);
@@ -394,8 +401,8 @@ void scm_model::draw_page(scm_scene *scene, int channel, int depth, long long i)
                 GLfloat x = m * c - C;
                 GLfloat y = m * r - R;
 
-                GLint A = glsl_uniform(program, "A[%d]", l);
-                GLint B = glsl_uniform(program, "B[%d]", l);
+                GLint A = glsl_uniform(render.program, "A[%d]", l);
+                GLint B = glsl_uniform(render.program, "B[%d]", l);
 
                 glUniform2f(A, m, m);
                 glUniform2f(B, x, y);
@@ -415,7 +422,7 @@ void scm_model::draw_page(scm_scene *scene, int channel, int depth, long long i)
             glDrawElements(GL_QUADS, count, GL_ELEMENT_INDEX, 0);
         }
     }
-    scene->unbind_page(program, channel, depth);
+    scene->unbind_page(render.program, channel, depth);
 }
 
 //------------------------------------------------------------------------------
@@ -455,7 +462,7 @@ void scm_model::draw(scm_scene *scene, const double *M, int width, int height, i
 
     // Configure the shaders and draw the six root pages.
 
-    scene->bind(channel, program);
+    scene->bind(channel, render.program);
     {
         static const GLfloat M[6][9] = {
             {  0.f,  0.f,  1.f,  0.f,  1.f,  0.f, -1.f,  0.f,  0.f },
@@ -466,7 +473,7 @@ void scm_model::draw(scm_scene *scene, const double *M, int width, int height, i
             { -1.f,  0.f,  0.f,  0.f,  1.f,  0.f,  0.f,  0.f, -1.f },
         };
 
-        GLint uM = glsl_uniform(program, "M");
+        GLint uM = glsl_uniform(render.program, "M");
 
         glUniform1f(u_zoomk, GLfloat(zoomk));
         glUniform3f(u_zoomv, GLfloat(zoomv[0]),
@@ -511,39 +518,6 @@ void scm_model::draw(scm_scene *scene, const double *M, int width, int height, i
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER,         0);
     glDisableClientState(GL_VERTEX_ARRAY);
-}
-
-//------------------------------------------------------------------------------
-
-void scm_model::set_fade(double k)
-{
-    // double t = k * k * (3.0 - 2.0 * k);
-    // glUseProgram(program);
-    // glUniform1f(u_fader, GLfloat(t));
-}
-
-void scm_model::init_program(const char *vert_src,
-                             const char *frag_src)
-{
-    if (vert_src && frag_src)
-    {
-        vert_shader = glsl_init_shader(GL_VERTEX_SHADER,   vert_src);
-        frag_shader = glsl_init_shader(GL_FRAGMENT_SHADER, frag_src);
-        program     = glsl_init_program(vert_shader, frag_shader);
-
-        glUseProgram(program);
-
-        u_fader = glGetUniformLocation(program, "fader");
-        u_zoomk = glGetUniformLocation(program, "zoomk");
-        u_zoomv = glGetUniformLocation(program, "zoomv");
-    }
-}
-
-void scm_model::free_program()
-{
-    glDeleteProgram(program);
-    glDeleteShader(frag_shader);
-    glDeleteShader(vert_shader);
 }
 
 //------------------------------------------------------------------------------

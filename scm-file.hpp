@@ -25,11 +25,11 @@ public:
     scm_file(const std::string& name);
    ~scm_file();
 
-    size_t length()                       const;
-    bool   status(uint64)                 const;
-    uint64 offset(uint64)                 const;
-    void   bounds(uint64, float&, float&) const;
-    float  sample(const double *);
+    size_t get_page_length()                       const;
+    bool   get_page_status(uint64)                 const;
+    uint64 get_page_offset(uint64)                 const;
+    void   get_page_bounds(uint64, float&, float&) const;
+    float  get_page_sample(const double *);
 
     uint32 get_w() const { return w; }
     uint32 get_h() const { return h; }
@@ -65,12 +65,12 @@ private:
     void   *zv; // Page maxima
     uint64  zc;
 
-    void  *tmp; // Swizzle temporary buffer
-
     double cache_v[3];  // Sample cache last vector
     float  cache_k;     // Sample cache last value
     void  *cache_p;     // Sample cache last page buffer
     uint64 cache_i;     // Sample cache last page index
+
+    void  *tmp; // Swizzle temporary buffer
 
     float  tofloat(const void *, uint64) const;
     uint64 toindex(uint64)               const;

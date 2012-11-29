@@ -146,7 +146,7 @@ int scm_cache::get_page(int f, long long i, int t, int& n)
 {
     // If this page does not exist, return the filler.
 
-    uint64 o = files[f]->offset(i);
+    uint64 o = files[f]->get_page_offset(i);
 
     if (o == 0)
         return 0;
@@ -175,7 +175,7 @@ int scm_cache::get_page(int f, long long i, int t, int& n)
 
     if (!pbos.empty())
     {
-        scm_task task(f, i, o, pbos.deq(), files[f]->length());
+        scm_task task(f, i, o, pbos.deq(), files[f]->get_page_length());
         scm_page page(f, i, 0);
 
         if (needs.try_insert(task))
@@ -308,7 +308,7 @@ void scm_cache::draw(int ii, int nn)
 
 void scm_cache::get_page_bounds(int f, long long i, float& t0, float& t1)
 {
-    files[f]->bounds(uint64(i), t0, t1);
+    files[f]->get_page_bounds(uint64(i), t0, t1);
 
     t0 = t0 * (r1 - r0) + r0;
     t1 = t1 * (r1 - r0) + r0;
@@ -316,12 +316,12 @@ void scm_cache::get_page_bounds(int f, long long i, float& t0, float& t1)
 
 bool scm_cache::get_page_status(int f, long long i)
 {
-    return files[f]->status(uint64(i));
+    return files[f]->get_page_status(uint64(i));
 }
 
 float scm_cache::get_page_sample(int f, const double *v)
 {
-    return files[f]->sample(v) * (r1 - r0) + r0;
+    return files[f]->get_page_sample(v) * (r1 - r0) + r0;
 }
 
 //------------------------------------------------------------------------------

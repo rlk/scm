@@ -208,9 +208,19 @@ bool scm_file::load_page(void *p, uint64 o)
 
 //------------------------------------------------------------------------------
 
+// Return the buffer length for a page of this file. 24-bit is padded to 32.
+
+size_t scm_file::get_page_length() const
+{
+    if (c == 3 && b == 8)
+        return size_t(w) * size_t(h) * 4 * b / 8;
+    else
+        return size_t(w) * size_t(h) * c * b / 8;
+}
+
 // Determine whether page i is given by this file.
 
-bool scm_file::status(uint64 i) const
+bool scm_file::get_page_status(uint64 i) const
 {
     if (toindex(i) < xc)
         return true;
@@ -220,7 +230,7 @@ bool scm_file::status(uint64 i) const
 
 // Seek page i in the page catalog and return its file offset.
 
-uint64 scm_file::offset(uint64 i) const
+uint64 scm_file::get_page_offset(uint64 i) const
 {
     uint64 oj;
 
@@ -235,7 +245,7 @@ uint64 scm_file::offset(uint64 i) const
 // reference the corresponding page in the min and max caches. If page i is not
 // represented, assume its parent provides a useful bound and iterate up.
 
-void scm_file::bounds(uint64 i, float& r0, float& r1) const
+void scm_file::get_page_bounds(uint64 i, float& r0, float& r1) const
 {
     uint64 aj = (uint64) (-1);
     uint64 zj = (uint64) (-1);
@@ -257,11 +267,9 @@ void scm_file::bounds(uint64 i, float& r0, float& r1) const
     r1 = (zj < zc) ? tofloat(zv, zj * c) : 1.f;
 }
 
-#define LERP(a, b, t) ((1.f - (t)) * (a) + (t) * (b))
-
 // Sample this file along vector v using linear filtering.
 
-float scm_file::sample(const double *v)
+float scm_file::get_page_sample(const double *v)
 {
     if (v[0] != cache_v[0] || v[1] != cache_v[1] || v[2] != cache_v[2])
     {
@@ -330,16 +338,6 @@ float scm_file::sample(const double *v)
         cache_k    = lerp(lerp(s00, s01, cc), lerp(s10, s11, cc), rr);
     }
     return cache_k;
-}
-
-// Return the buffer length for a page of this file. 24-bit is padded to 32.
-
-size_t scm_file::length() const
-{
-    if (c == 3 && b == 8)
-        return size_t(w) * size_t(h) * 4 * b / 8;
-    else
-        return size_t(w) * size_t(h) * c * b / 8;
 }
 
 //------------------------------------------------------------------------------

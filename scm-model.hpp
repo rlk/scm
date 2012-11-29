@@ -17,6 +17,8 @@
 #include <vector>
 #include <set>
 
+#include "util3d/glsl.h"
+
 #include "scm-scene.hpp"
 
 //------------------------------------------------------------------------------
@@ -28,12 +30,11 @@ public:
     scm_model(const char *, const char *, int, int);
    ~scm_model();
 
-    int  tick() { return frame++; }
+    int tick() { return frame++; }
 
     void prep(scm_scene *, const double *, int, int, int);
     void draw(scm_scene *, const double *, int, int, int);
 
-    void set_fade(double k);
     void set_zoom(double x, double y, double z, double k)
     {
         zoomv[0] = x;
@@ -60,24 +61,19 @@ private:
 
     std::set<long long> pages;
 
-    bool  is_set (long long i) const { return (pages.find(i) != pages.end()); }
-    void set_page(long long i);
+    bool     is_set (long long i) const { return (pages.find(i) != pages.end()); }
+    void    set_page(long long i);
 
     void    add_page(const double *, int, int, double, double, long long);
     double view_page(const double *, int, int, double, double, long long);
     void  debug_page(const double *,           double, double, long long);
 
-    bool prep_page(scm_scene *, const double *, int, int, int, long long);
-    void draw_page(scm_scene *,                      int, int, long long);
+    bool   prep_page(scm_scene *, const double *, int, int, int, long long);
+    void   draw_page(scm_scene *,                      int, int, long long);
 
     // OpenGL programmable processing state
 
-    void init_program(const char *, const char *);
-    void free_program();
-
-    GLuint program;
-    GLuint vert_shader;
-    GLuint frag_shader;
+    glsl   render;
 
     GLuint u_fader;
     GLuint u_zoomk;
