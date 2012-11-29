@@ -37,8 +37,8 @@ public:
     void    get_page_bounds(int, long long, float&, float &) const;
     bool    get_page_status(int, long long)                  const;
 
-    double get_height(const double *) const;
-    double min_height()               const;
+    double  get_height_sample(const double *) const;
+    double  get_height_bottom()               const;
 
 private:
 

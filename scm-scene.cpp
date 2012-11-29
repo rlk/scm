@@ -85,7 +85,7 @@ void scm_scene::touch_page(int channel, int scene, long long i)
 void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) const
 {
     if (height)
-        height->bounds(i, r0, r1);
+        height->get_page_bounds(i, r0, r1);
     else
     {
         r0 = 1.0;
@@ -98,24 +98,24 @@ void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) 
 bool scm_scene::get_page_status(int channel, long long i) const
 {
     FOR_ALL_OF_CHANNEL(it, channel)
-        if ((*it)->status(i))
+        if ((*it)->get_page_status(i))
             return true;
 
     return false;
 }
 
-double scm_scene::get_height(const double *v) const
+double scm_scene::get_height_sample(const double *v) const
 {
     if (height)
-        return height->sample(v);
+        return height->get_page_sample(v);
     else
         return 1.0;
 }
 
-double scm_scene::min_height() const
+double scm_scene::get_height_bottom() const
 {
     if (height)
-        return height->minimum();
+        return height->get_normal_min();
     else
         return 1.0;
 }

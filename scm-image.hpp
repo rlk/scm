@@ -33,15 +33,15 @@ public:
     void unbind_page(GLuint, int)                 const;
     void  touch_page(long long, int)              const;
 
-    float sample(const double *)              const;
-    void  bounds(long long, float &, float &) const;
-    bool  status(long long)                   const;
+    float   get_page_sample(const double *)              const;
+    void    get_page_bounds(long long, float &, float &) const;
+    bool    get_page_status(long long)                   const;
 
-    bool is_channel(int c) const { return (chan == -1 || chan == c); }
-    bool is_height()       const { return height; }
+    float   get_normal_min() const { return cache->get_r0(); }
+    float   get_normal_max() const { return cache->get_r1(); }
 
-    float minimum() const { return cache->get_r0(); }
-    float maximum() const { return cache->get_r1(); }
+    bool     is_channel(int c) const { return (chan == -1 || chan == c); }
+    bool     is_height()       const { return height; }
 
 private:
 

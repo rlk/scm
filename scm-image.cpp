@@ -101,17 +101,17 @@ void scm_image::touch_page(long long i, int t) const
 
 //------------------------------------------------------------------------------
 
-float scm_image::sample(const double *v) const
+float scm_image::get_page_sample(const double *v) const
 {
     return cache->get_page_sample(file, v);
 }
 
-void scm_image::bounds(long long i, float& r0, float& r1) const
+void scm_image::get_page_bounds(long long i, float& r0, float& r1) const
 {
     return cache->get_page_bounds(file, i, r0, r1);
 }
 
-bool scm_image::status(long long i) const
+bool scm_image::get_page_status(long long i) const
 {
     return cache->get_page_status(file, i);
 }
