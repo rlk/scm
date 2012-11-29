@@ -27,15 +27,15 @@ public:
 
     void add_image(scm_image *);
 
-    void bind(GLuint) const;
-    void free()       const;
+    void   bind(GLuint) const;
+    void unbind()       const;
 
-    void set_texture(GLuint, int, int, long long) const;
-    void clr_texture(GLuint, int)                 const;
+    void   bind_page(GLuint, int, int, long long) const;
+    void unbind_page(GLuint, int)                 const;
+    void  touch_page(long long, int);
 
-    void page_bounds(long long, float&, float &) const;
-    bool page_status(long long)                  const;
-    void page_touch (long long, int);
+    void    get_page_bounds(long long, float&, float &) const;
+    bool    get_page_status(long long)                  const;
 
     void set_channel(int c) { channel = c; }
 

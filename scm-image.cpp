@@ -54,10 +54,49 @@ void scm_image::bind(GLint unit, GLuint program) const
     glBindTexture(GL_TEXTURE_2D, cache->get_texture());
 }
 
-void scm_image::free(GLint unit) const
+void scm_image::unbind(GLint unit) const
 {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+//------------------------------------------------------------------------------
+
+void scm_image::bind_page(GLuint program, int d, int t, long long i) const
+{
+    GLint ua = glsl_uniform(program, "%s.a[%d]", name.c_str(), d);
+    GLint ub = glsl_uniform(program, "%s.b[%d]", name.c_str(), d);
+
+    int u;
+    int l = cache->get_page(file, i, t, u);
+
+    double a = (t - u) / 60.0;
+
+    if      (l ==  0) a = 0.0;
+    else if (a > 1.0) a = 1.0;
+    else if (a < 0.0) a = 0.0;
+
+    const int s = cache->get_s();
+    const int n = cache->get_n();
+
+    glUniform1f(ua, GLfloat(a));
+    glUniform2f(ub, GLfloat((l % s) * (n + 2) + 1) / GLfloat(s * (n + 2)),
+                    GLfloat((l / s) * (n + 2) + 1) / GLfloat(s * (n + 2)));
+}
+
+void scm_image::unbind_page(GLuint program, int d) const
+{
+    GLint ua = glsl_uniform(program, "%s.a[%d]", name.c_str(), d);
+    GLint ub = glsl_uniform(program, "%s.b[%d]", name.c_str(), d);
+
+    glUniform1f(ua, 0.f);
+    glUniform2f(ub, 0.f, 0.f);
+}
+
+void scm_image::touch_page(long long i, int t) const
+{
+    int u;
+    cache->get_page(file, i, t, u);
 }
 
 //------------------------------------------------------------------------------
@@ -75,46 +114,6 @@ void scm_image::bounds(long long i, float& r0, float& r1) const
 bool scm_image::status(long long i) const
 {
     return cache->get_page_status(file, i);
-}
-
-void scm_image::touch(long long i, int t) const
-{
-    int u;
-    cache->get_page(file, i, t, u);
-}
-
-//------------------------------------------------------------------------------
-
-void scm_image::set_texture(GLuint program, int d, int t, long long i) const
-{
-    GLint ua = glsl_uniform(program, "%s.a[%d]", name.c_str(), d);
-    GLint ub = glsl_uniform(program, "%s.b[%d]", name.c_str(), d);
-
-    int u;
-    int l = cache->get_page(file, i, t, u);
-
-    double a = (t - u) / 60.0;
-//  double a = 1.0;
-
-    if      (l ==  0) a = 0.0;
-    else if (a > 1.0) a = 1.0;
-    else if (a < 0.0) a = 0.0;
-
-    const int s = cache->get_s();
-    const int n = cache->get_n();
-
-    glUniform1f(ua, GLfloat(a));
-    glUniform2f(ub, GLfloat((l % s) * (n + 2) + 1) / GLfloat(s * (n + 2)),
-                    GLfloat((l / s) * (n + 2) + 1) / GLfloat(s * (n + 2)));
-}
-
-void scm_image::clr_texture(GLuint program, int d) const
-{
-    GLint ua = glsl_uniform(program, "%s.a[%d]", name.c_str(), d);
-    GLint ub = glsl_uniform(program, "%s.b[%d]", name.c_str(), d);
-
-    glUniform1f(ua, 0.f);
-    glUniform2f(ub, 0.f, 0.f);
 }
 
 //------------------------------------------------------------------------------

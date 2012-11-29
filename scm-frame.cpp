@@ -43,37 +43,45 @@ void scm_frame::bind(GLuint program) const
     glActiveTexture(GL_TEXTURE0);
 }
 
-void scm_frame::free() const
+void scm_frame::unbind() const
 {
     GLenum unit = 0;
 
     glUseProgram(0);
 
     FOR_ALL_OF_CHANNEL(c)
-        (*c)->free(unit++);
+        (*c)->unbind(unit++);
 
     glActiveTexture(GL_TEXTURE0);
 }
 
 //------------------------------------------------------------------------------
 
-void scm_frame::set_texture(GLuint program, int d, int t, long long i) const
+void scm_frame::bind_page(GLuint program, int d, int t, long long i) const
 {
     FOR_ALL_OF_CHANNEL(c)
-        (*c)->set_texture(program, d, t, i);
+        (*c)->bind_page(program, d, t, i);
 }
 
-void scm_frame::clr_texture(GLuint program, int d) const
+void scm_frame::unbind_page(GLuint program, int d) const
 {
     FOR_ALL_OF_CHANNEL(c)
-        (*c)->clr_texture(program, d);
+        (*c)->unbind_page(program, d);
+}
+
+// Touch the given page at the given time, "using" it in the LRU sense.
+
+void scm_frame::touch_page(long long i, int time)
+{
+    FOR_ALL_OF_CHANNEL(c)
+        (*c)->touch_page(i, time);
 }
 
 //------------------------------------------------------------------------------
 
 // Return true if any one of the images has page i in cache.
 
-bool scm_frame::page_status(long long i) const
+bool scm_frame::get_page_status(long long i) const
 {
     FOR_ALL_OF_CHANNEL(c)
         if ((*c)->status(i))
@@ -84,7 +92,7 @@ bool scm_frame::page_status(long long i) const
 
 // Return the range of any height image in this frame.
 
-void scm_frame::page_bounds(long long i, float& r0, float &r1) const
+void scm_frame::get_page_bounds(long long i, float& r0, float &r1) const
 {
     if (height)
         height->bounds(i, r0, r1);
@@ -93,14 +101,6 @@ void scm_frame::page_bounds(long long i, float& r0, float &r1) const
         r0 = 1.0;
         r1 = 1.0;
     }
-}
-
-// Touch the given page at the given time, "using" it in the LRU sense.
-
-void scm_frame::page_touch(long long i, int time)
-{
-    FOR_ALL_OF_CHANNEL(c)
-        (*c)->touch(i, time);
 }
 
 double scm_frame::get_height(const double *v) const

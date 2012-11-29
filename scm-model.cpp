@@ -354,9 +354,9 @@ bool scm_model::prep_page(scm_frame *frame,
 
     // If this page is missing from all data sets, skip it.
 
-    if (frame->page_status(i))
+    if (frame->get_page_status(i))
     {
-        frame->page_bounds(i, t0, t1);
+        frame->get_page_bounds(i, t0, t1);
 
         // Compute the on-screen pixel size of this page.
 
@@ -396,7 +396,7 @@ bool scm_model::prep_page(scm_frame *frame,
 
 void scm_model::draw_page(scm_frame *frame, int d, long long i)
 {
-    frame->set_texture(program, d, time, i);
+    frame->bind_page(program, d, time, i);
     {
         long long i0 = scm_page_child(i, 0);
         long long i1 = scm_page_child(i, 1);
@@ -453,7 +453,7 @@ void scm_model::draw_page(scm_frame *frame, int d, long long i)
             glDrawElements(GL_QUADS, count, GL_ELEMENT_INDEX, 0);
         }
     }
-    frame->clr_texture(program, d);
+    frame->unbind_page(program, d);
 }
 
 //------------------------------------------------------------------------------
@@ -505,7 +505,7 @@ void scm_model::draw(scm_frame *frame, const double *P,
     std::set<long long>::iterator i;
 
     for (i = pages.begin(); i != pages.end(); ++i)
-        frame->page_touch((*i), time);
+        frame->touch_page((*i), time);
 
     // Bind the vertex buffer.
 
@@ -564,7 +564,7 @@ void scm_model::draw(scm_frame *frame, const double *P,
             draw_page(frame, 0, 5);
         }
     }
-    frame->free();
+    frame->unbind();
 
     // Revert the local GL state.
 
