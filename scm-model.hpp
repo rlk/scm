@@ -30,8 +30,8 @@ public:
 
     int  tick() { return frame++; }
 
-    void prep(scm_scene *, const double *, const double *, int, int, int);
-    void draw(scm_scene *, const double *, const double *, int, int, int);
+    void prep(scm_scene *, const double *, int, int, int);
+    void draw(scm_scene *, const double *, int, int, int);
 
     void set_fade(double k);
     void set_zoom(double x, double y, double z, double k)

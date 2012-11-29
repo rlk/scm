@@ -420,13 +420,8 @@ void scm_model::draw_page(scm_scene *scene, int channel, int depth, long long i)
 
 //------------------------------------------------------------------------------
 
-void scm_model::prep(scm_scene *scene, const double *P,
-                                       const double *V, int width, int height, int channel)
+void scm_model::prep(scm_scene *scene, const double *M, int width, int height, int channel)
 {
-    double M[16];
-
-    mmultiply(M, P, V);
-
     pages.clear();
 
     prep_page(scene, M, width, height, channel, 0);
@@ -437,18 +432,13 @@ void scm_model::prep(scm_scene *scene, const double *P,
     prep_page(scene, M, width, height, channel, 5);
 }
 
-void scm_model::draw(scm_scene *scene, const double *P,
-                                       const double *V, int width, int height, int channel)
+void scm_model::draw(scm_scene *scene, const double *M, int width, int height, int channel)
 {
-    glMatrixMode(GL_PROJECTION);
-    glLoadMatrixd(P);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixd(V);
     glEnable(GL_COLOR_MATERIAL);
 
     // Perform the visibility pre-pass.
 
-    prep(scene, P, V, width, height, channel);
+    prep(scene, M, width, height, channel);
 
     // Pre-cache all visible pages in breadth-first order.
 
