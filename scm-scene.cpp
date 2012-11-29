@@ -60,10 +60,10 @@ void scm_scene::unbind(int channel) const
 void scm_scene::bind_page(GLuint program,
                              int channel,
                              int depth,
-                             int frame, long long i) const
+                             int scene, long long i) const
 {
     FOR_ALL_OF_CHANNEL(it, channel)
-        (*it)->bind_page(program, depth, frame, i);
+        (*it)->bind_page(program, depth, scene, i);
 }
 
 void scm_scene::unbind_page(GLuint program, int channel, int depth) const
@@ -72,15 +72,15 @@ void scm_scene::unbind_page(GLuint program, int channel, int depth) const
         (*it)->unbind_page(program, depth);
 }
 
-void scm_scene::touch_page(int channel, int frame, long long i)
+void scm_scene::touch_page(int channel, int scene, long long i)
 {
     FOR_ALL_OF_CHANNEL(it, channel)
-        (*it)->touch_page(i, frame);
+        (*it)->touch_page(i, scene);
 }
 
 //------------------------------------------------------------------------------
 
-// Return the range of any height image in this frame.
+// Return the range of any height image in this scene.
 
 void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) const
 {

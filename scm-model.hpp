@@ -28,7 +28,7 @@ public:
     scm_model(const char *, const char *, int, int);
    ~scm_model();
 
-    int  tick() { return time++; }
+    int  tick() { return frame++; }
 
     void prep(scm_scene *, const double *, const double *, int, int, int);
     void draw(scm_scene *, const double *, const double *, int, int, int);
@@ -44,8 +44,8 @@ public:
 
 private:
 
-    int    time;
-    int    size;
+    int frame;
+    int size;
 
     GLfloat age(int);
 

@@ -81,7 +81,7 @@ void scm_model::zoom(double *w, const double *v)
 
 scm_model::scm_model(const char *vert,
                      const char *frag, int n, int s) :
-    time(1),
+    frame(1),
     size(s)
 {
     init_program(vert, frag);
@@ -101,7 +101,7 @@ scm_model::~scm_model()
 
 GLfloat scm_model::age(int then)
 {
-    GLfloat a = GLfloat(time - then) / 60.f;
+    GLfloat a = GLfloat(frame - then) / 60.f;
     return (a > 1.f) ? 1.f : a;
 }
 
@@ -251,7 +251,7 @@ double scm_model::view_page(const double *M, int vw, int vh,
 
 //------------------------------------------------------------------------------
 
-// Add page i to the set of pages needed for this frame. Recursively traverse
+// Add page i to the set of pages needed for this scene. Recursively traverse
 // the neighborhood of this branch, adding pages to ensure that no two visibly
 // adjacent pages differ by more than one level of detail.
 
@@ -307,7 +307,7 @@ void scm_model::add_page(const double *M,
     }
 }
 
-bool scm_model::prep_page(scm_scene *frame,
+bool scm_model::prep_page(scm_scene *scene,
                        const double *M,
                                  int width,
                                  int height,
@@ -318,9 +318,9 @@ bool scm_model::prep_page(scm_scene *frame,
 
     // If this page is missing from all data sets, skip it.
 
-    if (frame->get_page_status(channel, i))
+    if (scene->get_page_status(channel, i))
     {
-        frame->get_page_bounds(channel, i, t0, t1);
+        scene->get_page_bounds(channel, i, t0, t1);
 
         double r0 = double(t0);
         double r1 = double(t1);
@@ -340,10 +340,10 @@ bool scm_model::prep_page(scm_scene *frame,
                 long long i2 = scm_page_child(i, 2);
                 long long i3 = scm_page_child(i, 3);
 
-                bool b0 = prep_page(frame, M, width, height, channel, i0);
-                bool b1 = prep_page(frame, M, width, height, channel, i1);
-                bool b2 = prep_page(frame, M, width, height, channel, i2);
-                bool b3 = prep_page(frame, M, width, height, channel, i3);
+                bool b0 = prep_page(scene, M, width, height, channel, i0);
+                bool b1 = prep_page(scene, M, width, height, channel, i1);
+                bool b2 = prep_page(scene, M, width, height, channel, i2);
+                bool b3 = prep_page(scene, M, width, height, channel, i3);
 
                 if (b0 || b1 || b2 || b3)
                     return true;
@@ -356,9 +356,9 @@ bool scm_model::prep_page(scm_scene *frame,
     return false;
 }
 
-void scm_model::draw_page(scm_scene *frame, int channel, int depth, long long i)
+void scm_model::draw_page(scm_scene *scene, int channel, int depth, long long i)
 {
-    frame->bind_page(program, channel, depth, time, i);
+    scene->bind_page(program, channel, depth, frame, i);
     {
         long long i0 = scm_page_child(i, 0);
         long long i1 = scm_page_child(i, 1);
@@ -374,10 +374,10 @@ void scm_model::draw_page(scm_scene *frame, int channel, int depth, long long i)
         {
             // Draw any children marked for drawing.
 
-            if (b0) draw_page(frame, channel, depth + 1, i0);
-            if (b1) draw_page(frame, channel, depth + 1, i1);
-            if (b2) draw_page(frame, channel, depth + 1, i2);
-            if (b3) draw_page(frame, channel, depth + 1, i3);
+            if (b0) draw_page(scene, channel, depth + 1, i0);
+            if (b1) draw_page(scene, channel, depth + 1, i1);
+            if (b2) draw_page(scene, channel, depth + 1, i2);
+            if (b3) draw_page(scene, channel, depth + 1, i3);
         }
         else
         {
@@ -415,12 +415,12 @@ void scm_model::draw_page(scm_scene *frame, int channel, int depth, long long i)
             glDrawElements(GL_QUADS, count, GL_ELEMENT_INDEX, 0);
         }
     }
-    frame->unbind_page(program, channel, depth);
+    scene->unbind_page(program, channel, depth);
 }
 
 //------------------------------------------------------------------------------
 
-void scm_model::prep(scm_scene *frame, const double *P,
+void scm_model::prep(scm_scene *scene, const double *P,
                                        const double *V, int width, int height, int channel)
 {
     double M[16];
@@ -429,15 +429,15 @@ void scm_model::prep(scm_scene *frame, const double *P,
 
     pages.clear();
 
-    prep_page(frame, M, width, height, channel, 0);
-    prep_page(frame, M, width, height, channel, 1);
-    prep_page(frame, M, width, height, channel, 2);
-    prep_page(frame, M, width, height, channel, 3);
-    prep_page(frame, M, width, height, channel, 4);
-    prep_page(frame, M, width, height, channel, 5);
+    prep_page(scene, M, width, height, channel, 0);
+    prep_page(scene, M, width, height, channel, 1);
+    prep_page(scene, M, width, height, channel, 2);
+    prep_page(scene, M, width, height, channel, 3);
+    prep_page(scene, M, width, height, channel, 4);
+    prep_page(scene, M, width, height, channel, 5);
 }
 
-void scm_model::draw(scm_scene *frame, const double *P,
+void scm_model::draw(scm_scene *scene, const double *P,
                                        const double *V, int width, int height, int channel)
 {
     glMatrixMode(GL_PROJECTION);
@@ -448,14 +448,14 @@ void scm_model::draw(scm_scene *frame, const double *P,
 
     // Perform the visibility pre-pass.
 
-    prep(frame, P, V, width, height, channel);
+    prep(scene, P, V, width, height, channel);
 
     // Pre-cache all visible pages in breadth-first order.
 
     std::set<long long>::iterator i;
 
     for (i = pages.begin(); i != pages.end(); ++i)
-        frame->touch_page(channel, time, (*i));
+        scene->touch_page(channel, frame, (*i));
 
     // Bind the vertex buffer.
 
@@ -465,7 +465,7 @@ void scm_model::draw(scm_scene *frame, const double *P,
 
     // Configure the shaders and draw the six root pages.
 
-    frame->bind(channel, program);
+    scene->bind(channel, program);
     {
         static const GLfloat M[6][9] = {
             {  0.f,  0.f,  1.f,  0.f,  1.f,  0.f, -1.f,  0.f,  0.f },
@@ -486,35 +486,35 @@ void scm_model::draw(scm_scene *frame, const double *P,
         if (is_set(0))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[0]);
-            draw_page(frame, channel, 0, 0);
+            draw_page(scene, channel, 0, 0);
         }
         if (is_set(1))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[1]);
-            draw_page(frame, channel, 0, 1);
+            draw_page(scene, channel, 0, 1);
         }
         if (is_set(2))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[2]);
-            draw_page(frame, channel, 0, 2);
+            draw_page(scene, channel, 0, 2);
         }
         if (is_set(3))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[3]);
-            draw_page(frame, channel, 0, 3);
+            draw_page(scene, channel, 0, 3);
         }
         if (is_set(4))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[4]);
-            draw_page(frame, channel, 0, 4);
+            draw_page(scene, channel, 0, 4);
         }
         if (is_set(5))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[5]);
-            draw_page(frame, channel, 0, 5);
+            draw_page(scene, channel, 0, 5);
         }
     }
-    frame->unbind(channel);
+    scene->unbind(channel);
 
     // Revert the local GL state.
 

@@ -67,7 +67,7 @@ scm_page scm_set::eject(int t, long long i)
                                                    l = e;
     }
 
-    // If the LRU page was not used in this frame or the last, eject it.
+    // If the LRU page was not used in this scene or the last, eject it.
     // Otherwise consider the lowest-priority loaded page and eject if it
     // has lower priority than the incoming page.
 
