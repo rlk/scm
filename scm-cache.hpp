@@ -39,11 +39,11 @@ public:
     int    add_file(const std::string&);
     int    get_page(int, long long, int, int&);
 
-    GLuint get_texture() const { return texture; }
-    float  get_r0()      const { return r0;      }
-    float  get_r1()      const { return r1;      }
-    int    get_s()       const { return s;       }
-    int    get_n()       const { return n;       }
+    GLuint get_texture()    const { return texture; }
+    float  get_normal_min() const { return r0;      }
+    float  get_normal_max() const { return r1;      }
+    int    get_grid_size()  const { return s;       }
+    int    get_page_size()  const { return n;       }
 
     void   get_page_bounds(int, long long, float&, float&);
     bool   get_page_status(int, long long);
@@ -51,8 +51,7 @@ public:
 
     bool   is_running() { return run.get(); }
 
-    bool   update(int);
-    void   sync  (int);
+    void   update(int, bool);
     void   draw  (int, int);
     void   flush ();
 
@@ -76,8 +75,8 @@ private:
     int     n;                      // Page width and height in pixels
     int     c;                      // Page channel count
     int     b;                      // Page channel size in bytes
-    float   r0;                     // Height map minimum radius
-    float   r1;                     // Height map maximum radius
+    float   r0;                     // Normalization minimum
+    float   r1;                     // Normalization maximum
 
     int get_slot(int, long long);
 

@@ -36,15 +36,15 @@ void scm_image::bind(GLint unit, GLuint program) const
         GLuint ur0 = glsl_uniform(program, "r0");
         GLuint ur1 = glsl_uniform(program, "r1");
 
-        glUniform1f(ur0, cache->get_r0());
-        glUniform1f(ur1, cache->get_r1());
+        glUniform1f(ur0, cache->get_normal_min());
+        glUniform1f(ur1, cache->get_normal_max());
     }
 
     GLuint uS = glsl_uniform(program, "%s.S", name.c_str());
     GLuint ur = glsl_uniform(program, "%s.r", name.c_str());
 
-    const int s = cache->get_s();
-    const int n = cache->get_n();
+    const int s = cache->get_grid_size();
+    const int n = cache->get_page_size();
 
     glUniform1i(uS, unit);
     glUniform2f(ur, GLfloat(n) / (n + 2) / s,
@@ -76,8 +76,8 @@ void scm_image::bind_page(GLuint program, int d, int t, long long i) const
     else if (a > 1.0) a = 1.0;
     else if (a < 0.0) a = 0.0;
 
-    const int s = cache->get_s();
-    const int n = cache->get_n();
+    const int s = cache->get_grid_size();
+    const int n = cache->get_page_size();
 
     glUniform1f(ua, GLfloat(a));
     glUniform2f(ub, GLfloat((l % s) * (n + 2) + 1) / GLfloat(s * (n + 2)),

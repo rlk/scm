@@ -89,7 +89,7 @@ scm_cache::~scm_cache()
 
     // Drain any completed loads to ensure that the loaders aren't blocked.
 
-    sync(0);
+    update(0, true);
 
     // Enqueue an exit command for each loader.
 
@@ -211,9 +211,10 @@ int scm_cache::get_slot(int t, long long i)
     }
 }
 
-// Handle any incoming textures on the loads queue. Return false if none.
+// Handle incoming textures on the loads queue. t gives the current frame
+// count and b request that the loads queue be drained completely.
 
-bool scm_cache::update(int t)
+void scm_cache::update(int t, bool b)
 {
     int c;
 
@@ -221,7 +222,7 @@ bool scm_cache::update(int t)
 
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    for (c = 0; c < max_loads_per_update && loads.try_remove(task); ++c)
+    for (c = 0; (b || c < max_loads_per_update) && loads.try_remove(task); ++c)
     {
         if (task.d && is_running())
         {
@@ -249,7 +250,6 @@ bool scm_cache::update(int t)
 
         pbos.enq(task.u);
     }
-    return (c > 0);
 }
 
 void scm_cache::flush()
@@ -258,12 +258,6 @@ void scm_cache::flush()
         pages.eject(0, -1);
 
     l = 1;
-}
-
-void scm_cache::sync(int t)
-{
-    while (update(t))
-        ;
 }
 
 void scm_cache::draw(int ii, int nn)

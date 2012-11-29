@@ -37,8 +37,8 @@ public:
     void    get_page_bounds(long long, float &, float &) const;
     bool    get_page_status(long long)                   const;
 
-    float   get_normal_min() const { return cache->get_r0(); }
-    float   get_normal_max() const { return cache->get_r1(); }
+    float   get_normal_min()   const { return cache->get_normal_min(); }
+    float   get_normal_max()   const { return cache->get_normal_max(); }
 
     bool     is_channel(int c) const { return (chan == -1 || chan == c); }
     bool     is_height()       const { return height; }
