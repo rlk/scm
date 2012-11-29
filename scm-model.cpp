@@ -82,8 +82,7 @@ void scm_model::zoom(double *w, const double *v)
 scm_model::scm_model(const char *vert,
                      const char *frag, int n, int s) :
     time(1),
-    size(s),
-    debug(false)
+    size(s)
 {
     init_program(vert, frag);
     init_arrays(n);
@@ -250,59 +249,21 @@ double scm_model::view_page(const double *M, int vw, int vh,
                              length(B, D, vw, vh)));
 }
 
-void scm_model::debug_page(const double *M, double r0, double r1, long long i)
-{
-    // Compute the corner vectors of the zoomed page.
-
-    double v[12];
-
-    scm_page_corners(i, v);
-
-    // Compute the maximum extent due to bulge.
-
-    double u[3];
-
-    u[0] = v[0] + v[3] + v[6] + v[ 9];
-    u[1] = v[1] + v[4] + v[7] + v[10];
-    u[2] = v[2] + v[5] + v[8] + v[11];
-
-    double r2 = r1 * vlen(u) / vdot(v, u);
-
-    // Apply the inner and outer radii to the bounding volume.
-
-    double a[3], e[3], b[3], f[3];
-    double c[3], g[3], d[3], h[3];
-
-    vmul(a, v + 0, r0);
-    vmul(b, v + 3, r0);
-    vmul(c, v + 6, r0);
-    vmul(d, v + 9, r0);
-
-    vmul(e, v + 0, r2);
-    vmul(f, v + 3, r2);
-    vmul(g, v + 6, r2);
-    vmul(h, v + 9, r2);
-
-    // Draw the boundary.
-
-    glVertex3dv(e); glVertex3dv(f);
-    glVertex3dv(g); glVertex3dv(h);
-    glVertex3dv(e); glVertex3dv(g);
-    glVertex3dv(f); glVertex3dv(h);
-}
-
 //------------------------------------------------------------------------------
 
 // Add page i to the set of pages needed for this frame. Recursively traverse
 // the neighborhood of this branch, adding pages to ensure that no two visibly
 // adjacent pages differ by more than one level of detail.
 
-void scm_model::add_page(const double *M, int w, int h,
-                         double r0, double r1, long long i)
+void scm_model::add_page(const double *M,
+                                   int width,
+                                   int height,
+                                double r0,
+                                double r1, long long i)
 {
     if (!is_set(i))
     {
-        double k = view_page(M, w, h, r0, r1, i);
+        double k = view_page(M, width, height, r0, r1, i);
 
         if (k > 0)
         {
@@ -312,33 +273,33 @@ void scm_model::add_page(const double *M, int w, int h,
             {
                 long long p = scm_page_parent(i);
 
-                add_page(M, w, h, r0, r1, p);
+                add_page(M, width, height, r0, r1, p);
 
                 switch (scm_page_order(i))
                 {
                     case 0:
-                        add_page(M, w, h, r0, r1, scm_page_north(p));
-                        add_page(M, w, h, r0, r1, scm_page_south(i));
-                        add_page(M, w, h, r0, r1, scm_page_east (i));
-                        add_page(M, w, h, r0, r1, scm_page_west (p));
+                        add_page(M, width, height, r0, r1, scm_page_north(p));
+                        add_page(M, width, height, r0, r1, scm_page_south(i));
+                        add_page(M, width, height, r0, r1, scm_page_east (i));
+                        add_page(M, width, height, r0, r1, scm_page_west (p));
                         break;
                     case 1:
-                        add_page(M, w, h, r0, r1, scm_page_north(p));
-                        add_page(M, w, h, r0, r1, scm_page_south(i));
-                        add_page(M, w, h, r0, r1, scm_page_east (p));
-                        add_page(M, w, h, r0, r1, scm_page_west (i));
+                        add_page(M, width, height, r0, r1, scm_page_north(p));
+                        add_page(M, width, height, r0, r1, scm_page_south(i));
+                        add_page(M, width, height, r0, r1, scm_page_east (p));
+                        add_page(M, width, height, r0, r1, scm_page_west (i));
                         break;
                     case 2:
-                        add_page(M, w, h, r0, r1, scm_page_north(i));
-                        add_page(M, w, h, r0, r1, scm_page_south(p));
-                        add_page(M, w, h, r0, r1, scm_page_east (i));
-                        add_page(M, w, h, r0, r1, scm_page_west (p));
+                        add_page(M, width, height, r0, r1, scm_page_north(i));
+                        add_page(M, width, height, r0, r1, scm_page_south(p));
+                        add_page(M, width, height, r0, r1, scm_page_east (i));
+                        add_page(M, width, height, r0, r1, scm_page_west (p));
                         break;
                     case 3:
-                        add_page(M, w, h, r0, r1, scm_page_north(i));
-                        add_page(M, w, h, r0, r1, scm_page_south(p));
-                        add_page(M, w, h, r0, r1, scm_page_east (p));
-                        add_page(M, w, h, r0, r1, scm_page_west (i));
+                        add_page(M, width, height, r0, r1, scm_page_north(i));
+                        add_page(M, width, height, r0, r1, scm_page_south(p));
+                        add_page(M, width, height, r0, r1, scm_page_east (p));
+                        add_page(M, width, height, r0, r1, scm_page_west (i));
                         break;
                 }
             }
@@ -347,22 +308,26 @@ void scm_model::add_page(const double *M, int w, int h,
 }
 
 bool scm_model::prep_page(scm_frame *frame,
-                       const double *M, int w, int h, long long i)
+                       const double *M,
+                                 int width,
+                                 int height,
+                                 int channel, long long i)
 {
     float t0;
     float t1;
 
     // If this page is missing from all data sets, skip it.
 
-    if (frame->get_page_status(i))
+    if (frame->get_page_status(channel, i))
     {
-        frame->get_page_bounds(i, t0, t1);
-
-        // Compute the on-screen pixel size of this page.
+        frame->get_page_bounds(channel, i, t0, t1);
 
         double r0 = double(t0);
         double r1 = double(t1);
-        double k  = view_page(M, w, h, r0, r1, i);
+
+        // Compute the on-screen pixel size of this page.
+
+        double k = view_page(M, width, height, r0, r1, i);
 
         // Subdivide if too large, otherwise mark for drawing.
 
@@ -375,18 +340,15 @@ bool scm_model::prep_page(scm_frame *frame,
                 long long i2 = scm_page_child(i, 2);
                 long long i3 = scm_page_child(i, 3);
 
-                bool b0 = prep_page(frame, M, w, h, i0);
-                bool b1 = prep_page(frame, M, w, h, i1);
-                bool b2 = prep_page(frame, M, w, h, i2);
-                bool b3 = prep_page(frame, M, w, h, i3);
+                bool b0 = prep_page(frame, M, width, height, channel, i0);
+                bool b1 = prep_page(frame, M, width, height, channel, i1);
+                bool b2 = prep_page(frame, M, width, height, channel, i2);
+                bool b3 = prep_page(frame, M, width, height, channel, i3);
 
                 if (b0 || b1 || b2 || b3)
                     return true;
             }
-            add_page(M, w, h, r0, r1, i);
-
-            if (debug)
-                debug_page(M, r0, r1, i);
+            add_page(M, width, height, r0, r1, i);
 
             return true;
         }
@@ -394,9 +356,9 @@ bool scm_model::prep_page(scm_frame *frame,
     return false;
 }
 
-void scm_model::draw_page(scm_frame *frame, int d, long long i)
+void scm_model::draw_page(scm_frame *frame, int channel, int depth, long long i)
 {
-    frame->bind_page(program, d, time, i);
+    frame->bind_page(program, channel, depth, time, i);
     {
         long long i0 = scm_page_child(i, 0);
         long long i1 = scm_page_child(i, 1);
@@ -412,10 +374,10 @@ void scm_model::draw_page(scm_frame *frame, int d, long long i)
         {
             // Draw any children marked for drawing.
 
-            if (b0) draw_page(frame, d + 1, i0);
-            if (b1) draw_page(frame, d + 1, i1);
-            if (b2) draw_page(frame, d + 1, i2);
-            if (b3) draw_page(frame, d + 1, i3);
+            if (b0) draw_page(frame, channel, depth + 1, i0);
+            if (b1) draw_page(frame, channel, depth + 1, i1);
+            if (b2) draw_page(frame, channel, depth + 1, i2);
+            if (b3) draw_page(frame, channel, depth + 1, i3);
         }
         else
         {
@@ -426,9 +388,9 @@ void scm_model::draw_page(scm_frame *frame, int d, long long i)
             long long R = r;
             long long C = c;
 
-            for (int l = d; l >= 0; --l)
+            for (int l = depth; l >= 0; --l)
             {
-                GLfloat m = 1.0f / (1 << (d - l));
+                GLfloat m = 1.0f / (1 << (depth - l));
                 GLfloat x = m * c - C;
                 GLfloat y = m * r - R;
 
@@ -453,42 +415,30 @@ void scm_model::draw_page(scm_frame *frame, int d, long long i)
             glDrawElements(GL_QUADS, count, GL_ELEMENT_INDEX, 0);
         }
     }
-    frame->unbind_page(program, d);
+    frame->unbind_page(program, channel, depth);
 }
 
 //------------------------------------------------------------------------------
 
 void scm_model::prep(scm_frame *frame, const double *P,
-                                       const double *V, int w, int h)
+                                       const double *V, int width, int height, int channel)
 {
     double M[16];
 
     mmultiply(M, P, V);
 
-    if (debug)
-    {
-        glUseProgram(0);
-        glColor4f(1.0, 1.0, 0.0, 0.5);
-        glBegin(GL_LINES);
-    }
-
     pages.clear();
 
-    prep_page(frame, M, w, h, 0);
-    prep_page(frame, M, w, h, 1);
-    prep_page(frame, M, w, h, 2);
-    prep_page(frame, M, w, h, 3);
-    prep_page(frame, M, w, h, 4);
-    prep_page(frame, M, w, h, 5);
-
-    if (debug)
-    {
-        glEnd();
-    }
+    prep_page(frame, M, width, height, channel, 0);
+    prep_page(frame, M, width, height, channel, 1);
+    prep_page(frame, M, width, height, channel, 2);
+    prep_page(frame, M, width, height, channel, 3);
+    prep_page(frame, M, width, height, channel, 4);
+    prep_page(frame, M, width, height, channel, 5);
 }
 
 void scm_model::draw(scm_frame *frame, const double *P,
-                                       const double *V, int w, int h)
+                                       const double *V, int width, int height, int channel)
 {
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixd(P);
@@ -498,14 +448,14 @@ void scm_model::draw(scm_frame *frame, const double *P,
 
     // Perform the visibility pre-pass.
 
-    prep(frame, P, V, w, h);
+    prep(frame, P, V, width, height, channel);
 
     // Pre-cache all visible pages in breadth-first order.
 
     std::set<long long>::iterator i;
 
     for (i = pages.begin(); i != pages.end(); ++i)
-        frame->touch_page((*i), time);
+        frame->touch_page(channel, time, (*i));
 
     // Bind the vertex buffer.
 
@@ -515,7 +465,7 @@ void scm_model::draw(scm_frame *frame, const double *P,
 
     // Configure the shaders and draw the six root pages.
 
-    frame->bind(program);
+    frame->bind(channel, program);
     {
         static const GLfloat M[6][9] = {
             {  0.f,  0.f,  1.f,  0.f,  1.f,  0.f, -1.f,  0.f,  0.f },
@@ -536,35 +486,35 @@ void scm_model::draw(scm_frame *frame, const double *P,
         if (is_set(0))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[0]);
-            draw_page(frame, 0, 0);
+            draw_page(frame, channel, 0, 0);
         }
         if (is_set(1))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[1]);
-            draw_page(frame, 0, 1);
+            draw_page(frame, channel, 0, 1);
         }
         if (is_set(2))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[2]);
-            draw_page(frame, 0, 2);
+            draw_page(frame, channel, 0, 2);
         }
         if (is_set(3))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[3]);
-            draw_page(frame, 0, 3);
+            draw_page(frame, channel, 0, 3);
         }
         if (is_set(4))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[4]);
-            draw_page(frame, 0, 4);
+            draw_page(frame, channel, 0, 4);
         }
         if (is_set(5))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[5]);
-            draw_page(frame, 0, 5);
+            draw_page(frame, channel, 0, 5);
         }
     }
-    frame->unbind();
+    frame->unbind(channel);
 
     // Revert the local GL state.
 

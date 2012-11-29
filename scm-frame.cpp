@@ -14,7 +14,7 @@
 
 //------------------------------------------------------------------------------
 
-scm_frame::scm_frame() : height(0), channel(0)
+scm_frame::scm_frame() : height(0)
 {
 }
 
@@ -25,74 +25,64 @@ void scm_frame::add_image(scm_image *p)
         height = p;
 }
 
-#define FOR_ALL_OF_CHANNEL(c) \
-     for (scm_image_c c = images.begin(); c != images.end(); ++c) \
-        if ((*c)->is_channel(channel))
+#define FOR_ALL_OF_CHANNEL(it, c) \
+     for (scm_image_c it = images.begin(); it != images.end(); ++it) \
+        if ((*it)->is_channel(c))
 
 //------------------------------------------------------------------------------
 
-void scm_frame::bind(GLuint program) const
+void scm_frame::bind(int channel, GLuint program) const
 {
     GLenum unit = 0;
 
     glUseProgram(program);
 
-    FOR_ALL_OF_CHANNEL(c)
-        (*c)->bind(unit++, program);
+    FOR_ALL_OF_CHANNEL(it, channel)
+        (*it)->bind(unit++, program);
 
     glActiveTexture(GL_TEXTURE0);
 }
 
-void scm_frame::unbind() const
+void scm_frame::unbind(int channel) const
 {
     GLenum unit = 0;
 
     glUseProgram(0);
 
-    FOR_ALL_OF_CHANNEL(c)
-        (*c)->unbind(unit++);
+    FOR_ALL_OF_CHANNEL(it, channel)
+        (*it)->unbind(unit++);
 
     glActiveTexture(GL_TEXTURE0);
 }
 
 //------------------------------------------------------------------------------
 
-void scm_frame::bind_page(GLuint program, int d, int t, long long i) const
+void scm_frame::bind_page(GLuint program,
+                             int channel,
+                             int depth,
+                             int frame, long long i) const
 {
-    FOR_ALL_OF_CHANNEL(c)
-        (*c)->bind_page(program, d, t, i);
+    FOR_ALL_OF_CHANNEL(it, channel)
+        (*it)->bind_page(program, depth, frame, i);
 }
 
-void scm_frame::unbind_page(GLuint program, int d) const
+void scm_frame::unbind_page(GLuint program, int channel, int depth) const
 {
-    FOR_ALL_OF_CHANNEL(c)
-        (*c)->unbind_page(program, d);
+    FOR_ALL_OF_CHANNEL(it, channel)
+        (*it)->unbind_page(program, depth);
 }
 
-// Touch the given page at the given time, "using" it in the LRU sense.
-
-void scm_frame::touch_page(long long i, int time)
+void scm_frame::touch_page(int channel, int frame, long long i)
 {
-    FOR_ALL_OF_CHANNEL(c)
-        (*c)->touch_page(i, time);
+    FOR_ALL_OF_CHANNEL(it, channel)
+        (*it)->touch_page(i, frame);
 }
 
 //------------------------------------------------------------------------------
 
-// Return true if any one of the images has page i in cache.
-
-bool scm_frame::get_page_status(long long i) const
-{
-    FOR_ALL_OF_CHANNEL(c)
-        if ((*c)->status(i))
-            return true;
-
-    return false;
-}
-
 // Return the range of any height image in this frame.
 
-void scm_frame::get_page_bounds(long long i, float& r0, float &r1) const
+void scm_frame::get_page_bounds(int channel, long long i, float& r0, float &r1) const
 {
     if (height)
         height->bounds(i, r0, r1);
@@ -101,6 +91,17 @@ void scm_frame::get_page_bounds(long long i, float& r0, float &r1) const
         r0 = 1.0;
         r1 = 1.0;
     }
+}
+
+// Return true if any one of the images has page i in cache.
+
+bool scm_frame::get_page_status(int channel, long long i) const
+{
+    FOR_ALL_OF_CHANNEL(it, channel)
+        if ((*it)->status(i))
+            return true;
+
+    return false;
 }
 
 double scm_frame::get_height(const double *v) const
