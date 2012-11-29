@@ -307,7 +307,7 @@ void scm_model::add_page(const double *M,
     }
 }
 
-bool scm_model::prep_page(scm_frame *frame,
+bool scm_model::prep_page(scm_scene *frame,
                        const double *M,
                                  int width,
                                  int height,
@@ -356,7 +356,7 @@ bool scm_model::prep_page(scm_frame *frame,
     return false;
 }
 
-void scm_model::draw_page(scm_frame *frame, int channel, int depth, long long i)
+void scm_model::draw_page(scm_scene *frame, int channel, int depth, long long i)
 {
     frame->bind_page(program, channel, depth, time, i);
     {
@@ -420,7 +420,7 @@ void scm_model::draw_page(scm_frame *frame, int channel, int depth, long long i)
 
 //------------------------------------------------------------------------------
 
-void scm_model::prep(scm_frame *frame, const double *P,
+void scm_model::prep(scm_scene *frame, const double *P,
                                        const double *V, int width, int height, int channel)
 {
     double M[16];
@@ -437,7 +437,7 @@ void scm_model::prep(scm_frame *frame, const double *P,
     prep_page(frame, M, width, height, channel, 5);
 }
 
-void scm_model::draw(scm_frame *frame, const double *P,
+void scm_model::draw(scm_scene *frame, const double *P,
                                        const double *V, int width, int height, int channel)
 {
     glMatrixMode(GL_PROJECTION);

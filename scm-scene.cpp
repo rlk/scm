@@ -10,15 +10,15 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 // more details.
 
-#include "scm-frame.hpp"
+#include "scm-scene.hpp"
 
 //------------------------------------------------------------------------------
 
-scm_frame::scm_frame() : height(0)
+scm_scene::scm_scene() : height(0)
 {
 }
 
-void scm_frame::add_image(scm_image *p)
+void scm_scene::add_image(scm_image *p)
 {
     images.push_back(p);
     if (p->is_height())
@@ -31,7 +31,7 @@ void scm_frame::add_image(scm_image *p)
 
 //------------------------------------------------------------------------------
 
-void scm_frame::bind(int channel, GLuint program) const
+void scm_scene::bind(int channel, GLuint program) const
 {
     GLenum unit = 0;
 
@@ -43,7 +43,7 @@ void scm_frame::bind(int channel, GLuint program) const
     glActiveTexture(GL_TEXTURE0);
 }
 
-void scm_frame::unbind(int channel) const
+void scm_scene::unbind(int channel) const
 {
     GLenum unit = 0;
 
@@ -57,7 +57,7 @@ void scm_frame::unbind(int channel) const
 
 //------------------------------------------------------------------------------
 
-void scm_frame::bind_page(GLuint program,
+void scm_scene::bind_page(GLuint program,
                              int channel,
                              int depth,
                              int frame, long long i) const
@@ -66,13 +66,13 @@ void scm_frame::bind_page(GLuint program,
         (*it)->bind_page(program, depth, frame, i);
 }
 
-void scm_frame::unbind_page(GLuint program, int channel, int depth) const
+void scm_scene::unbind_page(GLuint program, int channel, int depth) const
 {
     FOR_ALL_OF_CHANNEL(it, channel)
         (*it)->unbind_page(program, depth);
 }
 
-void scm_frame::touch_page(int channel, int frame, long long i)
+void scm_scene::touch_page(int channel, int frame, long long i)
 {
     FOR_ALL_OF_CHANNEL(it, channel)
         (*it)->touch_page(i, frame);
@@ -82,7 +82,7 @@ void scm_frame::touch_page(int channel, int frame, long long i)
 
 // Return the range of any height image in this frame.
 
-void scm_frame::get_page_bounds(int channel, long long i, float& r0, float &r1) const
+void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) const
 {
     if (height)
         height->bounds(i, r0, r1);
@@ -95,7 +95,7 @@ void scm_frame::get_page_bounds(int channel, long long i, float& r0, float &r1) 
 
 // Return true if any one of the images has page i in cache.
 
-bool scm_frame::get_page_status(int channel, long long i) const
+bool scm_scene::get_page_status(int channel, long long i) const
 {
     FOR_ALL_OF_CHANNEL(it, channel)
         if ((*it)->status(i))
@@ -104,7 +104,7 @@ bool scm_frame::get_page_status(int channel, long long i) const
     return false;
 }
 
-double scm_frame::get_height(const double *v) const
+double scm_scene::get_height(const double *v) const
 {
     if (height)
         return height->sample(v);
@@ -112,7 +112,7 @@ double scm_frame::get_height(const double *v) const
         return 1.0;
 }
 
-double scm_frame::min_height() const
+double scm_scene::min_height() const
 {
     if (height)
         return height->minimum();

@@ -10,8 +10,8 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 // more details.
 
-#ifndef SCM_FRAME_HPP
-#define SCM_FRAME_HPP
+#ifndef SCM_SCENE_HPP
+#define SCM_SCENE_HPP
 
 #include <vector>
 
@@ -19,11 +19,11 @@
 
 //------------------------------------------------------------------------------
 
-class scm_frame
+class scm_scene
 {
 public:
 
-    scm_frame();
+    scm_scene();
 
     void add_image(scm_image *);
 
@@ -46,8 +46,8 @@ private:
     scm_image  *height;
 };
 
-typedef std::vector<scm_frame *>           scm_frame_v;
-typedef std::vector<scm_frame *>::iterator scm_frame_i;
+typedef std::vector<scm_scene *>           scm_scene_v;
+typedef std::vector<scm_scene *>::iterator scm_scene_i;
 
 //------------------------------------------------------------------------------
 

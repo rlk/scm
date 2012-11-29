@@ -17,7 +17,7 @@
 #include <vector>
 #include <set>
 
-#include "scm-frame.hpp"
+#include "scm-scene.hpp"
 
 //------------------------------------------------------------------------------
 
@@ -30,8 +30,8 @@ public:
 
     int  tick() { return time++; }
 
-    void prep(scm_frame *, const double *, const double *, int, int, int);
-    void draw(scm_frame *, const double *, const double *, int, int, int);
+    void prep(scm_scene *, const double *, const double *, int, int, int);
+    void draw(scm_scene *, const double *, const double *, int, int, int);
 
     void set_fade(double k);
     void set_zoom(double x, double y, double z, double k)
@@ -67,8 +67,8 @@ private:
     double view_page(const double *, int, int, double, double, long long);
     void  debug_page(const double *,           double, double, long long);
 
-    bool prep_page(scm_frame *, const double *, int, int, int, long long);
-    void draw_page(scm_frame *,                      int, int, long long);
+    bool prep_page(scm_scene *, const double *, int, int, int, long long);
+    void draw_page(scm_scene *,                      int, int, long long);
 
     // OpenGL programmable processing state
 
