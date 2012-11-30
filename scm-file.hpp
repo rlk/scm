@@ -25,6 +25,7 @@ public:
     scm_file(const std::string& name);
    ~scm_file();
 
+    size_t get_scan_length()                       const;
     size_t get_page_length()                       const;
     bool   get_page_status(uint64)                 const;
     uint64 get_page_offset(uint64)                 const;
@@ -40,7 +41,7 @@ public:
     const char *get_path() const { return path.c_str(); }
     const char *get_name() const { return name.c_str(); }
 
-    bool load_page(void *p, uint64);
+    bool load_page(void *, uint64, void *);
 
 private:
 
@@ -69,8 +70,6 @@ private:
     float  cache_k;     // Sample cache last value
     void  *cache_p;     // Sample cache last page buffer
     uint64 cache_i;     // Sample cache last page index
-
-    void  *tmp; // Swizzle temporary buffer
 
     float  tofloat(const void *, uint64) const;
     uint64 toindex(uint64)               const;

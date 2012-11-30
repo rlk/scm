@@ -63,7 +63,6 @@ scm_cache::scm_cache(int s, int n, int c, int b, int t, float r0, float r1) :
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-
     // Initialize it with a buffer of zeros.
 
     const int m = s * (n + 2);
@@ -335,14 +334,21 @@ int loader(void *data)
     scm_cache *cache = (scm_cache *) data;
     scm_task   task;
 
+    void *tmp = 0;
+
     while ((task = cache->needs.remove()).f >= 0)
     {
         if (cache->is_running())
         {
-            task.load_page(cache->files.front());
-            cache->loads.insert(task);
+            if (tmp || (tmp = malloc(cache->files[task.f]->get_scan_length())))
+            {
+                task.load_page(cache->files.front(), tmp);
+                cache->loads.insert(task);
+            }
         }
     }
+
+    free(tmp);
     return 0;
 }
 

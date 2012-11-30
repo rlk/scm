@@ -125,7 +125,6 @@ scm_file::scm_file(const std::string& tiff) :
                 }
             }
 
-            tmp        = malloc(TIFFScanlineSize(T));
             cache_p    = malloc(TIFFScanlineSize(T) * h);
             cache_i    = (uint64) (-1);
             cache_v[0] = 0;
@@ -141,7 +140,6 @@ scm_file::scm_file(const std::string& tiff) :
 scm_file::~scm_file()
 {
     free(cache_p);
-    free(tmp);
     free(zv);
     free(av);
     free(ov);
@@ -150,11 +148,11 @@ scm_file::~scm_file()
 
 //------------------------------------------------------------------------------
 
-// Open the TIFF and read the page at offset o into pixel buffer p. We re-open
+// Open the TIFF and read the page at offset o into pixel buffer dst. We reopen
 // the file each time because this function may be invoked by any one of many
 // sub-threads.
 
-bool scm_file::load_page(void *p, uint64 o)
+bool scm_file::load_page(void *dst, uint64 o, void *tmp)
 {
     uint32 r = 0;
 
@@ -172,7 +170,7 @@ bool scm_file::load_page(void *p, uint64 o)
 
             if (W == w && H == h && B == b && C == c)
             {
-                if (c == 3 && b == 8)
+                if (tmp && c == 3 && b == 8)
                 {
                     const uint32 S = w * 4 * b / 8;
 
@@ -182,8 +180,8 @@ bool scm_file::load_page(void *p, uint64 o)
 
                         for (int j = w - 1; j >= 0; --j)
                         {
-                            uint8 *s = (uint8 *) tmp       + j * c * b / 8;
-                            uint8 *d = (uint8 *) p + r * S + j * 4 * b / 8;
+                            uint8 *s = (uint8 *) tmp         + j * c * b / 8;
+                            uint8 *d = (uint8 *) dst + r * S + j * 4 * b / 8;
 
                             d[0] = s[2];
                             d[1] = s[1];
@@ -197,7 +195,7 @@ bool scm_file::load_page(void *p, uint64 o)
                     const uint32 S = (uint32) TIFFScanlineSize(T);
 
                     for (r = 0; r < h; ++r)
-                        TIFFReadScanline(T, (uint8 *) p + r * S, r, 0);
+                        TIFFReadScanline(T, (uint8 *) dst + r * S, r, 0);
                 }
             }
         }
@@ -207,6 +205,11 @@ bool scm_file::load_page(void *p, uint64 o)
 }
 
 //------------------------------------------------------------------------------
+
+size_t scm_file::get_scan_length() const
+{
+    return size_t(w) * c * b / 8;
+}
 
 // Return the buffer length for a page of this file. 24-bit is padded to 32.
 
@@ -308,7 +311,7 @@ float scm_file::get_page_sample(const double *v)
 
         if (cache_i != i)
         {
-            load_page(cache_p, o);
+            load_page(cache_p, o, 0);
             cache_i  = i;
         }
 
