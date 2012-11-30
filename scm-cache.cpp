@@ -342,7 +342,7 @@ int loader(void *data)
         {
             if (tmp || (tmp = malloc(cache->files[task.f]->get_scan_length())))
             {
-                task.load_page(cache->files.front(), tmp);
+                task.load_page(cache->get_file_list(), tmp);
                 cache->loads.insert(task);
             }
         }

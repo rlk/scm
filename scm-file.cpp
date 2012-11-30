@@ -152,7 +152,7 @@ scm_file::~scm_file()
 // the file each time because this function may be invoked by any one of many
 // sub-threads.
 
-bool scm_file::load_page(void *dst, uint64 o, void *tmp)
+bool scm_file::load_page(void *dst, uint64 o, void *tmp) const
 {
     uint32 r = 0;
 

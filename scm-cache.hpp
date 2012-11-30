@@ -45,6 +45,8 @@ public:
     int    get_grid_size()  const { return s;       }
     int    get_page_size()  const { return n;       }
 
+    scm_file *const *get_file_list() const { return &files.front(); }
+
     void   get_page_bounds(int, long long, float&, float&);
     bool   get_page_status(int, long long);
     float  get_page_sample(int, const double *);

@@ -31,7 +31,7 @@ struct scm_task : public scm_item
     scm_task(int f, long long i, uint64 o, GLuint u, GLsizei s);
 
     void make_page(int, int, uint32, uint32, uint16, uint16, uint16);
-    void load_page(scm_file *, void *);
+    void load_page(scm_file * const *, void *);
     void dump_page();
 
     uint64 o;          // SCM TIFF file offset of this page

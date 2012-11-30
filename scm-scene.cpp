@@ -60,10 +60,10 @@ void scm_scene::unbind(int channel) const
 void scm_scene::bind_page(GLuint program,
                              int channel,
                              int depth,
-                             int scene, long long i) const
+                             int frame, long long i) const
 {
     FOR_ALL_OF_CHANNEL(it, channel)
-        (*it)->bind_page(program, depth, scene, i);
+        (*it)->bind_page(program, depth, frame, i);
 }
 
 void scm_scene::unbind_page(GLuint program, int channel, int depth) const
@@ -72,10 +72,10 @@ void scm_scene::unbind_page(GLuint program, int channel, int depth) const
         (*it)->unbind_page(program, depth);
 }
 
-void scm_scene::touch_page(int channel, int scene, long long i)
+void scm_scene::touch_page(int channel, int frame, long long i)
 {
     FOR_ALL_OF_CHANNEL(it, channel)
-        (*it)->touch_page(i, scene);
+        (*it)->touch_page(i, frame);
 }
 
 //------------------------------------------------------------------------------

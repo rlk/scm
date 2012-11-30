@@ -41,7 +41,7 @@ public:
     const char *get_path() const { return path.c_str(); }
     const char *get_name() const { return name.c_str(); }
 
-    bool load_page(void *, uint64, void *);
+    bool load_page(void *, uint64, void *) const;
 
 private:
 

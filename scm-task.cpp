@@ -61,9 +61,9 @@ void scm_task::dump_page()
 // Load the page at offset o in file f of array v. Store it in pixel buffer p.
 // On success, mark the buffer as dirty.
 
-void scm_task::load_page(scm_file *v, void *t)
+void scm_task::load_page(scm_file *const *v, void *t)
 {
-    d = v[f].load_page(p, o, t);
+    d = v[f]->load_page(p, o, t);
 }
 
 //------------------------------------------------------------------------------
