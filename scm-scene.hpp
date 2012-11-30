@@ -26,6 +26,7 @@ public:
     scm_scene();
 
     void add_image(scm_image *);
+    void rem_image(scm_image *);
 
     void   bind(int, GLuint) const;
     void unbind(int)         const;

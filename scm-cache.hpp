@@ -37,6 +37,7 @@ public:
    ~scm_cache();
 
     int    add_file(const std::string&);
+    void   rem_file(const std::string&);
     int    get_page(int, long long, int, int&);
 
     GLuint get_texture()    const { return texture; }

@@ -139,10 +139,26 @@ int scm_cache::add_file(const std::string& name)
     return -1;
 }
 
+void scm_cache::rem_file(const std::string& name)
+{
+    // Scan for the loaded file and delete it.
+
+    for (int f = 0; f < int(files.size()); ++f)
+        if (name.compare(files[f]->get_name()) == 0)
+        {
+            delete files[f];
+            files[f] = 0;
+        }
+}
+
+//------------------------------------------------------------------------------
+
 // Return the index for the requested page. Request the page if necessary.
 
 int scm_cache::get_page(int f, long long i, int t, int& n)
 {
+    assert(f < int(files.size()));
+
     // If this page does not exist, return the filler.
 
     uint64 o = files[f]->get_page_offset(i);
@@ -209,6 +225,28 @@ int scm_cache::get_slot(int t, long long i)
             return 0;
     }
 }
+
+//------------------------------------------------------------------------------
+
+void scm_cache::get_page_bounds(int f, long long i, float& t0, float& t1)
+{
+    files[f]->get_page_bounds(uint64(i), t0, t1);
+
+    t0 = t0 * (r1 - r0) + r0;
+    t1 = t1 * (r1 - r0) + r0;
+}
+
+bool scm_cache::get_page_status(int f, long long i)
+{
+    return files[f]->get_page_status(uint64(i));
+}
+
+float scm_cache::get_page_sample(int f, const double *v)
+{
+    return files[f]->get_page_sample(v) * (r1 - r0) + r0;
+}
+
+//------------------------------------------------------------------------------
 
 // Handle incoming textures on the loads queue. t gives the current frame
 // count and b request that the loads queue be drained completely.
@@ -288,10 +326,10 @@ void scm_cache::draw(int ii, int nn)
 
         glBegin(GL_QUADS);
         {
-            glTexCoord2i(0, 0); glVertex2f(-0.5f, -0.5f);
-            glTexCoord2i(1, 0); glVertex2f( 0.5f, -0.5f);
-            glTexCoord2i(1, 1); glVertex2f( 0.5f,  0.5f);
-            glTexCoord2i(0, 1); glVertex2f(-0.5f,  0.5f);
+            glTexCoord2i(0, 1); glVertex2f(-0.5f, -0.5f);
+            glTexCoord2i(1, 1); glVertex2f( 0.5f, -0.5f);
+            glTexCoord2i(1, 0); glVertex2f( 0.5f,  0.5f);
+            glTexCoord2i(0, 0); glVertex2f(-0.5f,  0.5f);
         }
         glEnd();
 
@@ -301,26 +339,6 @@ void scm_cache::draw(int ii, int nn)
         glPopMatrix();
     }
     glPopAttrib();
-}
-
-//------------------------------------------------------------------------------
-
-void scm_cache::get_page_bounds(int f, long long i, float& t0, float& t1)
-{
-    files[f]->get_page_bounds(uint64(i), t0, t1);
-
-    t0 = t0 * (r1 - r0) + r0;
-    t1 = t1 * (r1 - r0) + r0;
-}
-
-bool scm_cache::get_page_status(int f, long long i)
-{
-    return files[f]->get_page_status(uint64(i));
-}
-
-float scm_cache::get_page_sample(int f, const double *v)
-{
-    return files[f]->get_page_sample(v) * (r1 - r0) + r0;
 }
 
 //------------------------------------------------------------------------------
@@ -340,6 +358,8 @@ int loader(void *data)
     {
         if (cache->is_running())
         {
+            assert(f < int(files.size()));
+
             if (tmp || (tmp = malloc(cache->files[task.f]->get_scan_length())))
             {
                 task.load_page(cache->get_file_list(), tmp);

@@ -25,6 +25,10 @@ void scm_scene::add_image(scm_image *p)
         height = p;
 }
 
+void scm_scene::rem_image(scm_image *p)
+{
+}
+
 #define FOR_ALL_OF_CHANNEL(it, c) \
      for (scm_image_c it = images.begin(); it != images.end(); ++it) \
         if ((*it)->is_channel(c))
