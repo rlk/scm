@@ -19,17 +19,25 @@ class scm_system
 {
 public:
 
+    // External Interface
+
     scm_system();
    ~scm_system();
 
+    int        add_scene(int);
+    scm_scene *get_scene(int);
+    void       rem_scene(int);
+
+    int        add_step(int);
+    scm_step  *get_step(int);
+    void       rem_step(int);
+
+    // Internal Interface
+
+    scm_cache *get_scm_cache(const std::string&);
+    int        get_scm_index(const std::string&);
+
 private:
-
-    void       del_file (const std::string&);
-    void       del_scene(const std::string&);
-
-    scm_scene *get_scene(const std::string&);
-    scm_model *get_model();
-    scm_cache *get_cache(int, int, int);
 
     scm_model_p model;
     scm_scene_l scenes;

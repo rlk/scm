@@ -92,8 +92,8 @@ void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) 
         height->get_page_bounds(i, r0, r1);
     else
     {
-        r0 = 1.0;
-        r1 = 1.0;
+        r0 = 1.f;
+        r1 = 1.f;
     }
 }
 
@@ -108,20 +108,20 @@ bool scm_scene::get_page_status(int channel, long long i) const
     return false;
 }
 
-double scm_scene::get_height_sample(const double *v) const
+float scm_scene::get_height_sample(const double *v) const
 {
     if (height)
         return height->get_page_sample(v);
     else
-        return 1.0;
+        return 1.f;
 }
 
-double scm_scene::get_height_bottom() const
+float scm_scene::get_height_bottom() const
 {
     if (height)
         return height->get_normal_min();
     else
-        return 1.0;
+        return 1.f;
 }
 
 //------------------------------------------------------------------------------

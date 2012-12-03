@@ -14,8 +14,12 @@
 #define SCM_IMAGE_HPP
 
 #include <string>
+#include <set>
 
-#include "scm-cache.hpp"
+//------------------------------------------------------------------------------
+
+class scm_system;
+class scm_cache;
 
 //------------------------------------------------------------------------------
 
@@ -23,11 +27,28 @@ class scm_image
 {
 public:
 
-    scm_image(const std::string&,
-              const std::string&, scm_cache *, int, bool);
+    // External Interface
 
-    void   bind(GLint, GLuint) const;
-    void unbind(GLint)         const;
+    const std::string& get_scm()        const { return scm;     }
+    const std::string& get_name()       const { return name;    }
+    bool               get_height()     const { return height;  }
+    int                get_channel()    const { return channel; }
+    float              get_normal_min() const { return k0;      }
+    float              get_normal_max() const { return k1;      }
+
+    void    set_scm       (const std::string& s);
+    void    set_name      (const std::string& s) { name = s; }
+    void    set_height    (bool  h)              { height  = h; }
+    void    set_channel   (int   c)              { channel = c; }
+    void    set_normal_min(float k)              { k0      = k; }
+    void    set_normal_max(float k)              { k1      = k; }
+
+    // Internal Interface
+
+    scm_image(scm_system *);
+
+    void   bind(GLuint, GLuint) const;
+    void unbind(GLuint)         const;
 
     void   bind_page(GLuint, int, int, long long) const;
     void unbind_page(GLuint, int)                 const;
@@ -37,29 +58,22 @@ public:
     void    get_page_bounds(long long, float &, float &) const;
     bool    get_page_status(long long)                   const;
 
-    float   get_normal_min()   const { return k0; }
-    float   get_normal_max()   const { return k1; }
-
-    bool     is_channel(int c) const { return (chan == -1 || chan == c); }
-    bool     is_height()       const { return height; }
-
-    void    set_normal_min(float k) { k0 = k; }
-    void    set_normal_max(float k) { k1 = k; }
-
 private:
 
+    scm_system *sys;
+    std::string scm;
     std::string name;
-    scm_cache  *cache;
-    int         file;
-    int         chan;
+    int         channel;
     bool        height;
-    float       k0;      // Normalization minimum
-    float       k1;      // Normalization maximum
+    float       k0;
+    float       k1;
+
+    scm_cache  *cache;
+    int         index;
 };
 
-typedef std::vector<scm_image *>                 scm_image_v;
-typedef std::vector<scm_image *>::iterator       scm_image_i;
-typedef std::vector<scm_image *>::const_iterator scm_image_c;
+typedef std::set<scm_image *>           scm_image_s;
+typedef std::set<scm_image *>::iterator scm_image_i;
 
 //------------------------------------------------------------------------------
 

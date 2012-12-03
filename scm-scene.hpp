@@ -13,7 +13,7 @@
 #ifndef SCM_SCENE_HPP
 #define SCM_SCENE_HPP
 
-#include <vector>
+#include <list>
 
 #include "scm-image.hpp"
 
@@ -25,8 +25,16 @@ public:
 
     scm_scene();
 
-    void add_image(scm_image *);
-    void rem_image(scm_image *);
+    // External Interface
+
+    void       add_image(int);
+    scm_image *get_image(int);
+    void       rem_image(int);
+
+    // Internal Interface
+
+//  void add_image(scm_image *);
+//  void rem_image(scm_image *);
 
     void   bind(int, GLuint) const;
     void unbind(int)         const;
@@ -38,17 +46,17 @@ public:
     void    get_page_bounds(int, long long, float&, float &) const;
     bool    get_page_status(int, long long)                  const;
 
-    double  get_height_sample(const double *) const;
-    double  get_height_bottom()               const;
+    float   get_height_sample(const double *) const;
+    float   get_height_bottom()               const;
 
 private:
 
-    scm_image_v images;
+    scm_image_s images;
     scm_image  *height;
 };
 
-typedef std::vector<scm_scene *>           scm_scene_v;
-typedef std::vector<scm_scene *>::iterator scm_scene_i;
+typedef std::list<scm_scene *>           scm_scene_l;
+typedef std::list<scm_scene *>::iterator scm_scene_i;
 
 //------------------------------------------------------------------------------
 
