@@ -12,6 +12,7 @@
 
 #include "util3d/glsl.h"
 
+#include "scm-system.hpp"
 #include "scm-image.hpp"
 #include "scm-index.hpp"
 
@@ -30,8 +31,8 @@ void scm_image::set_scm(const std::string& s)
 
 scm_image::scm_image(scm_system *sys) :
     sys(sys),
-    channel(c),
-    height(h),
+    channel(0),
+    height(false),
     k0(0),
     k1(1),
     cache(0),

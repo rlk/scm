@@ -13,6 +13,10 @@
 #ifndef SCM_SYSTEM_HPP
 #define SCM_SYSTEM_HPP
 
+#include "scm-scene.hpp"
+#include "scm-cache.hpp"
+// #include "scm-step.hpp"
+
 //------------------------------------------------------------------------------
 
 class scm_system
@@ -38,13 +42,14 @@ public:
     int        get_scm_index(const std::string&);
 
 private:
-
+#if 0
     scm_model_p model;
     scm_scene_l scenes;
     scm_cache_s caches;
     scm_file_s  files;
     scm_path_p  path;
     scm_step    here;
+#endif
 };
 
 //------------------------------------------------------------------------------
