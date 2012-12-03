@@ -37,11 +37,14 @@ public:
     void    get_page_bounds(long long, float &, float &) const;
     bool    get_page_status(long long)                   const;
 
-    float   get_normal_min()   const { return cache->get_normal_min(); }
-    float   get_normal_max()   const { return cache->get_normal_max(); }
+    float   get_normal_min()   const { return k0; }
+    float   get_normal_max()   const { return k1; }
 
     bool     is_channel(int c) const { return (chan == -1 || chan == c); }
     bool     is_height()       const { return height; }
+
+    void    set_normal_min(float k) { k0 = k; }
+    void    set_normal_max(float k) { k1 = k; }
 
 private:
 
@@ -50,6 +53,8 @@ private:
     int         file;
     int         chan;
     bool        height;
+    float       k0;      // Normalization minimum
+    float       k1;      // Normalization maximum
 };
 
 typedef std::vector<scm_image *>                 scm_image_v;

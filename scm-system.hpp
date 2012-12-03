@@ -27,7 +27,6 @@ private:
     void       del_file (const std::string&);
     void       del_scene(const std::string&);
 
-    scm_file  *get_file (const std::string&);
     scm_scene *get_scene(const std::string&);
     scm_model *get_model();
     scm_cache *get_cache(int, int, int);

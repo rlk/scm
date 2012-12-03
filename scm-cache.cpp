@@ -21,7 +21,7 @@
 
 //------------------------------------------------------------------------------
 
-scm_cache::scm_cache(int s, int n, int c, int b, int t, float r0, float r1) :
+scm_cache::scm_cache(int s, int n, int c, int b, int t) :
     pages(),
     waits(),
     needs(need_queue_size),
@@ -32,9 +32,7 @@ scm_cache::scm_cache(int s, int n, int c, int b, int t, float r0, float r1) :
     l(1),
     n(n),
     c(c),
-    b(b),
-    r0(r0),
-    r1(r1)
+    b(b)
 {
     // Launch the image loader threads.
 
@@ -233,12 +231,9 @@ int scm_cache::get_slot(int t, long long i)
 
 //------------------------------------------------------------------------------
 
-void scm_cache::get_page_bounds(int f, long long i, float& t0, float& t1)
+void scm_cache::get_page_bounds(int f, long long i, float& r0, float& r1)
 {
-    files[f]->get_page_bounds(uint64(i), t0, t1);
-
-    t0 = t0 * (r1 - r0) + r0;
-    t1 = t1 * (r1 - r0) + r0;
+    files[f]->get_page_bounds(uint64(i), r0, r1);
 }
 
 bool scm_cache::get_page_status(int f, long long i)
@@ -248,7 +243,7 @@ bool scm_cache::get_page_status(int f, long long i)
 
 float scm_cache::get_page_sample(int f, const double *v)
 {
-    return files[f]->get_page_sample(v) * (r1 - r0) + r0;
+    return files[f]->get_page_sample(v);
 }
 
 //------------------------------------------------------------------------------

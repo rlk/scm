@@ -22,7 +22,9 @@ scm_image::scm_image(const std::string& name,
 	name(name),
 	cache(cache),
 	chan(c),
-    height(h)
+    height(h),
+    k0(0),
+    k1(1)
 {
 	file = cache->add_file(scm);
 }
@@ -31,21 +33,16 @@ scm_image::scm_image(const std::string& name,
 
 void scm_image::bind(GLint unit, GLuint program) const
 {
-    if (height)
-    {
-        GLuint ur0 = glsl_uniform(program, "r0");
-        GLuint ur1 = glsl_uniform(program, "r1");
-
-        glUniform1f(ur0, cache->get_normal_min());
-        glUniform1f(ur1, cache->get_normal_max());
-    }
-
-    GLuint uS = glsl_uniform(program, "%s.S", name.c_str());
-    GLuint ur = glsl_uniform(program, "%s.r", name.c_str());
-
     const int s = cache->get_grid_size();
     const int n = cache->get_page_size();
 
+    GLuint uS  = glsl_uniform(program, "%s.S",  name.c_str());
+    GLuint ur  = glsl_uniform(program, "%s.r",  name.c_str());
+    GLuint uk0 = glsl_uniform(program, "%s.k0", name.c_str());
+    GLuint uk1 = glsl_uniform(program, "%s.k1", name.c_str());
+
+    glUniform1f(uk0, k0);
+    glUniform1f(uk1, k1);
     glUniform1i(uS, unit);
     glUniform2f(ur, GLfloat(n) / (n + 2) / s,
                     GLfloat(n) / (n + 2) / s);
@@ -103,12 +100,15 @@ void scm_image::touch_page(long long i, int t) const
 
 float scm_image::get_page_sample(const double *v) const
 {
-    return cache->get_page_sample(file, v);
+    return cache->get_page_sample(file, v) * (k1 - k0) + k0;
 }
 
 void scm_image::get_page_bounds(long long i, float& r0, float& r1) const
 {
-    return cache->get_page_bounds(file, i, r0, r1);
+    cache->get_page_bounds(file, i, r0, r1);
+
+    r0 = r0 * (k1 - k0) + k0;
+    r1 = r1 * (k1 - k1) + k1;
 }
 
 bool scm_image::get_page_status(long long i) const

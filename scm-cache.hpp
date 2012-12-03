@@ -33,7 +33,7 @@ class scm_cache
 {
 public:
 
-    scm_cache(int, int, int, int, int, float, float);
+    scm_cache(int, int, int, int, int);
    ~scm_cache();
 
     int    add_file(const std::string&);
@@ -41,8 +41,6 @@ public:
     int    get_page(int, long long, int, int&);
 
     GLuint get_texture()    const { return texture; }
-    float  get_normal_min() const { return r0;      }
-    float  get_normal_max() const { return r1;      }
     int    get_grid_size()  const { return s;       }
     int    get_page_size()  const { return n;       }
 
@@ -78,8 +76,6 @@ private:
     int     n;                      // Page width and height in pixels
     int     c;                      // Page channel count
     int     b;                      // Page channel size in bytes
-    float   r0;                     // Normalization minimum
-    float   r1;                     // Normalization maximum
 
     int get_slot(int, long long);
 
