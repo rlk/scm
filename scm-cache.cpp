@@ -60,8 +60,13 @@ scm_cache::scm_cache(int s, int n, int c, int b, int t, float r0, float r1) :
 
     glGenTextures  (1, &texture);
     glBindTexture  (GL_TEXTURE_2D, texture);
+#if 1
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#else
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+#endif
 
     // Initialize it with a buffer of zeros.
 
@@ -358,8 +363,6 @@ int loader(void *data)
     {
         if (cache->is_running())
         {
-            assert(f < int(files.size()));
-
             if (tmp || (tmp = malloc(cache->files[task.f]->get_scan_length())))
             {
                 task.load_page(cache->get_file_list(), tmp);
