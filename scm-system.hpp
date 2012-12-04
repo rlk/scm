@@ -15,7 +15,6 @@
 
 #include "scm-scene.hpp"
 #include "scm-cache.hpp"
-// #include "scm-step.hpp"
 
 //------------------------------------------------------------------------------
 
@@ -29,12 +28,16 @@ public:
    ~scm_system();
 
     int        add_scene(int);
+    void       del_scene(int);
     scm_scene *get_scene(int);
-    void       rem_scene(int);
+    int        get_scene_count() const;
 
+#if 0
     int        add_step(int);
+    void       del_step(int);
     scm_step  *get_step(int);
-    void       rem_step(int);
+    int        get_step_count() const;
+#endif
 
     // Internal Interface
 

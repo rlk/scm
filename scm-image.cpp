@@ -110,12 +110,12 @@ void scm_image::unbind_page(GLuint program, int d) const
     }
 }
 
-void scm_image::touch_page(long long i, int t) const
+void scm_image::touch_page(int t, long long i) const
 {
     if (cache)
     {
-        int u;
-        cache->get_page(index, i, t, u);
+        int ignored;
+        cache->get_page(index, i, t, ignored);
     }
 }
 
@@ -135,13 +135,13 @@ void scm_image::get_page_bounds(long long i, float& r0, float& r1) const
     {
         cache->get_page_bounds(index, i, r0, r1);
 
-        r0 = r0 * (k1 - k0) + k0;
-        r1 = r1 * (k1 - k1) + k1;
+        r0 = k0 + (k1 - k0) * r0;
+        r1 = k0 + (k1 - k0) * r1;
     }
     else
     {
-        r0 = 0.f;
-        r1 = 1.f;
+        r0 = k0;
+        r1 = k1;
     }
 }
 

@@ -13,8 +13,10 @@
 #ifndef SCM_IMAGE_HPP
 #define SCM_IMAGE_HPP
 
+#include <GL/glew.h>
+
 #include <string>
-#include <set>
+#include <vector>
 
 //------------------------------------------------------------------------------
 
@@ -36,12 +38,12 @@ public:
     float              get_normal_min() const { return k0;      }
     float              get_normal_max() const { return k1;      }
 
-    void    set_scm       (const std::string& s);
-    void    set_name      (const std::string& s) { name = s; }
-    void    set_height    (bool  h)              { height  = h; }
-    void    set_channel   (int   c)              { channel = c; }
-    void    set_normal_min(float k)              { k0      = k; }
-    void    set_normal_max(float k)              { k1      = k; }
+    void               set_scm       (const std::string& s);
+    void               set_name      (const std::string& s) { name    = s; }
+    void               set_height    (bool  h)              { height  = h; }
+    void               set_channel   (int   c)              { channel = c; }
+    void               set_normal_min(float k)              { k0      = k; }
+    void               set_normal_max(float k)              { k1      = k; }
 
     // Internal Interface
 
@@ -52,7 +54,7 @@ public:
 
     void   bind_page(GLuint, int, int, long long) const;
     void unbind_page(GLuint, int)                 const;
-    void  touch_page(long long, int)              const;
+    void  touch_page(             int, long long) const;
 
     float   get_page_sample(const double *)              const;
     void    get_page_bounds(long long, float &, float &) const;
@@ -72,8 +74,9 @@ private:
     int         index;
 };
 
-typedef std::set<scm_image *>           scm_image_s;
-typedef std::set<scm_image *>::iterator scm_image_i;
+typedef std::vector<scm_image *>                 scm_image_v;
+typedef std::vector<scm_image *>::iterator       scm_image_i;
+typedef std::vector<scm_image *>::const_iterator scm_image_c;
 
 //------------------------------------------------------------------------------
 

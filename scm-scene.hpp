@@ -13,7 +13,7 @@
 #ifndef SCM_SCENE_HPP
 #define SCM_SCENE_HPP
 
-#include <list>
+#include <vector>
 
 #include "scm-image.hpp"
 
@@ -23,18 +23,24 @@ class scm_scene
 {
 public:
 
-    scm_scene();
+    scm_scene(scm_system *);
 
     // External Interface
 
-    void       add_image(int);
-    scm_image *get_image(int);
-    void       rem_image(int);
+    const std::string& get_name() const { return name; }
+    const std::string& get_vert() const { return vert; }
+    const std::string& get_frag() const { return frag; }
+
+    void               set_name(const std::string &s) { name = s; }
+    void               set_vert(const std::string &s);
+    void               set_frag(const std::string &s);
+
+    int                add_image(int);
+    void               del_image(int);
+    scm_image         *get_image(int);
+    int                get_image_count() const { return int(images.size()); }
 
     // Internal Interface
-
-//  void add_image(scm_image *);
-//  void rem_image(scm_image *);
 
     void   bind(int, GLuint) const;
     void unbind(int)         const;
@@ -51,12 +57,18 @@ public:
 
 private:
 
-    scm_image_s images;
+    scm_system *sys;
+
+    std::string name;
+    std::string vert;
+    std::string frag;
+
+    scm_image_v images;
     scm_image  *height;
 };
 
-typedef std::list<scm_scene *>           scm_scene_l;
-typedef std::list<scm_scene *>::iterator scm_scene_i;
+typedef std::vector<scm_scene *>           scm_scene_v;
+typedef std::vector<scm_scene *>::iterator scm_scene_i;
 
 //------------------------------------------------------------------------------
 

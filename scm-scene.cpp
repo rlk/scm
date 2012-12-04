@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2012 Robert Kooima
+// Copyright () 2011-2012 Robert Kooima
 //
 // LIBSCM is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
@@ -14,26 +14,40 @@
 
 //------------------------------------------------------------------------------
 
-scm_scene::scm_scene() : height(0)
+scm_scene::scm_scene(scm_system *sys) : sys(sys), height(0)
 {
 }
-
-void scm_scene::add_image(scm_image *p)
-{
-    images.push_back(p);
-    if (p->is_height())
-        height = p;
-}
-
-void scm_scene::rem_image(scm_image *p)
-{
-}
-
-#define FOR_ALL_OF_CHANNEL(it, c) \
-     for (scm_image_c it = images.begin(); it != images.end(); ++it) \
-        if ((*it)->is_channel(c))
 
 //------------------------------------------------------------------------------
+
+// Allocate and insert a new image before i. Return its index.
+
+int scm_scene::add_image(int i)
+{
+    if (scm_image *image = new scm_image(sys))
+        return int(images.insert(images.begin() + i, image) - images.begin());
+    else
+        return -1;
+}
+
+// Delete the image at i.
+
+void scm_scene::del_image(int i)
+{
+    delete images[i];
+    images.erase(images.begin() + i);
+}
+
+// Return a pointer to the image at i.
+
+scm_image *scm_scene::get_image(int i)
+{
+    return images[i];
+}
+
+//------------------------------------------------------------------------------
+
+// Bind the program and all image textures matching channel.
 
 void scm_scene::bind(int channel, GLuint program) const
 {
@@ -41,11 +55,14 @@ void scm_scene::bind(int channel, GLuint program) const
 
     glUseProgram(program);
 
-    FOR_ALL_OF_CHANNEL(it, channel)
-        (*it)->bind(unit++, program);
+    for (int i = 0; i < get_image_count(); ++i)
+        if (images[i]->get_channel() == channel)
+            images[i]->bind(unit++, program);
 
     glActiveTexture(GL_TEXTURE0);
 }
+
+// Unbind the program and all image textures matching channel.
 
 void scm_scene::unbind(int channel) const
 {
@@ -53,38 +70,48 @@ void scm_scene::unbind(int channel) const
 
     glUseProgram(0);
 
-    FOR_ALL_OF_CHANNEL(it, channel)
-        (*it)->unbind(unit++);
+    for (int i = 0; i < get_image_count(); ++i)
+        if (images[i]->get_channel() == channel)
+            images[i]->unbind(unit++);
 
     glActiveTexture(GL_TEXTURE0);
 }
 
 //------------------------------------------------------------------------------
 
+// For each image matching channel, bind page i and set uniforms on program.
+
 void scm_scene::bind_page(GLuint program,
                              int channel,
                              int depth,
                              int frame, long long i) const
 {
-    FOR_ALL_OF_CHANNEL(it, channel)
-        (*it)->bind_page(program, depth, frame, i);
+    for (int i = 0; i < get_image_count(); ++i)
+        if (images[i]->get_channel() == channel)
+            images[i]->bind_page(program, depth, frame, i);
 }
+
+// For each image matching channel, unbind page i and unset uniforms on program.
 
 void scm_scene::unbind_page(GLuint program, int channel, int depth) const
 {
-    FOR_ALL_OF_CHANNEL(it, channel)
-        (*it)->unbind_page(program, depth);
+    for (int i = 0; i < get_image_count(); ++i)
+        if (images[i]->get_channel() == channel)
+            images[i]->unbind_page(program, depth);
 }
+
+// For each image maching channel, touch page i and update its usage time.
 
 void scm_scene::touch_page(int channel, int frame, long long i)
 {
-    FOR_ALL_OF_CHANNEL(it, channel)
-        (*it)->touch_page(i, frame);
+    for (int i = 0; i < get_image_count(); ++i)
+        if (images[i]->get_channel() == channel)
+            images[i]->touch_page(i, frame);
 }
 
 //------------------------------------------------------------------------------
 
-// Return the range of any height image in this scene.
+// Return the range of page i of the height image.
 
 void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) const
 {
@@ -97,16 +124,19 @@ void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) 
     }
 }
 
-// Return true if any one of the images has page i in cache.
+// Return true if ANY one of the images has page i in cache.
 
 bool scm_scene::get_page_status(int channel, long long i) const
 {
-    FOR_ALL_OF_CHANNEL(it, channel)
-        if ((*it)->get_page_status(i))
+    for (int i = 0; i < get_image_count(); ++i)
+        if (images[i]->get_channel() == channel &&
+            images[i]->get_page_status(i))
             return true;
 
     return false;
 }
+
+// Sample the height image along vector v.
 
 float scm_scene::get_height_sample(const double *v) const
 {
@@ -115,6 +145,8 @@ float scm_scene::get_height_sample(const double *v) const
     else
         return 1.f;
 }
+
+// Return the smallest value in the height image.
 
 float scm_scene::get_height_bottom() const
 {
