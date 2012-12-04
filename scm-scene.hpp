@@ -15,6 +15,7 @@
 
 #include <vector>
 
+#include "util3d/glsl.h"
 #include "scm-image.hpp"
 
 //------------------------------------------------------------------------------
@@ -42,12 +43,12 @@ public:
 
     // Internal Interface
 
-    void   bind(int, GLuint) const;
-    void unbind(int)         const;
+    GLuint bind(int) const;
+    void unbind(int) const;
 
-    void   bind_page(GLuint, int, int, int, long long) const;
-    void unbind_page(GLuint, int, int)                 const;
-    void  touch_page(int, int, long long);
+    GLuint bind_page(int, int, int, long long) const;
+    void unbind_page(int, int)                 const;
+    void  touch_page(int,      int, long long) const;
 
     void    get_page_bounds(int, long long, float&, float &) const;
     bool    get_page_status(int, long long)                  const;
@@ -65,6 +66,7 @@ private:
 
     scm_image_v images;
     scm_image  *height;
+    glsl        render;
 };
 
 typedef std::vector<scm_scene *>           scm_scene_v;

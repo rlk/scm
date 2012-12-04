@@ -16,6 +16,25 @@
 
 scm_scene::scm_scene(scm_system *sys) : sys(sys), height(0)
 {
+    memset(&render, 0, sizeof (glsl));
+}
+
+//------------------------------------------------------------------------------
+
+void scm_scene::set_vert(const std::string &s)
+{
+    vert = s;
+
+    glsl_delete(&render);
+    glsl_source(&render, vert.c_str(), frag.c_str());
+}
+
+void scm_scene::set_frag(const std::string &s)
+{
+    frag = s;
+
+    glsl_delete(&render);
+    glsl_source(&render, vert.c_str(), frag.c_str());
 }
 
 //------------------------------------------------------------------------------
@@ -49,17 +68,19 @@ scm_image *scm_scene::get_image(int i)
 
 // Bind the program and all image textures matching channel.
 
-void scm_scene::bind(int channel, GLuint program) const
+GLuint scm_scene::bind(int channel) const
 {
     GLenum unit = 0;
 
-    glUseProgram(program);
+    glUseProgram(render.program);
 
     for (int i = 0; i < get_image_count(); ++i)
         if (images[i]->get_channel() == channel)
-            images[i]->bind(unit++, program);
+            images[i]->bind(unit++, render.program);
 
     glActiveTexture(GL_TEXTURE0);
+
+    return render.program;
 }
 
 // Unbind the program and all image textures matching channel.
@@ -79,30 +100,30 @@ void scm_scene::unbind(int channel) const
 
 //------------------------------------------------------------------------------
 
-// For each image matching channel, bind page i and set uniforms on program.
+// For each image matching channel, bind page i. Return the program to allow the
+// caller to set uniforms.
 
-void scm_scene::bind_page(GLuint program,
-                             int channel,
-                             int depth,
-                             int frame, long long i) const
+GLuint scm_scene::bind_page(int channel, int depth, int frame, long long i) const
 {
     for (int i = 0; i < get_image_count(); ++i)
         if (images[i]->get_channel() == channel)
-            images[i]->bind_page(program, depth, frame, i);
+            images[i]->bind_page(render.program, depth, frame, i);
+
+    return render.program;
 }
 
-// For each image matching channel, unbind page i and unset uniforms on program.
+// For each image matching channel, unbind page i.
 
-void scm_scene::unbind_page(GLuint program, int channel, int depth) const
+void scm_scene::unbind_page(int channel, int depth) const
 {
     for (int i = 0; i < get_image_count(); ++i)
         if (images[i]->get_channel() == channel)
-            images[i]->unbind_page(program, depth);
+            images[i]->unbind_page(render.program, depth);
 }
 
-// For each image maching channel, touch page i and update its usage time.
+// For each image maching channel, touch page i.
 
-void scm_scene::touch_page(int channel, int frame, long long i)
+void scm_scene::touch_page(int channel, int frame, long long i) const
 {
     for (int i = 0; i < get_image_count(); ++i)
         if (images[i]->get_channel() == channel)

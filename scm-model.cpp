@@ -84,14 +84,6 @@ scm_model::scm_model(const char *vert,
     frame(1),
     size(s)
 {
-    glsl_source(&render, vert, frag);
-
-    glUseProgram(render.program);
-
-    u_fader = glGetUniformLocation(render.program, "fader");
-    u_zoomk = glGetUniformLocation(render.program, "zoomk");
-    u_zoomv = glGetUniformLocation(render.program, "zoomv");
-
     init_arrays(n);
 
     zoomv[0] =  0;
@@ -103,7 +95,6 @@ scm_model::scm_model(const char *vert,
 scm_model::~scm_model()
 {
     free_arrays();
-    glsl_delete(&render);
 }
 
 GLfloat scm_model::age(int then)
@@ -365,7 +356,7 @@ bool scm_model::prep_page(scm_scene *scene,
 
 void scm_model::draw_page(scm_scene *scene, int channel, int depth, long long i)
 {
-    scene->bind_page(render.program, channel, depth, frame, i);
+    GLuint program = scene->bind_page(channel, depth, frame, i);
     {
         long long i0 = scm_page_child(i, 0);
         long long i1 = scm_page_child(i, 1);
@@ -401,8 +392,8 @@ void scm_model::draw_page(scm_scene *scene, int channel, int depth, long long i)
                 GLfloat x = m * c - C;
                 GLfloat y = m * r - R;
 
-                GLint A = glsl_uniform(render.program, "A[%d]", l);
-                GLint B = glsl_uniform(render.program, "B[%d]", l);
+                GLint A = glsl_uniform(program, "A[%d]", l);
+                GLint B = glsl_uniform(program, "B[%d]", l);
 
                 glUniform2f(A, m, m);
                 glUniform2f(B, x, y);
@@ -422,7 +413,7 @@ void scm_model::draw_page(scm_scene *scene, int channel, int depth, long long i)
             glDrawElements(GL_QUADS, count, GL_ELEMENT_INDEX, 0);
         }
     }
-    scene->unbind_page(render.program, channel, depth);
+    scene->unbind_page(channel, depth);
 }
 
 //------------------------------------------------------------------------------
@@ -462,7 +453,7 @@ void scm_model::draw(scm_scene *scene, const double *M, int width, int height, i
 
     // Configure the shaders and draw the six root pages.
 
-    scene->bind(channel, render.program);
+    GLuint program = scene->bind(channel);
     {
         static const GLfloat M[6][9] = {
             {  0.f,  0.f,  1.f,  0.f,  1.f,  0.f, -1.f,  0.f,  0.f },
@@ -473,13 +464,13 @@ void scm_model::draw(scm_scene *scene, const double *M, int width, int height, i
             { -1.f,  0.f,  0.f,  0.f,  1.f,  0.f,  0.f,  0.f, -1.f },
         };
 
-        GLint uM = glsl_uniform(render.program, "M");
-
+        GLint uM = glsl_uniform(program, "M");
+#if 0
         glUniform1f(u_zoomk, GLfloat(zoomk));
         glUniform3f(u_zoomv, GLfloat(zoomv[0]),
                              GLfloat(zoomv[1]),
                              GLfloat(zoomv[2]));
-
+#endif
         if (is_set(0))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[0]);

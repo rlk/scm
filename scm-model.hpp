@@ -17,8 +17,6 @@
 #include <vector>
 #include <set>
 
-#include "util3d/glsl.h"
-
 #include "scm-scene.hpp"
 
 //------------------------------------------------------------------------------
@@ -70,14 +68,6 @@ private:
 
     bool   prep_page(scm_scene *, const double *, int, int, int, long long);
     void   draw_page(scm_scene *,                      int, int, long long);
-
-    // OpenGL programmable processing state
-
-    glsl   render;
-
-    GLuint u_fader;
-    GLuint u_zoomk;
-    GLuint u_zoomv;
 
     // OpenGL geometry state.
 

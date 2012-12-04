@@ -45,11 +45,13 @@ public:
     int        get_scm_index(const std::string&);
 
 private:
-#if 0
-    scm_model_p model;
-    scm_scene_l scenes;
-    scm_cache_s caches;
+
+    scm_model  *model;
+    scm_scene_v scenes;
+    scm_cache_v caches;
     scm_file_s  files;
+
+#if 0
     scm_path_p  path;
     scm_step    here;
 #endif
