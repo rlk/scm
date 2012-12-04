@@ -14,6 +14,7 @@
 #define SCM_FILE_HPP
 
 #include <string>
+
 #include <tiffio.h>
 
 //------------------------------------------------------------------------------
@@ -42,6 +43,8 @@ public:
     const char *get_name() const { return name.c_str(); }
 
     bool load_page(void *, uint64, void *) const;
+
+    bool is_valid() const { return w && h && c && b && (w == h); }
 
 private:
 

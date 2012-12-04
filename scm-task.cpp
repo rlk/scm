@@ -60,12 +60,12 @@ void scm_task::dump_page()
 
 // Load the page at offset o in file f of array v. Store it in pixel buffer p.
 // On success, mark the buffer as dirty.
-
+#if 0
 void scm_task::load_page(scm_file *const *v, void *t)
 {
     d = v[f]->load_page(p, o, t);
 }
-
+#endif
 //------------------------------------------------------------------------------
 
 // Select an OpenGL internal texture format for an image with c channels and

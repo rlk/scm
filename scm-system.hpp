@@ -13,8 +13,69 @@
 #ifndef SCM_SYSTEM_HPP
 #define SCM_SYSTEM_HPP
 
+#include <map>
+#include <set>
+
+#include <SDL.h>
+#include <SDL_thread.h>
+
 #include "scm-scene.hpp"
 #include "scm-cache.hpp"
+#include "scm-model.hpp"
+#include "scm-file.hpp"
+
+//------------------------------------------------------------------------------
+
+struct active_pair
+{
+    active_pair()                          : file(0), cache(0) { }
+    active_pair(scm_file *f, scm_cache *c) : file(f), cache(c) { }
+
+    scm_file  *file;
+    scm_cache *cache;
+};
+
+typedef std::map<int, active_pair> active_pair_m;
+
+//------------------------------------------------------------------------------
+
+struct active_file
+{
+    active_file() : file(0), uses(0), index(-1) { }
+
+    scm_file  *file;
+    int        uses;
+    int        index;
+};
+
+typedef std::map<std::string, active_file> active_file_m;
+
+//------------------------------------------------------------------------------
+
+struct active_cache
+{
+    active_cache() : cache(0), uses(0) { }
+
+    scm_cache *cache;
+    int        uses;
+};
+
+struct cache_param
+{
+    cache_param(scm_file *file) : n(file->get_w() - 2), c(file->get_c()),
+                                                        b(file->get_b()) { }
+    int n;
+    int c;
+    int b;
+    bool operator<(const cache_param& that) const {
+        if      (n < that.n) return true;
+        else if (c < that.c) return true;
+        else if (b < that.b) return true;
+        else                 return false;
+    }
+};
+
+typedef std::map<cache_param, active_cache> active_cache_m;
 
 //------------------------------------------------------------------------------
 
@@ -30,7 +91,7 @@ public:
     int        add_scene(int);
     void       del_scene(int);
     scm_scene *get_scene(int);
-    int        get_scene_count() const;
+    int        get_scene_count() const { return int(scenes.size()); }
 
 #if 0
     int        add_step(int);
@@ -41,15 +102,31 @@ public:
 
     // Internal Interface
 
-    scm_cache *get_scm_cache(const std::string&);
-    int        get_scm_index(const std::string&);
+    int acquire_scm(const std::string&);
+    int release_scm(const std::string&);
+
+    scm_cache *get_cache(int);
+    scm_file  *get_file (int);
+
+    float get_page_sample(int, const double *v) const;
+    void  get_page_bounds(int, long long, float&, float&) const;
+    bool  get_page_status(int, long long) const;
 
 private:
 
-    scm_model  *model;
+    int _acquire_scm(const std::string&);
+    int _release_scm(const std::string&);
+
     scm_scene_v scenes;
-    scm_cache_v caches;
-    scm_file_s  files;
+    scm_model  *model;
+
+    active_file_m  files;
+    active_cache_m caches;
+    active_pair_m  pairs;
+
+    SDL_mutex *mutex;
+
+    int serial;
 
 #if 0
     scm_path_p  path;

@@ -20,13 +20,11 @@
 
 void scm_image::set_scm(const std::string& s)
 {
+    if (!scm.empty()) index = sys->release_scm(scm);
     scm = s;
+    if (!scm.empty()) index = sys->acquire_scm(scm);
 
-    if (sys)
-    {
-        cache = sys->get_scm_cache(scm);
-        index = sys->get_scm_index(scm);
-    }
+    cache = sys->get_cache(index);
 }
 
 scm_image::scm_image(scm_system *sys) :
@@ -35,8 +33,7 @@ scm_image::scm_image(scm_system *sys) :
     height(false),
     k0(0),
     k1(1),
-    cache(0),
-    index(0)
+    index(-1)
 {
 }
 
@@ -123,34 +120,20 @@ void scm_image::touch_page(int t, long long i) const
 
 float scm_image::get_page_sample(const double *v) const
 {
-    if (cache)
-        return cache->get_page_sample(index, v) * (k1 - k0) + k0;
-    else
-        return 0.f;
+    return sys->get_page_sample(index, v) * (k1 - k0) + k0;
 }
 
 void scm_image::get_page_bounds(long long i, float& r0, float& r1) const
 {
-    if (cache)
-    {
-        cache->get_page_bounds(index, i, r0, r1);
+    sys->get_page_bounds(index, i, r0, r1);
 
-        r0 = k0 + (k1 - k0) * r0;
-        r1 = k0 + (k1 - k0) * r1;
-    }
-    else
-    {
-        r0 = k0;
-        r1 = k1;
-    }
+    r0 = k0 + (k1 - k0) * r0;
+    r1 = k0 + (k1 - k0) * r1;
 }
 
 bool scm_image::get_page_status(long long i) const
 {
-    if (cache)
-        return cache->get_page_status(index, i);
-    else
-        return false;
+    return sys->get_page_status(index, i);
 }
 
 //------------------------------------------------------------------------------

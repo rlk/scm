@@ -48,7 +48,7 @@ static bool exists(const std::string& path)
 // and cache its meta-data.
 
 scm_file::scm_file(const std::string& tiff) :
-    name(tiff),
+    name(tiff), w(0), h(0), c(0), b(0), g(0),
     xv(0), xc(0),
     ov(0), oc(0),
     av(0), ac(0),

@@ -17,28 +17,28 @@
 #include <limits>
 
 #include "scm-cache.hpp"
+#include "scm-system.hpp"
 #include "scm-index.hpp"
 
 //------------------------------------------------------------------------------
 
-scm_cache::scm_cache(int s, int n, int c, int b, int t) :
+scm_cache::scm_cache(scm_system *sys, int n, int c, int b) :
+    sys(sys),
     pages(),
     waits(),
     needs(need_queue_size),
     loads(load_queue_size),
     run(true),
     texture(0),
-    s(s),
+    s(cache_size),
     l(1),
-    n(n),
-    c(c),
-    b(b)
+    n(n)
 {
     // Launch the image loader threads.
 
     int loader(void *data);
 
-    for (int i = 0; i < t; ++i)
+    for (int i = 0; i < cache_threads; ++i)
         threads.push_back(SDL_CreateThread(loader, this));
 
     // Generate pixel buffer objects.
@@ -118,94 +118,57 @@ scm_cache::~scm_cache()
 
 //------------------------------------------------------------------------------
 
-int scm_cache::add_file(const std::string& name)
-{
-    int f;
-
-    // Scan to determine whether the named file is already loaded.
-
-    for (f = 0; f < int(files.size()); ++f)
-        if (name.compare(files[f]->get_name()) == 0)
-            return f;
-
-    // Otherwise try to load it.
-
-    if (scm_file *n = new scm_file(name))
-    {
-        // If succesful, add it to the collection.
-
-        f = int(files.size());
-        files.push_back(n);
-
-        return f;
-    }
-    return -1;
-}
-
-void scm_cache::rem_file(const std::string& name)
-{
-    // Scan for the loaded file and delete it.
-
-    for (int f = 0; f < int(files.size()); ++f)
-        if (name.compare(files[f]->get_name()) == 0)
-        {
-            delete files[f];
-            files[f] = 0;
-        }
-}
-
-//------------------------------------------------------------------------------
-
 // Return the index for the requested page. Request the page if necessary.
 
 int scm_cache::get_page(int f, long long i, int t, int& n)
 {
-    assert(f < int(files.size()));
-
-    // If this page does not exist, return the filler.
-
-    uint64 o = files[f]->get_page_offset(i);
-
-    if (o == 0)
-        return 0;
-
-    // If this page is waiting, return the filler.
-
-    scm_page wait = waits.search(scm_page(f, i), t);
-
-    if (wait.valid())
+    if (scm_file *file = sys->get_file(f))
     {
-        n    = wait.t;
-        return wait.l;
-    }
+        // If this page does not exist, return the filler.
 
-    // If this page is loaded, return the index.
+        uint64 o = file->get_page_offset(i);
 
-    scm_page page = pages.search(scm_page(f, i), t);
+        if (o == 0)
+            return 0;
 
-    if (page.valid())
-    {
-        n    = page.t;
-        return page.l;
-    }
+        // If this page is waiting, return the filler.
 
-    // Otherwise request the page and add it to the waiting set.
+        scm_page wait = waits.search(scm_page(f, i), t);
 
-    if (!pbos.empty())
-    {
-        scm_task task(f, i, o, pbos.deq(), files[f]->get_page_length());
-        scm_page page(f, i, 0);
-
-        if (needs.try_insert(task))
-            waits.insert(page, t);
-        else
+        if (wait.valid())
         {
-            task.dump_page();
-            pbos.enq(task.u);
+            n    = wait.t;
+            return wait.l;
+        }
+
+        // If this page is loaded, return the index.
+
+        scm_page page = pages.search(scm_page(f, i), t);
+
+        if (page.valid())
+        {
+            n    = page.t;
+            return page.l;
+        }
+
+        // Otherwise request the page and add it to the waiting set.
+
+        if (!pbos.empty())
+        {
+            scm_task task(f, i, o, pbos.deq(), file->get_page_length());
+            scm_page page(f, i, 0);
+
+            if (needs.try_insert(task))
+                waits.insert(page, t);
+            else
+            {
+                task.dump_page();
+                pbos.enq(task.u);
+            }
         }
     }
 
-    // If there is no PBO available, punt and let the app request again.
+    // If all else fails, punt and let the app request again.
 
     n = t;
     return 0;
@@ -227,23 +190,6 @@ int scm_cache::get_slot(int t, long long i)
         else
             return 0;
     }
-}
-
-//------------------------------------------------------------------------------
-
-void scm_cache::get_page_bounds(int f, long long i, float& r0, float& r1)
-{
-    files[f]->get_page_bounds(uint64(i), r0, r1);
-}
-
-bool scm_cache::get_page_status(int f, long long i)
-{
-    return files[f]->get_page_status(uint64(i));
-}
-
-float scm_cache::get_page_sample(int f, const double *v)
-{
-    return files[f]->get_page_sample(v);
 }
 
 //------------------------------------------------------------------------------
@@ -350,6 +296,7 @@ void scm_cache::draw(int ii, int nn)
 int loader(void *data)
 {
     scm_cache *cache = (scm_cache *) data;
+    scm_file  *file;
     scm_task   task;
 
     void *tmp = 0;
@@ -358,10 +305,13 @@ int loader(void *data)
     {
         if (cache->is_running())
         {
-            if (tmp || (tmp = malloc(cache->files[task.f]->get_scan_length())))
+            if ((file = cache->sys->get_file(task.f)))
             {
-                task.load_page(cache->get_file_list(), tmp);
-                cache->loads.insert(task);
+                if (tmp || (tmp = malloc(file->get_scan_length())))
+                {
+                    task.d = file->load_page(task.p, task.o, tmp);
+                    cache->loads.insert(task);
+                }
             }
         }
     }
