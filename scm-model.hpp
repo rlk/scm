@@ -28,10 +28,10 @@ public:
     scm_model(int, int);
    ~scm_model();
 
-    int tick() { return ++frame; }
+    // int tick() { return ++frame; }
 
     void prep(scm_scene *, const double *, int, int, int);
-    void draw(scm_scene *, const double *, int, int, int);
+    void draw(scm_scene *, const double *, int, int, int, int);
 
     void set_zoom(double x, double y, double z, double k)
     {
@@ -48,9 +48,9 @@ private:
 
     int detail;
     int limit;
-    int frame;
+    // int frame;
 
-    GLfloat age(int);
+    // GLfloat age(int);
 
     // Zooming state.
 
@@ -71,7 +71,7 @@ private:
     void  debug_page(const double *,           double, double, long long);
 
     bool   prep_page(scm_scene *, const double *, int, int, int, long long);
-    void   draw_page(scm_scene *,                      int, int, long long);
+    void   draw_page(scm_scene *,                 int, int, int, long long);
 
     // OpenGL geometry state.
 

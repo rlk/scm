@@ -15,7 +15,7 @@
 
 //------------------------------------------------------------------------------
 
-scm_system::scm_system() : serial(1), timer(0)
+scm_system::scm_system() : serial(1), timer(0), frame(0)
 {
     mutex = SDL_CreateMutex();
     model = new scm_model(32, 512);
@@ -34,16 +34,15 @@ scm_system::~scm_system()
 
 void scm_system::update_cache(bool sync)
 {
-    int frame = model->tick();
-
     for (active_cache_i i = caches.begin(); i != caches.end(); ++i)
         i->second.cache->update(frame, sync);
+    frame++;
 }
 
 void scm_system::render_model(const double *M, int width, int height, int channel)
 {
     if (scm_scene *scene = get_current_scene())
-        model->draw(scene, M, width, height, channel);
+        model->draw(scene, M, width, height, channel, frame);
 }
 
 void scm_system::render_cache()

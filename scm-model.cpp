@@ -79,7 +79,7 @@ void scm_model::zoom(double *w, const double *v)
 
 //------------------------------------------------------------------------------
 
-scm_model::scm_model(int d, int l) : detail(d), limit(l), frame(0)
+scm_model::scm_model(int d, int l) : detail(d), limit(l)
 {
     init_arrays(detail);
 
@@ -92,12 +92,6 @@ scm_model::scm_model(int d, int l) : detail(d), limit(l), frame(0)
 scm_model::~scm_model()
 {
     free_arrays();
-}
-
-GLfloat scm_model::age(int then)
-{
-    GLfloat a = GLfloat(frame - then) / 60.f;
-    return (a > 1.f) ? 1.f : a;
 }
 
 //------------------------------------------------------------------------------
@@ -351,7 +345,7 @@ bool scm_model::prep_page(scm_scene *scene,
     return false;
 }
 
-void scm_model::draw_page(scm_scene *scene, int channel, int depth, long long i)
+void scm_model::draw_page(scm_scene *scene, int channel, int depth, int frame, long long i)
 {
     GLuint program = scene->bind_page(channel, depth, frame, i);
     {
@@ -369,10 +363,10 @@ void scm_model::draw_page(scm_scene *scene, int channel, int depth, long long i)
         {
             // Draw any children marked for drawing.
 
-            if (b0) draw_page(scene, channel, depth + 1, i0);
-            if (b1) draw_page(scene, channel, depth + 1, i1);
-            if (b2) draw_page(scene, channel, depth + 1, i2);
-            if (b3) draw_page(scene, channel, depth + 1, i3);
+            if (b0) draw_page(scene, channel, depth + 1, frame, i0);
+            if (b1) draw_page(scene, channel, depth + 1, frame, i1);
+            if (b2) draw_page(scene, channel, depth + 1, frame, i2);
+            if (b3) draw_page(scene, channel, depth + 1, frame, i3);
         }
         else
         {
@@ -427,7 +421,8 @@ void scm_model::prep(scm_scene *scene, const double *M, int width, int height, i
     prep_page(scene, M, width, height, channel, 5);
 }
 
-void scm_model::draw(scm_scene *scene, const double *M, int width, int height, int channel)
+void scm_model::draw(scm_scene *scene, const double *M,
+                     int width, int height, int channel, int frame)
 {
     glEnable(GL_COLOR_MATERIAL);
 
@@ -471,32 +466,32 @@ void scm_model::draw(scm_scene *scene, const double *M, int width, int height, i
         if (is_set(0))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[0]);
-            draw_page(scene, channel, 0, 0);
+            draw_page(scene, channel, 0, frame, 0);
         }
         if (is_set(1))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[1]);
-            draw_page(scene, channel, 0, 1);
+            draw_page(scene, channel, 0, frame, 1);
         }
         if (is_set(2))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[2]);
-            draw_page(scene, channel, 0, 2);
+            draw_page(scene, channel, 0, frame, 2);
         }
         if (is_set(3))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[3]);
-            draw_page(scene, channel, 0, 3);
+            draw_page(scene, channel, 0, frame, 3);
         }
         if (is_set(4))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[4]);
-            draw_page(scene, channel, 0, 4);
+            draw_page(scene, channel, 0, frame, 4);
         }
         if (is_set(5))
         {
             glUniformMatrix3fv(uM, 1, GL_TRUE, M[5]);
-            draw_page(scene, channel, 0, 5);
+            draw_page(scene, channel, 0, frame, 5);
         }
     }
     scene->unbind(channel);
