@@ -80,7 +80,7 @@ void scm_model::zoom(double *w, const double *v)
 //------------------------------------------------------------------------------
 
 scm_model::scm_model(int n, int s) :
-    frame(1),
+    frame(0),
     size(s)
 {
     init_arrays(n);

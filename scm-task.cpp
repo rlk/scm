@@ -25,14 +25,14 @@ scm_task::scm_task()
 }
 
 scm_task::scm_task(int f, long long i)
-    : scm_item(f, i), o(0), u(0), n(0), c(0), b(0), d(false)
+    : scm_item(f, i), o(0), n(0), c(0), b(0), u(0), d(false)
 {
 }
 
 // Construct a load task. Map the PBO to provide a destination for the loader.
 
 scm_task::scm_task(int f, long long i, uint64 o, int n, int c, int b, GLuint u)
-    : scm_item(f, i), o(o), u(u), n(n), c(c), b(b), d(false)
+    : scm_item(f, i), o(o), n(n), c(c), b(b), u(u), d(false)
 {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, u);
     {

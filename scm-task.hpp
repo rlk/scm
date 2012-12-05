@@ -35,12 +35,12 @@ struct scm_task : public scm_item
     void dump_page();
 
     uint64 o;          // SCM TIFF file offset of this page
-    GLuint u;          // Pixel unpack buffer object
-    void  *p;          // Pixel unpack buffer map address
     int    n;
     int    c;
     int    b;
+    GLuint u;          // Pixel unpack buffer object
     bool   d;          // Pixel unpack buffer dirty flag
+    void  *p;          // Pixel unpack buffer map address
 };
 
 //------------------------------------------------------------------------------

@@ -93,9 +93,9 @@ GLuint scm_scene::bind(int channel) const
 
     glUseProgram(render.program);
 
-    for (int i = 0; i < get_image_count(); ++i)
-        if (images[i]->get_channel() == channel)
-            images[i]->bind(unit++, render.program);
+    for (int j = 0; j < get_image_count(); ++j)
+        if (images[j]->get_channel() == channel)
+            images[j]->bind(unit++, render.program);
 
     glActiveTexture(GL_TEXTURE0);
 
@@ -110,9 +110,9 @@ void scm_scene::unbind(int channel) const
 
     glUseProgram(0);
 
-    for (int i = 0; i < get_image_count(); ++i)
-        if (images[i]->get_channel() == channel)
-            images[i]->unbind(unit++);
+    for (int j = 0; j < get_image_count(); ++j)
+        if (images[j]->get_channel() == channel)
+            images[j]->unbind(unit++);
 
     glActiveTexture(GL_TEXTURE0);
 }
@@ -124,9 +124,9 @@ void scm_scene::unbind(int channel) const
 
 GLuint scm_scene::bind_page(int channel, int depth, int frame, long long i) const
 {
-    for (int i = 0; i < get_image_count(); ++i)
-        if (images[i]->get_channel() == channel)
-            images[i]->bind_page(render.program, depth, frame, i);
+    for (int j = 0; j < get_image_count(); ++j)
+        if (images[j]->get_channel() == channel)
+            images[j]->bind_page(render.program, depth, frame, i);
 
     return render.program;
 }
@@ -135,18 +135,18 @@ GLuint scm_scene::bind_page(int channel, int depth, int frame, long long i) cons
 
 void scm_scene::unbind_page(int channel, int depth) const
 {
-    for (int i = 0; i < get_image_count(); ++i)
-        if (images[i]->get_channel() == channel)
-            images[i]->unbind_page(render.program, depth);
+    for (int j = 0; j < get_image_count(); ++j)
+        if (images[j]->get_channel() == channel)
+            images[j]->unbind_page(render.program, depth);
 }
 
 // For each image maching channel, touch page i.
 
 void scm_scene::touch_page(int channel, int frame, long long i) const
 {
-    for (int i = 0; i < get_image_count(); ++i)
-        if (images[i]->get_channel() == channel)
-            images[i]->touch_page(i, frame);
+    for (int j = 0; j < get_image_count(); ++j)
+        if (images[j]->get_channel() == channel)
+            images[j]->touch_page(frame, i);
 }
 
 //------------------------------------------------------------------------------

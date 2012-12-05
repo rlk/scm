@@ -124,6 +124,8 @@ scm_cache::~scm_cache()
 
 int scm_cache::get_page(int f, long long i, int t, int& u)
 {
+    // TODO: sys->get_file is called every frame for every page. That's a lot.
+
     if (scm_file *file = sys->get_file(f))
     {
         // If this page does not exist, return the filler.

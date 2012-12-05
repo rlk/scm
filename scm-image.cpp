@@ -114,7 +114,7 @@ void scm_image::unbind_page(GLuint program, int d) const
 
 void scm_image::touch_page(int t, long long i) const
 {
-    if (cache)
+    if (cache && index >= 0)
     {
         int ignored;
         cache->get_page(index, i, t, ignored);
@@ -125,20 +125,34 @@ void scm_image::touch_page(int t, long long i) const
 
 float scm_image::get_page_sample(const double *v) const
 {
-    return sys->get_page_sample(index, v) * (k1 - k0) + k0;
+    if (index < 0)
+        return 0.f;
+    else
+        return sys->get_page_sample(index, v) * (k1 - k0) + k0;
 }
 
 void scm_image::get_page_bounds(long long i, float& r0, float& r1) const
 {
-    sys->get_page_bounds(index, i, r0, r1);
+    if (index < 0)
+    {
+        r0 = k0;
+        r1 = k1;
+    }
+    else
+    {
+        sys->get_page_bounds(index, i, r0, r1);
 
-    r0 = k0 + (k1 - k0) * r0;
-    r1 = k0 + (k1 - k0) * r1;
+        r0 = k0 + (k1 - k0) * r0;
+        r1 = k0 + (k1 - k0) * r1;
+    }
 }
 
 bool scm_image::get_page_status(long long i) const
 {
-    return sys->get_page_status(index, i);
+    if (index < 0)
+        return false;
+    else
+        return sys->get_page_status(index, i);
 }
 
 //------------------------------------------------------------------------------

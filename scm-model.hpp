@@ -28,7 +28,7 @@ public:
     scm_model(int, int);
    ~scm_model();
 
-    int tick() { return frame++; }
+    int tick() { return ++frame; }
 
     void prep(scm_scene *, const double *, int, int, int);
     void draw(scm_scene *, const double *, int, int, int);
