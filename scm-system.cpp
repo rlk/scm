@@ -140,16 +140,12 @@ float scm_system::get_page_sample(int f, const double *v)
 
 void scm_system::get_page_bounds(int f, long long i, float& r0, float& r1)
 {
-    // TODO: this is another get_file that gets pounded
-
     if (scm_file *file = get_file(f))
         file->get_page_bounds(uint64(i), r0, r1);
 }
 
 bool scm_system::get_page_status(int f, long long i)
 {
-    // TODO: this is another get_file that gets pounded
-
     if (scm_file *file = get_file(f))
         return file->get_page_status(uint64(i));
     else
@@ -158,8 +154,10 @@ bool scm_system::get_page_status(int f, long long i)
 
 //------------------------------------------------------------------------------
 
-int scm_system::_acquire_scm(const std::string& name)
+int scm_system::acquire_scm(const std::string& name)
 {
+    scm_log("acquire_scm %s", name.c_str());
+
     // If the file is loaded, note another usage.
 
     if (files[name].file)
@@ -192,7 +190,9 @@ int scm_system::_acquire_scm(const std::string& name)
 
             // Associate the index, file, and cache in the reverse look-up.
 
+            SDL_mutexP(mutex);
             pairs[index] = active_pair(files[name].file, caches[cp].cache);
+            SDL_mutexV(mutex);
         }
         else
         {
@@ -203,15 +203,19 @@ int scm_system::_acquire_scm(const std::string& name)
     return files[name].index;
 }
 
-int scm_system::_release_scm(const std::string& name)
+int scm_system::release_scm(const std::string& name)
 {
+    scm_log("release_scm %s", name.c_str());
+
     // Release the named file and delete it if no uses remain.
 
     if (--files[name].uses == 0)
     {
         // Remove the index from the reverse look-up.
 
+        SDL_mutexP(mutex);
         pairs.erase(files[name].index);
+        SDL_mutexV(mutex);
 
         // Release the associated cache and delete it if no uses remain.
 
@@ -231,59 +235,28 @@ int scm_system::_release_scm(const std::string& name)
 
 //------------------------------------------------------------------------------
 
-int scm_system::acquire_scm(const std::string& name)
-{
-    int index = -1;
-
-    SDL_mutexP(mutex);
-    index = _acquire_scm(name);
-    SDL_mutexV(mutex);
-
-    scm_log("acquire_scm %s = %d", name.c_str(), index);
-
-    return index;
-}
-
-int scm_system::release_scm(const std::string& name)
-{
-    int index = -1;
-
-    SDL_mutexP(mutex);
-    index = _release_scm(name);
-    SDL_mutexV(mutex);
-
-    scm_log("release_scm %s", name.c_str());
-
-    return index;
-}
+// Return the cache associated with the given file index.
 
 scm_cache *scm_system::get_cache(int index)
 {
-    scm_cache *cache = 0;
-
-    SDL_mutexP(mutex);
-    {
-        if (pairs.find(index) != pairs.end())
-            cache = pairs[index].cache;
-    }
-    SDL_mutexV(mutex);
-
-    return cache;
+    if (pairs.find(index) == pairs.end())
+        return 0;
+    else
+        return pairs[index].cache;
 }
+
+// Return the file associated with the given file index.
 
 scm_file *scm_system::get_file(int index)
 {
-    scm_file *file = 0;
-
-    SDL_mutexP(mutex);
-    {
-        if (pairs.find(index) != pairs.end())
-            file = pairs[index].file;
-    }
-    SDL_mutexV(mutex);
-
-    return file;
+    if (pairs.find(index) == pairs.end())
+        return 0;
+    else
+        return pairs[index].file;
 }
+
+// Return an open TIFF pointer for the file with the given index. This function
+// is called by the loader threads, so the index map must be mutually exclusive.
 
 TIFF *scm_system::get_tiff(int index)
 {

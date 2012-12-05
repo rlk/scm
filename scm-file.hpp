@@ -28,22 +28,18 @@ public:
 
     TIFF *open();
 
-    // size_t get_scan_length()                       const;
-    // size_t get_page_length()                       const;
-    bool   get_page_status(uint64)                 const;
-    uint64 get_page_offset(uint64)                 const;
-    void   get_page_bounds(uint64, float&, float&) const;
-    float  get_page_sample(const double *);
+    bool        get_page_status(uint64)                 const;
+    uint64      get_page_offset(uint64)                 const;
+    void        get_page_bounds(uint64, float&, float&) const;
+    float       get_page_sample(const double *);
 
-    uint32 get_w() const { return w; }
-    uint32 get_h() const { return h; }
-    uint16 get_c() const { return c; }
-    uint16 get_b() const { return b; }
+    uint32      get_w()    const { return w; }
+    uint32      get_h()    const { return h; }
+    uint16      get_c()    const { return c; }
+    uint16      get_b()    const { return b; }
 
     const char *get_path() const { return path.c_str(); }
     const char *get_name() const { return name.c_str(); }
-
-    // bool load_page(void *, uint64, void *) const;
 
     bool is_valid() const { return w && h && c && b && (w == h); }
 
