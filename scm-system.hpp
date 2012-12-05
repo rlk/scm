@@ -96,7 +96,8 @@ public:
    ~scm_system();
 
     void update(bool);
-    void render(const double *, int, int, int);
+    void render_model(const double *, int, int, int);
+    void render_cache();
 
     int        add_scene(int);
     void       del_scene(int);

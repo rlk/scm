@@ -48,13 +48,13 @@ public:
     bool   is_running() { return run.get(); }
 
     void   update(int, bool);
-    void   draw  (int, int);
+    void   render(int, int);
     void   flush ();
 
 private:
 
-    static const int cache_size    = 8;
-    static const int cache_threads = 2;
+    static const int cache_size    = 12;
+    static const int cache_threads =  2;
 
     static const int need_queue_size      = 32;   // 32
     static const int load_queue_size      =  8;   //  8

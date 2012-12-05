@@ -40,10 +40,18 @@ void scm_system::update(bool sync)
         i->second.cache->update(frame, sync);
 }
 
-void scm_system::render(const double *M, int width, int height, int channel)
+void scm_system::render_model(const double *M, int width, int height, int channel)
 {
     if (scm_scene *scene = get_current_scene())
         model->draw(scene, M, width, height, channel);
+}
+
+void scm_system::render_cache()
+{
+    int ii = 0, nn = caches.size();
+
+    for (active_cache_i i = caches.begin(); i != caches.end(); ++i, ++ii)
+        i->second.cache->render(ii, nn);
 }
 
 //------------------------------------------------------------------------------
@@ -132,12 +140,16 @@ float scm_system::get_page_sample(int f, const double *v)
 
 void scm_system::get_page_bounds(int f, long long i, float& r0, float& r1)
 {
+    // TODO: this is another get_file that gets pounded
+
     if (scm_file *file = get_file(f))
         file->get_page_bounds(uint64(i), r0, r1);
 }
 
 bool scm_system::get_page_status(int f, long long i)
 {
+    // TODO: this is another get_file that gets pounded
+
     if (scm_file *file = get_file(f))
         return file->get_page_status(uint64(i));
     else

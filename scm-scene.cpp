@@ -15,7 +15,7 @@
 
 //------------------------------------------------------------------------------
 
-scm_scene::scm_scene(scm_system *sys) : sys(sys), height(0)
+scm_scene::scm_scene(scm_system *sys) : sys(sys)
 {
     memset(&render, 0, sizeof (glsl));
 }
@@ -155,22 +155,24 @@ void scm_scene::touch_page(int channel, int frame, long long i) const
 
 void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) const
 {
-    if (height)
-        height->get_page_bounds(i, r0, r1);
-    else
-    {
-        r0 = 1.f;
-        r1 = 1.f;
-    }
+    for (int j = 0; j < get_image_count(); ++j)
+        if (images[j]->get_height())
+        {
+            images[j]->get_page_bounds(i, r0, r1);
+            return;
+        }
+
+    r0 = 1.f;
+    r1 = 1.f;
 }
 
 // Return true if ANY one of the images has page i in cache.
 
 bool scm_scene::get_page_status(int channel, long long i) const
 {
-    for (int i = 0; i < get_image_count(); ++i)
-        if (images[i]->get_channel() == channel &&
-            images[i]->get_page_status(i))
+    for (int j = 0; j < get_image_count(); ++j)
+        if (images[j]->get_channel() == channel &&
+            images[j]->get_page_status(i))
             return true;
 
     return false;
@@ -180,20 +182,22 @@ bool scm_scene::get_page_status(int channel, long long i) const
 
 float scm_scene::get_height_sample(const double *v) const
 {
-    if (height)
-        return height->get_page_sample(v);
-    else
-        return 1.f;
+    for (int j = 0; j < get_image_count(); ++j)
+        if (images[j]->get_height())
+            return images[j]->get_page_sample(v);
+
+    return 1.f;
 }
 
 // Return the smallest value in the height image.
 
 float scm_scene::get_height_bottom() const
 {
-    if (height)
-        return height->get_normal_min();
-    else
-        return 1.f;
+    for (int j = 0; j < get_image_count(); ++j)
+        if (images[j]->get_height())
+            return images[j]->get_normal_min();
+
+    return 1.f;
 }
 
 //------------------------------------------------------------------------------

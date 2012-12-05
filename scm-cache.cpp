@@ -233,15 +233,7 @@ void scm_cache::update(int t, bool b)
     }
 }
 
-void scm_cache::flush()
-{
-    while (!pages.empty())
-        pages.eject(0, -1);
-
-    l = 1;
-}
-
-void scm_cache::draw(int ii, int nn)
+void scm_cache::render(int ii, int nn)
 {
     glPushAttrib(GL_ENABLE_BIT);
     {
@@ -283,6 +275,14 @@ void scm_cache::draw(int ii, int nn)
         glPopMatrix();
     }
     glPopAttrib();
+}
+
+void scm_cache::flush()
+{
+    while (!pages.empty())
+        pages.eject(0, -1);
+
+    l = 1;
 }
 
 //------------------------------------------------------------------------------

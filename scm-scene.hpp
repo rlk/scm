@@ -66,7 +66,6 @@ private:
     std::string frag;
 
     scm_image_v images;
-    scm_image  *height;
     glsl        render;
 };
 
