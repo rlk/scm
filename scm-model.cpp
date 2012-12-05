@@ -79,11 +79,9 @@ void scm_model::zoom(double *w, const double *v)
 
 //------------------------------------------------------------------------------
 
-scm_model::scm_model(int n, int s) :
-    frame(0),
-    size(s)
+scm_model::scm_model(int d, int l) : detail(d), limit(l), frame(0)
 {
-    init_arrays(n);
+    init_arrays(detail);
 
     zoomv[0] =  0;
     zoomv[1] =  0;
@@ -330,7 +328,7 @@ bool scm_model::prep_page(scm_scene *scene,
 
         if (k > 0)
         {
-            if (k > size)
+            if (k > limit)
             {
                 long long i0 = scm_page_child(i, 0);
                 long long i1 = scm_page_child(i, 1);

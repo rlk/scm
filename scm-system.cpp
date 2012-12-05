@@ -32,7 +32,7 @@ scm_system::~scm_system()
 
 //------------------------------------------------------------------------------
 
-void scm_system::update(bool sync)
+void scm_system::update_cache(bool sync)
 {
     int frame = model->tick();
 
@@ -124,31 +124,38 @@ float scm_system::get_minimum_height() const
 
 //------------------------------------------------------------------------------
 
-float scm_system::get_page_sample(int f, const double *v)
+void scm_system::set_sphere_radius(float r)
 {
-    if (scm_file *file = get_file(f))
-        return file->get_page_sample(v);
-    else
-        return 1.f;
+    radius = r;
 }
 
-void scm_system::get_page_bounds(int f, long long i, float& r0, float& r1)
+void scm_system::set_sphere_detail(int d)
 {
-    if (scm_file *file = get_file(f))
-        file->get_page_bounds(uint64(i), r0, r1);
-    else
-    {
-        r0 = 1.f;
-        r1 = 1.f;
-    }
+    int l = get_sphere_limit();
+    delete model;
+    model = new scm_model(d, l);
 }
 
-bool scm_system::get_page_status(int f, long long i)
+void scm_system::set_sphere_limit(int l)
 {
-    if (scm_file *file = get_file(f))
-        return file->get_page_status(uint64(i));
-    else
-        return false;
+    int d = get_sphere_detail();
+    delete model;
+    model = new scm_model(d, l);
+}
+
+float scm_system::get_sphere_radius() const
+{
+    return radius;
+}
+
+int scm_system::get_sphere_detail() const
+{
+    return model ? model->get_detail() : 32;
+}
+
+int scm_system::get_sphere_limit () const
+{
+    return model ? model->get_limit() : 512;
 }
 
 //------------------------------------------------------------------------------
@@ -269,6 +276,35 @@ TIFF *scm_system::get_tiff(int index)
     SDL_mutexV(mutex);
 
     return T;
+}
+
+//------------------------------------------------------------------------------
+
+float scm_system::get_page_sample(int f, const double *v)
+{
+    if (scm_file *file = get_file(f))
+        return file->get_page_sample(v);
+    else
+        return 1.f;
+}
+
+void scm_system::get_page_bounds(int f, long long i, float& r0, float& r1)
+{
+    if (scm_file *file = get_file(f))
+        file->get_page_bounds(uint64(i), r0, r1);
+    else
+    {
+        r0 = 1.f;
+        r1 = 1.f;
+    }
+}
+
+bool scm_system::get_page_status(int f, long long i)
+{
+    if (scm_file *file = get_file(f))
+        return file->get_page_status(uint64(i));
+    else
+        return false;
 }
 
 //------------------------------------------------------------------------------

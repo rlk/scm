@@ -84,14 +84,14 @@ class scm_system
 {
 public:
 
-    // External Interface
+    // External Interface ------------------------------------------------------
 
     scm_system();
    ~scm_system();
 
-    void update(bool);
     void render_model(const double *, int, int, int);
     void render_cache();
+    void update_cache(bool);
 
     int        add_scene(int);
     void       del_scene(int);
@@ -102,7 +102,15 @@ public:
     float      get_current_height(const double *) const;
     float      get_minimum_height()               const;
 
-    // Internal Interface
+    void       set_sphere_radius(float);
+    void       set_sphere_detail(int);
+    void       set_sphere_limit (int);
+
+    float      get_sphere_radius() const;
+    int        get_sphere_detail() const;
+    int        get_sphere_limit () const;
+
+    // Internal Interface ------------------------------------------------------
 
     int acquire_scm(const std::string&);
     int release_scm(const std::string&);
@@ -112,25 +120,22 @@ public:
     TIFF      *get_tiff (int);
 
     float get_page_sample(int, const double *v);
-    void  get_page_bounds(int, long long, float&, float&);
     bool  get_page_status(int, long long);
+    void  get_page_bounds(int, long long, float&, float&);
 
 private:
 
-    int _acquire_scm(const std::string&);
-    int _release_scm(const std::string&);
-
-    scm_scene_v scenes;
-    scm_model  *model;
+    scm_scene_v    scenes;
+    scm_model      *model;
+    SDL_mutex      *mutex;
 
     active_file_m  files;
     active_cache_m caches;
     active_pair_m  pairs;
 
-    SDL_mutex *mutex;
-
-    int    serial;
-    double timer;
+    int   serial;
+    float radius;
+    float timer;
 };
 
 //------------------------------------------------------------------------------

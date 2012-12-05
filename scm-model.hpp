@@ -41,10 +41,14 @@ public:
         zoomk    = k;
     }
 
+    int get_detail() const { return detail; }
+    int get_limit()  const { return limit;  }
+
 private:
 
+    int detail;
+    int limit;
     int frame;
-    int size;
 
     GLfloat age(int);
 
