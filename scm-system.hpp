@@ -79,12 +79,6 @@ typedef std::map<cache_param, active_cache>           active_cache_m;
 typedef std::map<cache_param, active_cache>::iterator active_cache_i;
 
 //------------------------------------------------------------------------------
-#if 0
-    int        add_step(int);
-    void       del_step(int);
-    scm_step  *get_step(int);
-    int        get_step_count() const;
-#endif
 
 class scm_system
 {
@@ -104,9 +98,9 @@ public:
     scm_scene *get_scene(int);
     int        get_scene_count() const { return int(scenes.size()); }
 
-    float      get_current_bottom() const;
-    float      get_current_height() const;
-    scm_scene *get_current_scene()  const;
+    scm_scene *get_current_scene()                const;
+    float      get_current_height(const double *) const;
+    float      get_minimum_height()               const;
 
     // Internal Interface
 
@@ -137,11 +131,6 @@ private:
 
     int    serial;
     double timer;
-
-#if 0
-    scm_path_p  path;
-    scm_step    here;
-#endif
 };
 
 //------------------------------------------------------------------------------

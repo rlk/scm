@@ -126,7 +126,7 @@ void scm_image::touch_page(int t, long long i) const
 float scm_image::get_page_sample(const double *v) const
 {
     if (index < 0)
-        return 0.f;
+        return k1;
     else
         return sys->get_page_sample(index, v) * (k1 - k0) + k0;
 }

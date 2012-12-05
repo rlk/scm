@@ -51,11 +51,12 @@ public:
     void unbind_page(int, int)                 const;
     void  touch_page(int,      int, long long) const;
 
+    float   get_minimum_height()               const;
+    float   get_current_height(const double *) const;
+
     void    get_page_bounds(int, long long, float&, float &) const;
     bool    get_page_status(int, long long)                  const;
 
-    float   get_height_sample(const double *) const;
-    float   get_height_bottom()               const;
 
 private:
 

@@ -73,6 +73,9 @@ private:
     float  tofloat(const void *, uint64) const;
     uint64 toindex(uint64)               const;
 };
+//------------------------------------------------------------------------------
+
+bool scm_load_page(TIFF *T, uint64, int, int, int, int, void *, void *);
 
 //------------------------------------------------------------------------------
 

@@ -91,28 +91,6 @@ scm_scene *scm_system::get_scene(int i)
 
 //------------------------------------------------------------------------------
 
-float scm_system::get_current_bottom() const
-{
-    if (scm_scene *scene = get_current_scene())
-        return scene->get_height_bottom();
-    else
-        return 1.0;
-}
-
-float scm_system::get_current_height() const
-{
-#if 0
-    double v[3];
-
-    here.get_position(v);
-
-    if (scm_scene *scene = get_current_scene())
-        return scene->get_height_sample(v);
-    else
-#endif
-        return 1.0;
-}
-
 scm_scene *scm_system::get_current_scene() const
 {
     int s = int(scenes.size());
@@ -128,6 +106,22 @@ scm_scene *scm_system::get_current_scene() const
     return 0;
 }
 
+float scm_system::get_current_height(const double *v) const
+{
+    if (scm_scene *scene = get_current_scene())
+        return scene->get_current_height(v);
+    else
+        return 1.f;
+}
+
+float scm_system::get_minimum_height() const
+{
+    if (scm_scene *scene = get_current_scene())
+        return scene->get_minimum_height();
+    else
+        return 1.f;
+}
+
 //------------------------------------------------------------------------------
 
 float scm_system::get_page_sample(int f, const double *v)
@@ -135,13 +129,18 @@ float scm_system::get_page_sample(int f, const double *v)
     if (scm_file *file = get_file(f))
         return file->get_page_sample(v);
     else
-        return 0.f;
+        return 1.f;
 }
 
 void scm_system::get_page_bounds(int f, long long i, float& r0, float& r1)
 {
     if (scm_file *file = get_file(f))
         file->get_page_bounds(uint64(i), r0, r1);
+    else
+    {
+        r0 = 1.f;
+        r1 = 1.f;
+    }
 }
 
 bool scm_system::get_page_status(int f, long long i)

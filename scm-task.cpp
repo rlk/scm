@@ -71,57 +71,9 @@ void scm_task::dump_page()
 // Load the page at offset o of TIFF T. Store it in pixel buffer p. On success,
 // mark the buffer as dirty.
 
-void scm_task::load_page(TIFF *tif, void *q)
+void scm_task::load_page(TIFF *T, void *q)
 {
-    int r = 0;
-
-    if (TIFFSetSubDirectory(tif, o))
-    {
-        const int w = n + 2;
-        const int h = n + 2;
-
-        uint32 W, H;
-        uint16 C, B;
-
-        TIFFGetField(tif, TIFFTAG_IMAGEWIDTH,      &W);
-        TIFFGetField(tif, TIFFTAG_IMAGELENGTH,     &H);
-        TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE,   &B);
-        TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &C);
-
-        if (int(W) == w && int(H) == h && int(B) == b && int(C) == c)
-        {
-            if (q && c == 3 && b == 8)
-            {
-                const int S = w * 4 * b / 8;
-
-                for (r = 0; r < h; ++r)
-                {
-                    TIFFReadScanline(tif, q, r, 0);
-
-                    for (int j = w - 1; j >= 0; --j)
-                    {
-                        uint8 *src = (uint8 *) q         + j * c * b / 8;
-                        uint8 *dst = (uint8 *) p + r * S + j * 4 * b / 8;
-
-                        dst[0] = src[2];
-                        dst[1] = src[1];
-                        dst[2] = src[0];
-                        dst[3] = 0xFF;
-                    }
-                }
-            }
-            else
-            {
-                const int S = int(TIFFScanlineSize(tif));
-
-                for (r = 0; r < h; ++r)
-                    TIFFReadScanline(tif, (uint8 *) p + r * S, r, 0);
-            }
-        }
-    }
-    TIFFClose(tif);
-
-    d = (r > 0);
+    d = scm_load_page(T, o, n + 2, n + 2, c, b, p, q);
 }
 
 //------------------------------------------------------------------------------

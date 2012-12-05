@@ -156,79 +156,6 @@ TIFF *scm_file::open()
 
 //------------------------------------------------------------------------------
 
-// Open the TIFF and read the page at offset o into pixel buffer dst. We reopen
-// the file each time because this function may be invoked by any one of many
-// sub-threads.
-#if 0
-bool scm_file::load_page(void *dst, uint64 o, void *tmp) const
-{
-    uint32 r = 0;
-
-    if (TIFF *T = TIFFOpen(path.c_str(), "r"))
-    {
-        if (TIFFSetSubDirectory(T, o))
-        {
-            uint32 W, H;
-            uint16 C, B;
-
-            TIFFGetField(T, TIFFTAG_IMAGEWIDTH,      &W);
-            TIFFGetField(T, TIFFTAG_IMAGELENGTH,     &H);
-            TIFFGetField(T, TIFFTAG_BITSPERSAMPLE,   &B);
-            TIFFGetField(T, TIFFTAG_SAMPLESPERPIXEL, &C);
-
-            if (W == w && H == h && B == b && C == c)
-            {
-                if (tmp && c == 3 && b == 8)
-                {
-                    const uint32 S = w * 4 * b / 8;
-
-                    for (r = 0; r < h; ++r)
-                    {
-                        TIFFReadScanline(T, tmp, r, 0);
-
-                        for (int j = w - 1; j >= 0; --j)
-                        {
-                            uint8 *s = (uint8 *) tmp         + j * c * b / 8;
-                            uint8 *d = (uint8 *) dst + r * S + j * 4 * b / 8;
-
-                            d[0] = s[2];
-                            d[1] = s[1];
-                            d[2] = s[0];
-                            d[3] = 0xFF;
-                        }
-                    }
-                }
-                else
-                {
-                    const uint32 S = (uint32) TIFFScanlineSize(T);
-
-                    for (r = 0; r < h; ++r)
-                        TIFFReadScanline(T, (uint8 *) dst + r * S, r, 0);
-                }
-            }
-        }
-        TIFFClose(T);
-    }
-    return (r > 0);
-}
-#endif
-//------------------------------------------------------------------------------
-#if 0
-size_t scm_file::get_scan_length() const
-{
-    return size_t(w) * c * b / 8;
-}
-#endif
-// Return the buffer length for a page of this file. 24-bit is padded to 32.
-#if 0
-size_t scm_file::get_page_length() const
-{
-    if (c == 3 && b == 8)
-        return size_t(w) * size_t(h) * 4 * b / 8;
-    else
-        return size_t(w) * size_t(h) * c * b / 8;
-}
-#endif
 // Determine whether page i is given by this file.
 
 bool scm_file::get_page_status(uint64 i) const
@@ -282,7 +209,6 @@ void scm_file::get_page_bounds(uint64 i, float& r0, float& r1) const
 
 float scm_file::get_page_sample(const double *v)
 {
-#if 0
     if (v[0] != cache_v[0] || v[1] != cache_v[1] || v[2] != cache_v[2])
     {
         // Locate the face and coordinates of vector v.
@@ -320,7 +246,7 @@ float scm_file::get_page_sample(const double *v)
 
         if (cache_i != i)
         {
-            load_page(cache_p, o, 0);
+            scm_load_page(open(), o, w, h, c, b, cache_p, 0);
             cache_i  = i;
         }
 
@@ -350,8 +276,6 @@ float scm_file::get_page_sample(const double *v)
         cache_k    = lerp(lerp(s00, s01, cc), lerp(s10, s11, cc), rr);
     }
     return cache_k;
-#endif
-    return 1.0f;
 }
 
 //------------------------------------------------------------------------------
@@ -393,6 +317,60 @@ float scm_file::tofloat(const void *v, uint64 i) const
     else if (b == 16) return ((unsigned short *) v)[i] / 65535.f;
     else if (b == 32) return ((         float *) v)[i];
     else return 0.f;
+}
+
+//------------------------------------------------------------------------------
+
+// Load the page at offset o of TIFF T. Store it in buffer p and use buffer q
+// to swizzle if necessary. Confirm the image parameters and return success.
+
+bool scm_load_page(TIFF *T, uint64 o, int w, int h, int c, int b, void *p, void *q)
+{
+    int r = 0;
+
+    if (TIFFSetSubDirectory(T, o))
+    {
+        uint32 W, H;
+        uint16 C, B;
+
+        TIFFGetField(T, TIFFTAG_IMAGEWIDTH,      &W);
+        TIFFGetField(T, TIFFTAG_IMAGELENGTH,     &H);
+        TIFFGetField(T, TIFFTAG_BITSPERSAMPLE,   &B);
+        TIFFGetField(T, TIFFTAG_SAMPLESPERPIXEL, &C);
+
+        if (int(W) == w && int(H) == h && int(B) == b && int(C) == c)
+        {
+            if (q && c == 3 && b == 8)
+            {
+                const int S = w * 4 * b / 8;
+
+                for (r = 0; r < h; ++r)
+                {
+                    TIFFReadScanline(T, q, r, 0);
+
+                    for (int j = w - 1; j >= 0; --j)
+                    {
+                        uint8 *src = (uint8 *) q         + j * c * b / 8;
+                        uint8 *dst = (uint8 *) p + r * S + j * 4 * b / 8;
+
+                        dst[0] = src[2];
+                        dst[1] = src[1];
+                        dst[2] = src[0];
+                        dst[3] = 0xFF;
+                    }
+                }
+            }
+            else
+            {
+                const int S = int(TIFFScanlineSize(T));
+
+                for (r = 0; r < h; ++r)
+                    TIFFReadScanline(T, (uint8 *) p + r * S, r, 0);
+            }
+        }
+    }
+    TIFFClose(T);
+    return (r > 0);
 }
 
 //------------------------------------------------------------------------------

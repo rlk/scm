@@ -151,6 +151,28 @@ void scm_scene::touch_page(int channel, int frame, long long i) const
 
 //------------------------------------------------------------------------------
 
+// Sample the height image along vector v.
+
+float scm_scene::get_current_height(const double *v) const
+{
+    for (int j = 0; j < get_image_count(); ++j)
+        if (images[j]->get_height())
+            return images[j]->get_page_sample(v);
+
+    return 1.f;
+}
+
+// Return the smallest value in the height image.
+
+float scm_scene::get_minimum_height() const
+{
+    for (int j = 0; j < get_image_count(); ++j)
+        if (images[j]->get_height())
+            return images[j]->get_normal_min();
+
+    return 1.f;
+}
+
 // Return the range of page i of the height image.
 
 void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) const
@@ -176,28 +198,6 @@ bool scm_scene::get_page_status(int channel, long long i) const
             return true;
 
     return false;
-}
-
-// Sample the height image along vector v.
-
-float scm_scene::get_height_sample(const double *v) const
-{
-    for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->get_height())
-            return images[j]->get_page_sample(v);
-
-    return 1.f;
-}
-
-// Return the smallest value in the height image.
-
-float scm_scene::get_height_bottom() const
-{
-    for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->get_height())
-            return images[j]->get_normal_min();
-
-    return 1.f;
 }
 
 //------------------------------------------------------------------------------
