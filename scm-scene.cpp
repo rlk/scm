@@ -11,12 +11,19 @@
 // more details.
 
 #include "scm-scene.hpp"
+#include "scm-log.hpp"
 
 //------------------------------------------------------------------------------
 
 scm_scene::scm_scene(scm_system *sys) : sys(sys), height(0)
 {
     memset(&render, 0, sizeof (glsl));
+}
+
+scm_scene::~scm_scene()
+{
+    while (get_image_count())
+        del_image(0);
 }
 
 //------------------------------------------------------------------------------
@@ -26,7 +33,9 @@ void scm_scene::set_vert(const std::string &s)
     vert = s;
 
     glsl_delete(&render);
-    glsl_source(&render, vert.c_str(), frag.c_str());
+
+    if (!vert.empty() && !frag.empty())
+        glsl_source(&render, vert.c_str(), frag.c_str());
 }
 
 void scm_scene::set_frag(const std::string &s)
@@ -34,7 +43,9 @@ void scm_scene::set_frag(const std::string &s)
     frag = s;
 
     glsl_delete(&render);
-    glsl_source(&render, vert.c_str(), frag.c_str());
+
+    if (!vert.empty() && !frag.empty())
+        glsl_source(&render, vert.c_str(), frag.c_str());
 }
 
 //------------------------------------------------------------------------------
@@ -43,16 +54,24 @@ void scm_scene::set_frag(const std::string &s)
 
 int scm_scene::add_image(int i)
 {
+    int j = -1;
+
     if (scm_image *image = new scm_image(sys))
-        return int(images.insert(images.begin() + i, image) - images.begin());
-    else
-        return -1;
+    {
+        scm_image_i it = images.insert(images.begin() + i, image);
+        j         = it - images.begin();
+    }
+    scm_log("scm_scene add_image %d = %d", i, j);
+
+    return j;
 }
 
 // Delete the image at i.
 
 void scm_scene::del_image(int i)
 {
+    scm_log("scm_scene del_image %d", i);
+
     delete images[i];
     images.erase(images.begin() + i);
 }

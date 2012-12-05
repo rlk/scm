@@ -75,9 +75,16 @@ struct cache_param
     }
 };
 
-typedef std::map<cache_param, active_cache> active_cache_m;
+typedef std::map<cache_param, active_cache>           active_cache_m;
+typedef std::map<cache_param, active_cache>::iterator active_cache_i;
 
 //------------------------------------------------------------------------------
+#if 0
+    int        add_step(int);
+    void       del_step(int);
+    scm_step  *get_step(int);
+    int        get_step_count() const;
+#endif
 
 class scm_system
 {
@@ -88,17 +95,17 @@ public:
     scm_system();
    ~scm_system();
 
+    void update(bool);
+    void render(const double *, int, int, int);
+
     int        add_scene(int);
     void       del_scene(int);
     scm_scene *get_scene(int);
     int        get_scene_count() const { return int(scenes.size()); }
 
-#if 0
-    int        add_step(int);
-    void       del_step(int);
-    scm_step  *get_step(int);
-    int        get_step_count() const;
-#endif
+    float      get_current_bottom() const;
+    float      get_current_height() const;
+    scm_scene *get_current_scene()  const;
 
     // Internal Interface
 
@@ -109,9 +116,9 @@ public:
     scm_file  *get_file (int);
     TIFF      *get_tiff (int);
 
-    float get_page_sample(int, const double *v) const;
-    void  get_page_bounds(int, long long, float&, float&) const;
-    bool  get_page_status(int, long long) const;
+    float get_page_sample(int, const double *v);
+    void  get_page_bounds(int, long long, float&, float&);
+    bool  get_page_status(int, long long);
 
 private:
 
@@ -127,7 +134,8 @@ private:
 
     SDL_mutex *mutex;
 
-    int serial;
+    int    serial;
+    double timer;
 
 #if 0
     scm_path_p  path;

@@ -11,17 +11,37 @@
 // more details.
 
 #include "scm-system.hpp"
+#include "scm-log.hpp"
 
 //------------------------------------------------------------------------------
 
 scm_system::scm_system() : serial(1)
 {
     mutex = SDL_CreateMutex();
+    model = new scm_model(32, 512);
 }
 
 scm_system::~scm_system()
 {
+    while (get_scene_count())
+        del_scene(0);
+
+    delete model;
     SDL_DestroyMutex(mutex);
+}
+
+//------------------------------------------------------------------------------
+
+void scm_system::update(bool sync)
+{
+    for (active_cache_i i = caches.begin(); i != caches.end(); ++i)
+        i->second.cache->update(model->tick(), sync);
+}
+
+void scm_system::render(const double *M, int width, int height, int channel)
+{
+    if (scm_scene *scene = get_current_scene())
+        model->draw(scene, M, width, height, channel);
 }
 
 //------------------------------------------------------------------------------
@@ -30,16 +50,24 @@ scm_system::~scm_system()
 
 int scm_system::add_scene(int i)
 {
+    int j = -1;
+
     if (scm_scene *scene = new scm_scene(this))
-        return int(scenes.insert(scenes.begin() + i, scene) - scenes.begin());
-    else
-        return -1;
+    {
+        scm_scene_i it = scenes.insert(scenes.begin() + i, scene);
+        j         = it - scenes.begin();
+    }
+    scm_log("scm_system add_scene %d = %d", i, j);
+
+    return j;
 }
 
 // Delete the scene at i.
 
 void scm_system::del_scene(int i)
 {
+    scm_log("scm_system del_scene %d", i);
+
     delete scenes[i];
     scenes.erase(scenes.begin() + i);
 }
@@ -49,6 +77,69 @@ void scm_system::del_scene(int i)
 scm_scene *scm_system::get_scene(int i)
 {
     return scenes[i];
+}
+
+//------------------------------------------------------------------------------
+
+float scm_system::get_current_bottom() const
+{
+    if (scm_scene *scene = get_current_scene())
+        return scene->get_height_bottom();
+    else
+        return 1.0;
+}
+
+float scm_system::get_current_height() const
+{
+#if 0
+    double v[3];
+
+    here.get_position(v);
+
+    if (scm_scene *scene = get_current_scene())
+        return scene->get_height_sample(v);
+    else
+#endif
+        return 1.0;
+}
+
+scm_scene *scm_system::get_current_scene() const
+{
+    int s = int(scenes.size());
+    int t = int(timer);
+
+    if (s)
+    {
+        while (t <  0) t += s;
+        while (t >= s) t -= s;
+
+        return scenes[t];
+    }
+    return 0;
+}
+
+//------------------------------------------------------------------------------
+
+float scm_system::get_page_sample(int f, const double *v)
+{
+    if (scm_file *file = get_file(f))
+        return file->get_page_sample(v);
+    else
+        return 0.f;
+}
+
+void scm_system::get_page_bounds(int f, long long i, float& r0, float& r1)
+{
+    if (scm_file *file = get_file(f))
+        file->get_page_bounds(uint64(i), r0, r1);
+}
+
+bool scm_system::get_page_status(int f, long long i)
+{
+    if (scm_file *file = get_file(f))
+        return file->get_page_status(uint64(i));
+    else
+        return false;
 }
 
 //------------------------------------------------------------------------------
@@ -134,6 +225,8 @@ int scm_system::acquire_scm(const std::string& name)
     index = _acquire_scm(name);
     SDL_mutexV(mutex);
 
+    scm_log("acquire_scm %s = %d", name.c_str(), index);
+
     return index;
 }
 
@@ -144,6 +237,8 @@ int scm_system::release_scm(const std::string& name)
     SDL_mutexP(mutex);
     index = _release_scm(name);
     SDL_mutexV(mutex);
+
+    scm_log("release_scm %s", name.c_str());
 
     return index;
 }

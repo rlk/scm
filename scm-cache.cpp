@@ -19,6 +19,7 @@
 #include "scm-cache.hpp"
 #include "scm-system.hpp"
 #include "scm-index.hpp"
+#include "scm-log.hpp"
 
 //------------------------------------------------------------------------------
 
@@ -72,14 +73,19 @@ scm_cache::scm_cache(scm_system *sys, int n, int c, int b) :
         glTexImage2D(GL_TEXTURE_2D, 0, i, m, m, 0, e, y, p);
         free(p);
     }
+
+    scm_log("scm_cache constructor %d %d %d", n, c, b);
 }
 
 scm_cache::~scm_cache()
 {
+    scm_log("scm_cache destructor %d %d %d", n, c, b);
+
     // The following dance courts deadlock to terminate all synchronous IPC.
 
-    std::vector<SDL_Thread *>::iterator t;
+    std::vector<SDL_Thread *>::iterator i;
     int s = 0;
+    int t = 1;
 
     // Notify the loaders that they need not complete their assigned tasks.
 
@@ -91,13 +97,13 @@ scm_cache::~scm_cache()
 
     // Enqueue an exit command for each loader.
 
-    for (t = threads.begin(); t != threads.end(); ++t)
-        needs.insert(scm_task());
+    for (i = threads.begin(); i != threads.end(); ++i, ++t)
+        needs.insert(scm_task(-t, -t));
 
     // Await the exit of each loader.
 
-    for (t = threads.begin(); t != threads.end(); ++t)
-        SDL_WaitThread(*t, &s);
+    for (i = threads.begin(); i != threads.end(); ++i)
+        SDL_WaitThread(*i, &s);
 
     // Release the pixel buffer objects.
 
@@ -285,27 +291,31 @@ void scm_cache::draw(int ii, int nn)
 
 int loader(void *data)
 {
-    scm_cache *cache = (scm_cache *) data;
-    scm_task   task;
-
-    TIFF *tiff = 0;
-    void *temp = 0;
-
-    while ((task = cache->needs.remove()).f >= 0)
+    scm_log("loader thread begin %p", data);
     {
-        if (cache->is_running())
+        scm_cache *cache = (scm_cache *) data;
+        scm_task   task;
+
+        TIFF *tiff = 0;
+        void *temp = 0;
+
+        while ((task = cache->needs.remove()).f >= 0)
         {
-            if ((tiff = cache->sys->get_tiff(task.f)))
+            if (cache->is_running())
             {
-                if ((temp) || (temp = malloc(TIFFScanlineSize(tiff))))
+                if ((tiff = cache->sys->get_tiff(task.f)))
                 {
-                    task.load_page(tiff, temp);
-                    cache->loads.insert(task);
+                    if ((temp) || (temp = malloc(TIFFScanlineSize(tiff))))
+                    {
+                        task.load_page(tiff, temp);
+                        cache->loads.insert(task);
+                    }
                 }
             }
         }
+        free(temp);
     }
-    free(temp);
+    scm_log("loader thread end %p", data);
     return 0;
 }
 

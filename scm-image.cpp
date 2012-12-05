@@ -37,6 +37,11 @@ scm_image::scm_image(scm_system *sys) :
 {
 }
 
+scm_image::~scm_image()
+{
+    set_scm("");
+}
+
 //------------------------------------------------------------------------------
 
 void scm_image::bind(GLuint unit, GLuint program) const

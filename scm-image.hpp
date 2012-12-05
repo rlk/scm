@@ -48,6 +48,7 @@ public:
     // Internal Interface
 
     scm_image(scm_system *);
+   ~scm_image();
 
     void   bind(GLuint, GLuint) const;
     void unbind(GLuint)         const;

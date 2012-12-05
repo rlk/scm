@@ -25,7 +25,7 @@ class scm_model
 {
 public:
 
-    scm_model(const char *, const char *, int, int);
+    scm_model(int, int);
    ~scm_model();
 
     int tick() { return frame++; }

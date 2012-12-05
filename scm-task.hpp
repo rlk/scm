@@ -26,13 +26,9 @@ class scm_file;
 
 struct scm_task : public scm_item
 {
-    scm_task(int       f = -1,
-             long long i = -1,
-             uint64    o =  0,
-             int       n =  0,
-             int       c =  0,
-             int       b =  0,
-             GLuint    u =  0);
+    scm_task();
+    scm_task(int, long long);
+    scm_task(int, long long, uint64, int, int, int, GLuint);
 
     void make_page(int, int);
     void load_page(TIFF *T, void *);

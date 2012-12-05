@@ -18,6 +18,7 @@
 #include "util3d/math3d.h"
 #include "scm-index.hpp"
 #include "scm-file.hpp"
+#include "scm-log.hpp"
 
 //------------------------------------------------------------------------------
 
@@ -134,10 +135,13 @@ scm_file::scm_file(const std::string& tiff) :
             TIFFClose(T);
         }
     }
+    scm_log("scm_file constructor %s", path.c_str());
 }
 
 scm_file::~scm_file()
 {
+    scm_log("scm_file destructor %s", path.c_str());
+
     free(cache_p);
     free(zv);
     free(av);

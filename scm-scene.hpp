@@ -25,6 +25,7 @@ class scm_scene
 public:
 
     scm_scene(scm_system *);
+   ~scm_scene();
 
     // External Interface
 
