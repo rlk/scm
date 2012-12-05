@@ -26,25 +26,32 @@ class scm_file;
 
 struct scm_task : public scm_item
 {
-    scm_task()                   : scm_item(    ), u(0), d(false), p(0) { }
-    scm_task(int f, long long i) : scm_item(i, f), u(0), d(false), p(0) { }
-    scm_task(int f, long long i, uint64 o, GLuint u, GLsizei s);
+    scm_task(int       f = -1,
+             long long i = -1,
+             uint64    o =  0,
+             int       n =  0,
+             int       c =  0,
+             int       b =  0,
+             GLuint    u =  0);
 
-    void make_page(int, int, uint32, uint32, uint16, uint16, uint16);
-    void load_page(scm_file * const *, void *);
+    void make_page(int, int);
+    void load_page(TIFF *T, void *);
     void dump_page();
 
     uint64 o;          // SCM TIFF file offset of this page
     GLuint u;          // Pixel unpack buffer object
-    bool   d;          // Pixel unpack buffer dirty flag
     void  *p;          // Pixel unpack buffer map address
+    int    n;
+    int    c;
+    int    b;
+    bool   d;          // Pixel unpack buffer dirty flag
 };
 
 //------------------------------------------------------------------------------
 
-GLuint scm_internal_form(uint16, uint16, uint16);
-GLuint scm_external_form(uint16, uint16, uint16);
-GLuint scm_external_type(uint16, uint16, uint16);
+GLuint scm_internal_form(uint16, uint16);
+GLuint scm_external_form(uint16, uint16);
+GLuint scm_external_type(uint16, uint16);
 
 //------------------------------------------------------------------------------
 

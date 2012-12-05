@@ -32,7 +32,9 @@ scm_cache::scm_cache(scm_system *sys, int n, int c, int b) :
     texture(0),
     s(cache_size),
     l(1),
-    n(n)
+    n(n),
+    c(c),
+    b(b)
 {
     // Launch the image loader threads.
 
@@ -52,19 +54,14 @@ scm_cache::scm_cache(scm_system *sys, int n, int c, int b) :
 
     // Generate the array texture object.
 
-    GLenum i = scm_internal_form(c, b, 0);
-    GLenum e = scm_external_form(c, b, 0);
-    GLenum y = scm_external_type(c, b, 0);
+    GLenum i = scm_internal_form(c, b);
+    GLenum e = scm_external_form(c, b);
+    GLenum y = scm_external_type(c, b);
 
     glGenTextures  (1, &texture);
     glBindTexture  (GL_TEXTURE_2D, texture);
-#if 1
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-#else
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-#endif
 
     // Initialize it with a buffer of zeros.
 
@@ -82,7 +79,6 @@ scm_cache::~scm_cache()
     // The following dance courts deadlock to terminate all synchronous IPC.
 
     std::vector<SDL_Thread *>::iterator t;
-    int c = 1;
     int s = 0;
 
     // Notify the loaders that they need not complete their assigned tasks.
@@ -95,8 +91,8 @@ scm_cache::~scm_cache()
 
     // Enqueue an exit command for each loader.
 
-    for (t = threads.begin(); t != threads.end(); ++t, ++c)
-        needs.insert(scm_task(-c, -c));
+    for (t = threads.begin(); t != threads.end(); ++t)
+        needs.insert(scm_task());
 
     // Await the exit of each loader.
 
@@ -120,7 +116,7 @@ scm_cache::~scm_cache()
 
 // Return the index for the requested page. Request the page if necessary.
 
-int scm_cache::get_page(int f, long long i, int t, int& n)
+int scm_cache::get_page(int f, long long i, int t, int& u)
 {
     if (scm_file *file = sys->get_file(f))
     {
@@ -135,9 +131,9 @@ int scm_cache::get_page(int f, long long i, int t, int& n)
 
         scm_page wait = waits.search(scm_page(f, i), t);
 
-        if (wait.valid())
+        if (wait.is_valid())
         {
-            n    = wait.t;
+            u    = wait.t;
             return wait.l;
         }
 
@@ -145,9 +141,9 @@ int scm_cache::get_page(int f, long long i, int t, int& n)
 
         scm_page page = pages.search(scm_page(f, i), t);
 
-        if (page.valid())
+        if (page.is_valid())
         {
-            n    = page.t;
+            u    = page.t;
             return page.l;
         }
 
@@ -155,7 +151,7 @@ int scm_cache::get_page(int f, long long i, int t, int& n)
 
         if (!pbos.empty())
         {
-            scm_task task(f, i, o, pbos.deq(), file->get_page_length());
+            scm_task task(f, i, o, n, c, b, pbos.deq());
             scm_page page(f, i, 0);
 
             if (needs.try_insert(task))
@@ -170,7 +166,7 @@ int scm_cache::get_page(int f, long long i, int t, int& n)
 
     // If all else fails, punt and let the app request again.
 
-    n = t;
+    u = t;
     return 0;
 }
 
@@ -185,7 +181,7 @@ int scm_cache::get_slot(int t, long long i)
     {
         scm_page victim = pages.eject(t, i);
 
-        if (victim.valid())
+        if (victim.is_valid())
             return victim.l;
         else
             return 0;
@@ -218,14 +214,8 @@ void scm_cache::update(int t, bool b)
                 page.l = l;
                 page.t = t;
                 pages.insert(page, t);
-
                 task.make_page((l % s) * (n + 2),
-                               (l / s) * (n + 2),
-                               files[task.f]->get_w(),
-                               files[task.f]->get_h(),
-                               files[task.f]->get_c(),
-                               files[task.f]->get_b(),
-                               files[task.f]->get_g());
+                               (l / s) * (n + 2));
             }
             else task.dump_page();
         }
@@ -296,27 +286,26 @@ void scm_cache::draw(int ii, int nn)
 int loader(void *data)
 {
     scm_cache *cache = (scm_cache *) data;
-    scm_file  *file;
     scm_task   task;
 
-    void *tmp = 0;
+    TIFF *tiff = 0;
+    void *temp = 0;
 
     while ((task = cache->needs.remove()).f >= 0)
     {
         if (cache->is_running())
         {
-            if ((file = cache->sys->get_file(task.f)))
+            if ((tiff = cache->sys->get_tiff(task.f)))
             {
-                if (tmp || (tmp = malloc(file->get_scan_length())))
+                if ((temp) || (temp = malloc(TIFFScanlineSize(tiff))))
                 {
-                    task.d = file->load_page(task.p, task.o, tmp);
+                    task.load_page(tiff, temp);
                     cache->loads.insert(task);
                 }
             }
         }
     }
-
-    free(tmp);
+    free(temp);
     return 0;
 }
 

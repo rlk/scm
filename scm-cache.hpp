@@ -72,6 +72,8 @@ private:
     int     s;                  // Atlas width and height in pages
     int     l;                  // Atlas current page
     int     n;                  // Page width and height in pixels
+    int     c;                  // Channels per pixel
+    int     b;                  // Bits per channel
 
     int get_slot(int, long long);
 

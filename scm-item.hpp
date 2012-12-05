@@ -23,7 +23,7 @@ struct scm_item
     int       f;
     long long i;
 
-    bool valid() const { return (f >= 0 && i >= 0); }
+    bool is_valid() const { return (f >= 0 && i >= 0); }
 
     bool operator<(const scm_item& that) const {
         if (i == that.i)

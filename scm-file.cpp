@@ -48,7 +48,7 @@ static bool exists(const std::string& path)
 // and cache its meta-data.
 
 scm_file::scm_file(const std::string& tiff) :
-    name(tiff), w(0), h(0), c(0), b(0), g(0),
+    name(tiff), w(0), h(0), c(0), b(0),
     xv(0), xc(0),
     ov(0), oc(0),
     av(0), ac(0),
@@ -81,7 +81,7 @@ scm_file::scm_file(const std::string& tiff) :
 
     if (!path.empty())
     {
-        if (TIFF *T = TIFFOpen(path.c_str(), "r"))
+        if (TIFF *T = open())
         {
             uint64 n = 0;
             void  *p = 0;
@@ -90,7 +90,6 @@ scm_file::scm_file(const std::string& tiff) :
             TIFFGetField(T, TIFFTAG_IMAGELENGTH,     &h);
             TIFFGetField(T, TIFFTAG_BITSPERSAMPLE,   &b);
             TIFFGetField(T, TIFFTAG_SAMPLESPERPIXEL, &c);
-            TIFFGetField(T, TIFFTAG_SAMPLEFORMAT,    &g);
 
             if (TIFFGetField(T, 0xFFB1, &n, &p))
             {
@@ -146,12 +145,17 @@ scm_file::~scm_file()
     free(xv);
 }
 
+TIFF *scm_file::open()
+{
+    return TIFFOpen(path.c_str(), "r");
+}
+
 //------------------------------------------------------------------------------
 
 // Open the TIFF and read the page at offset o into pixel buffer dst. We reopen
 // the file each time because this function may be invoked by any one of many
 // sub-threads.
-
+#if 0
 bool scm_file::load_page(void *dst, uint64 o, void *tmp) const
 {
     uint32 r = 0;
@@ -203,16 +207,16 @@ bool scm_file::load_page(void *dst, uint64 o, void *tmp) const
     }
     return (r > 0);
 }
-
+#endif
 //------------------------------------------------------------------------------
-
+#if 0
 size_t scm_file::get_scan_length() const
 {
     return size_t(w) * c * b / 8;
 }
-
+#endif
 // Return the buffer length for a page of this file. 24-bit is padded to 32.
-
+#if 0
 size_t scm_file::get_page_length() const
 {
     if (c == 3 && b == 8)
@@ -220,7 +224,7 @@ size_t scm_file::get_page_length() const
     else
         return size_t(w) * size_t(h) * c * b / 8;
 }
-
+#endif
 // Determine whether page i is given by this file.
 
 bool scm_file::get_page_status(uint64 i) const
@@ -274,6 +278,7 @@ void scm_file::get_page_bounds(uint64 i, float& r0, float& r1) const
 
 float scm_file::get_page_sample(const double *v)
 {
+#if 0
     if (v[0] != cache_v[0] || v[1] != cache_v[1] || v[2] != cache_v[2])
     {
         // Locate the face and coordinates of vector v.
@@ -341,6 +346,8 @@ float scm_file::get_page_sample(const double *v)
         cache_k    = lerp(lerp(s00, s01, cc), lerp(s10, s11, cc), rr);
     }
     return cache_k;
+#endif
+    return 1.0f;
 }
 
 //------------------------------------------------------------------------------
@@ -378,24 +385,9 @@ uint64 scm_file::toindex(uint64 i) const
 
 float scm_file::tofloat(const void *v, uint64 i) const
 {
-    if (b == 8)
-    {
-        if (g == 2)
-            return ((          char *) v)[i] / 127.f;
-        else
-            return ((unsigned  char *) v)[i] / 255.f;
-    }
-    else if (b == 16)
-    {
-        if (g == 2)
-            return ((         short *) v)[i] / 32767.f;
-        else
-            return ((unsigned short *) v)[i] / 65535.f;
-    }
-    else if (b == 32)
-    {
-        return ((float *) v)[i];
-    }
+    if      (b ==  8) return ((unsigned  char *) v)[i] / 255.f;
+    else if (b == 16) return ((unsigned short *) v)[i] / 65535.f;
+    else if (b == 32) return ((         float *) v)[i];
     else return 0.f;
 }
 

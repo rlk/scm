@@ -21,11 +21,12 @@
 
 // Construct a load task. Map the PBO to provide a destination for the loader.
 
-scm_task::scm_task(int f, long long i, uint64 o, GLuint u, GLsizei s)
-    : scm_item(f, i), o(o), u(u), d(false)
+scm_task::scm_task(int f, long long i, uint64 o, int n, int c, int b, GLuint u)
+    : scm_item(f, i), o(o), u(u), n(n), c(c), b(b), d(false)
 {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, u);
     {
+        const size_t s = size_t(n + 2) * size_t(n + 2) * c * b / 8;
         glBufferData(GL_PIXEL_UNPACK_BUFFER, s, 0, GL_STREAM_DRAW);
         p = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
     }
@@ -34,15 +35,14 @@ scm_task::scm_task(int f, long long i, uint64 o, GLuint u, GLsizei s)
 
 // Upload the pixel buffer to the OpenGL texture object.
 
-void scm_task::make_page(int x, int y, uint32 w, uint32 h,
-                                       uint16 c, uint16 b, uint16 g)
+void scm_task::make_page(int x, int y)
 {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, u);
     {
         glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h,
-                           scm_external_form(c, b, g),
-                           scm_external_type(c, b, g), 0);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, n + 2, n + 2,
+                                     scm_external_form(c, b),
+                                     scm_external_type(c, b), 0);
     }
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
@@ -58,20 +58,68 @@ void scm_task::dump_page()
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-// Load the page at offset o in file f of array v. Store it in pixel buffer p.
-// On success, mark the buffer as dirty.
-#if 0
-void scm_task::load_page(scm_file *const *v, void *t)
+// Load the page at offset o of TIFF T. Store it in pixel buffer p. On success,
+// mark the buffer as dirty.
+
+void scm_task::load_page(TIFF *tif, void *q)
 {
-    d = v[f]->load_page(p, o, t);
+    int r = 0;
+
+    if (TIFFSetSubDirectory(tif, o))
+    {
+        const int w = n + 2;
+        const int h = n + 2;
+
+        uint32 W, H;
+        uint16 C, B;
+
+        TIFFGetField(tif, TIFFTAG_IMAGEWIDTH,      &W);
+        TIFFGetField(tif, TIFFTAG_IMAGELENGTH,     &H);
+        TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE,   &B);
+        TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &C);
+
+        if (int(W) == w && int(H) == h && int(B) == b && int(C) == c)
+        {
+            if (q && c == 3 && b == 8)
+            {
+                const int S = w * 4 * b / 8;
+
+                for (r = 0; r < h; ++r)
+                {
+                    TIFFReadScanline(tif, q, r, 0);
+
+                    for (int j = w - 1; j >= 0; --j)
+                    {
+                        uint8 *src = (uint8 *) q         + j * c * b / 8;
+                        uint8 *dst = (uint8 *) p + r * S + j * 4 * b / 8;
+
+                        dst[0] = src[2];
+                        dst[1] = src[1];
+                        dst[2] = src[0];
+                        dst[3] = 0xFF;
+                    }
+                }
+            }
+            else
+            {
+                const int S = int(TIFFScanlineSize(tif));
+
+                for (r = 0; r < h; ++r)
+                    TIFFReadScanline(tif, (uint8 *) p + r * S, r, 0);
+            }
+        }
+    }
+    TIFFClose(tif);
+
+    d = (r > 0);
 }
-#endif
+
 //------------------------------------------------------------------------------
 
 // Select an OpenGL internal texture format for an image with c channels and
 // b bits per channel.
 
-GLenum scm_internal_form(uint16 c, uint16 b, uint16 g)
+GLenum scm_internal_form(uint16 c, uint16 b)
 {
     if      (b == 32)
         switch (c)
@@ -101,7 +149,7 @@ GLenum scm_internal_form(uint16 c, uint16 b, uint16 g)
 
 // Select an OpenGL external texture format for an image with c channels.
 
-GLenum scm_external_form(uint16 c, uint16 b, uint16 g)
+GLenum scm_external_form(uint16 c, uint16 b)
 {
     if (b == 8)
         switch (c)
@@ -123,19 +171,13 @@ GLenum scm_external_form(uint16 c, uint16 b, uint16 g)
 
 // Select an OpenGL data type for an image with c channels of b bits.
 
-GLenum scm_external_type(uint16 c, uint16 b, uint16 g)
+GLenum scm_external_type(uint16 c, uint16 b)
 {
     if      (b ==  8 && c == 3) return GL_UNSIGNED_INT_8_8_8_8_REV; // *
     else if (b ==  8 && c == 4) return GL_UNSIGNED_INT_8_8_8_8_REV;
     else if (b == 32)           return GL_FLOAT;
     else if (b == 16)           return GL_UNSIGNED_SHORT;
     else                        return GL_UNSIGNED_BYTE;
-
-#if 0
-    // Signed texture support does not seem common yet. Save for later.
-    else if (b ==  8) return (g == 2) ? GL_BYTE  : GL_UNSIGNED_BYTE;
-    else if (b == 16) return (g == 2) ? GL_SHORT : GL_UNSIGNED_SHORT;
-#endif
 }
 
 // * BGRA order. 24-bit images are always padded to 32 bits.

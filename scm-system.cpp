@@ -176,4 +176,18 @@ scm_file *scm_system::get_file(int index)
     return file;
 }
 
+TIFF *scm_system::get_tiff(int index)
+{
+    TIFF *T = 0;
+
+    SDL_mutexP(mutex);
+    {
+        if (pairs.find(index) != pairs.end())
+            T = pairs[index].file->open();
+    }
+    SDL_mutexV(mutex);
+
+    return T;
+}
+
 //------------------------------------------------------------------------------
