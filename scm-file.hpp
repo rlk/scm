@@ -48,21 +48,21 @@ private:
     std::string path;
     std::string name;
 
-    uint32 w;   // Page width
-    uint32 h;   // Page height
-    uint16 c;   // Sample count
-    uint16 b;   // Sample depth
+    uint32   w;         // Page width
+    uint32   h;         // Page height
+    uint16   c;         // Sample count
+    uint16   b;         // Sample depth
 
-    uint64 *xv; // Page indices
+    uint64 *xv;         // Page indices
     uint64  xc;
 
-    uint64 *ov; // Page offsets
+    uint64 *ov;         // Page offsets
     uint64  oc;
 
-    void   *av; // Page minima
+    void   *av;         // Page minima
     uint64  ac;
 
-    void   *zv; // Page maxima
+    void   *zv;         // Page maxima
     uint64  zc;
 
     double cache_v[3];  // Sample cache last vector

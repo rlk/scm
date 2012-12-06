@@ -84,14 +84,14 @@ class scm_system
 {
 public:
 
-    // External Interface ------------------------------------------------------
+    // External Interface
 
     scm_system();
    ~scm_system();
 
-    void render_model(const double *, int, int, int);
-    void render_cache();
-    void update_cache(bool);
+    void    render_model(const double *, int, int, int);
+    void    render_cache();
+    void    update_cache(bool);
 
     int        add_scene(int);
     void       del_scene(int);
@@ -110,7 +110,7 @@ public:
     int        get_sphere_detail() const;
     int        get_sphere_limit () const;
 
-    // Internal Interface ------------------------------------------------------
+    // Internal Interface
 
     int acquire_scm(const std::string&);
     int release_scm(const std::string&);
