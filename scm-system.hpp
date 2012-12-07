@@ -126,7 +126,7 @@ public:
 private:
 
     scm_scene_v    scenes;
-    scm_sphere      *sphere;
+    scm_sphere     *sphere;
     SDL_mutex      *mutex;
 
     active_file_m  files;
@@ -134,9 +134,9 @@ private:
     active_pair_m  pairs;
 
     int   serial;
-    float radius;
-    float timer;
     int   frame;
+    float timer;
+    float radius;
 };
 
 //------------------------------------------------------------------------------
