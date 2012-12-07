@@ -18,7 +18,7 @@
 scm_system::scm_system() : serial(1), timer(0), frame(0)
 {
     mutex = SDL_CreateMutex();
-    model = new scm_model(32, 512);
+    sphere = new scm_sphere(32, 512);
 }
 
 scm_system::~scm_system()
@@ -26,7 +26,7 @@ scm_system::~scm_system()
     while (get_scene_count())
         del_scene(0);
 
-    delete model;
+    delete sphere;
     SDL_DestroyMutex(mutex);
 }
 
@@ -39,10 +39,10 @@ void scm_system::update_cache(bool sync)
     frame++;
 }
 
-void scm_system::render_model(const double *M, int width, int height, int channel)
+void scm_system::render_sphere(const double *M, int width, int height, int channel)
 {
     if (scm_scene *scene = get_current_scene())
-        model->draw(scene, M, width, height, channel, frame);
+        sphere->draw(scene, M, width, height, channel, frame);
 }
 
 void scm_system::render_cache()
@@ -131,15 +131,15 @@ void scm_system::set_sphere_radius(float r)
 void scm_system::set_sphere_detail(int d)
 {
     int l = get_sphere_limit();
-    delete model;
-    model = new scm_model(d, l);
+    delete sphere;
+    sphere = new scm_sphere(d, l);
 }
 
 void scm_system::set_sphere_limit(int l)
 {
     int d = get_sphere_detail();
-    delete model;
-    model = new scm_model(d, l);
+    delete sphere;
+    sphere = new scm_sphere(d, l);
 }
 
 float scm_system::get_sphere_radius() const
@@ -149,12 +149,12 @@ float scm_system::get_sphere_radius() const
 
 int scm_system::get_sphere_detail() const
 {
-    return model ? model->get_detail() : 32;
+    return sphere ? sphere->get_detail() : 32;
 }
 
 int scm_system::get_sphere_limit () const
 {
-    return model ? model->get_limit() : 512;
+    return sphere ? sphere->get_limit() : 512;
 }
 
 //------------------------------------------------------------------------------

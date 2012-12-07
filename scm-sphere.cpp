@@ -20,7 +20,7 @@
 #include "util3d/math3d.h"
 #include "util3d/glsl.h"
 
-#include "scm-model.hpp"
+#include "scm-sphere.hpp"
 #include "scm-index.hpp"
 
 //------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ static inline double scale(double k, double t)
         return std::max(t / k, 1.0 - (1.0 - t) * k);
 }
 
-void scm_model::zoom(double *w, const double *v)
+void scm_sphere::zoom(double *w, const double *v)
 {
     double d = vdot(v, zoomv);
 
@@ -79,7 +79,7 @@ void scm_model::zoom(double *w, const double *v)
 
 //------------------------------------------------------------------------------
 
-scm_model::scm_model(int d, int l) : detail(d), limit(l)
+scm_sphere::scm_sphere(int d, int l) : detail(d), limit(l)
 {
     init_arrays(detail);
 
@@ -89,7 +89,7 @@ scm_model::scm_model(int d, int l) : detail(d), limit(l)
     zoomk    =  1;
 }
 
-scm_model::~scm_model()
+scm_sphere::~scm_sphere()
 {
     free_arrays();
 }
@@ -108,7 +108,7 @@ static inline double length(const double *a, const double *b, int w, int h)
     return sqrt(dx * dx + dy * dy);
 }
 
-double scm_model::view_page(const double *M, int vw, int vh,
+double scm_sphere::view_page(const double *M, int vw, int vh,
                             double r0, double r1, long long i)
 {
     // Compute the corner vectors of the zoomed page.
@@ -244,7 +244,7 @@ double scm_model::view_page(const double *M, int vw, int vh,
 // the neighborhood of this branch, adding pages to ensure that no two visibly
 // adjacent pages differ by more than one level of detail.
 
-void scm_model::add_page(const double *M,
+void scm_sphere::add_page(const double *M,
                                    int width,
                                    int height,
                                 double r0,
@@ -296,7 +296,7 @@ void scm_model::add_page(const double *M,
     }
 }
 
-bool scm_model::prep_page(scm_scene *scene,
+bool scm_sphere::prep_page(scm_scene *scene,
                        const double *M,
                                  int width,
                                  int height,
@@ -345,7 +345,7 @@ bool scm_model::prep_page(scm_scene *scene,
     return false;
 }
 
-void scm_model::draw_page(scm_scene *scene, int channel, int depth, int frame, long long i)
+void scm_sphere::draw_page(scm_scene *scene, int channel, int depth, int frame, long long i)
 {
     GLuint program = scene->bind_page(channel, depth, frame, i);
     {
@@ -409,7 +409,7 @@ void scm_model::draw_page(scm_scene *scene, int channel, int depth, int frame, l
 
 //------------------------------------------------------------------------------
 
-void scm_model::prep(scm_scene *scene, const double *M, int width, int height, int channel)
+void scm_sphere::prep(scm_scene *scene, const double *M, int width, int height, int channel)
 {
     pages.clear();
 
@@ -421,7 +421,7 @@ void scm_model::prep(scm_scene *scene, const double *M, int width, int height, i
     prep_page(scene, M, width, height, channel, 5);
 }
 
-void scm_model::draw(scm_scene *scene, const double *M,
+void scm_sphere::draw(scm_scene *scene, const double *M,
                      int width, int height, int channel, int frame)
 {
     glEnable(GL_COLOR_MATERIAL);
@@ -595,7 +595,7 @@ static void init_elements(int n, int b)
     }
 }
 
-void scm_model::init_arrays(int n)
+void scm_sphere::init_arrays(int n)
 {
     glGenBuffers(1, &vertices);
     glGenBuffers(16, elements);
@@ -612,7 +612,7 @@ void scm_model::init_arrays(int n)
     count = 4 * n * n;
 }
 
-void scm_model::free_arrays()
+void scm_sphere::free_arrays()
 {
     glDeleteBuffers(16, elements);
     glDeleteBuffers(1, &vertices);

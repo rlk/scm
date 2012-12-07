@@ -21,12 +21,12 @@
 
 //------------------------------------------------------------------------------
 
-class scm_model
+class scm_sphere
 {
 public:
 
-    scm_model(int, int);
-   ~scm_model();
+    scm_sphere(int, int);
+   ~scm_sphere();
 
     void prep(scm_scene *, const double *, int, int, int);
     void draw(scm_scene *, const double *, int, int, int, int);

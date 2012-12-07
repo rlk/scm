@@ -21,7 +21,7 @@
 
 #include "scm-scene.hpp"
 #include "scm-cache.hpp"
-#include "scm-model.hpp"
+#include "scm-sphere.hpp"
 #include "scm-file.hpp"
 
 //------------------------------------------------------------------------------
@@ -89,7 +89,7 @@ public:
     scm_system();
    ~scm_system();
 
-    void    render_model(const double *, int, int, int);
+    void    render_sphere(const double *, int, int, int);
     void    render_cache();
     void    update_cache(bool);
 
@@ -126,7 +126,7 @@ public:
 private:
 
     scm_scene_v    scenes;
-    scm_model      *model;
+    scm_sphere      *sphere;
     SDL_mutex      *mutex;
 
     active_file_m  files;
