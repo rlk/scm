@@ -45,9 +45,10 @@ struct scm_task : public scm_item
 
 //------------------------------------------------------------------------------
 
-GLuint scm_internal_form(uint16, uint16);
-GLuint scm_external_form(uint16, uint16);
-GLuint scm_external_type(uint16, uint16);
+GLuint  scm_internal_form(uint16, uint16);
+GLuint  scm_external_form(uint16, uint16);
+GLuint  scm_external_type(uint16, uint16);
+GLsizei scm_pixel_size   (uint16, uint16);
 
 //------------------------------------------------------------------------------
 

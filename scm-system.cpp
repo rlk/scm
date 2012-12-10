@@ -10,6 +10,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 // more details.
 
+#include <cassert>
 #include <cmath>
 #include "util3d/math3d.h"
 
@@ -18,7 +19,7 @@
 
 //------------------------------------------------------------------------------
 
-scm_system::scm_system() : serial(1), frame(0), timer(0), radius (1737400.0)
+scm_system::scm_system() : serial(1), frame(0), timer(0)
 
 {
     mutex = SDL_CreateMutex();
@@ -45,23 +46,8 @@ void scm_system::update_cache(bool sync)
 
 void scm_system::render_sphere(const double *M, int width, int height, int channel)
 {
-#if 1
     if (scm_scene *scene = get_current_scene())
         sphere->draw(scene, M, width, height, channel, frame);
-#else
-    if (scm_scene *scene = get_current_scene())
-    {
-        double s[3] = { radius, radius, radius };
-        double S[16];
-        double N[16];
-
-        glScalef(radius, radius, radius);
-        mscale(S, s);
-        mmultiply(N, M, S);
-
-        sphere->draw(scene, N, width, height, channel, frame);
-    }
-#endif
 }
 
 void scm_system::render_cache()
@@ -127,25 +113,20 @@ scm_scene *scm_system::get_current_scene() const
 float scm_system::get_current_height(const double *v) const
 {
     if (scm_scene *scene = get_current_scene())
-        return radius * scene->get_current_height(v);
+        return scene->get_current_height(v);
     else
-        return radius;
+        return 1.f;
 }
 
 float scm_system::get_minimum_height() const
 {
     if (scm_scene *scene = get_current_scene())
-        return radius * scene->get_minimum_height();
+        return scene->get_minimum_height();
     else
-        return radius;
+        return 1.f;
 }
 
 //------------------------------------------------------------------------------
-
-void scm_system::set_sphere_radius(float r)
-{
-    radius = r;
-}
 
 void scm_system::set_sphere_detail(int d)
 {
@@ -159,11 +140,6 @@ void scm_system::set_sphere_limit(int l)
     int d = get_sphere_detail();
     delete sphere;
     sphere = new scm_sphere(d, l);
-}
-
-float scm_system::get_sphere_radius() const
-{
-    return radius;
 }
 
 int scm_system::get_sphere_detail() const
@@ -208,9 +184,12 @@ int scm_system::acquire_scm(const std::string& name)
                 caches[cp].uses++;
             else
             {
-                caches[cp].cache = new scm_cache(this, cp.n, cp.c, cp.b);
+                scm_cache *cache = new scm_cache(this, cp.n, cp.c, cp.b);
+                caches[cp].cache = cache;
                 caches[cp].uses  = 1;
             }
+
+            assert(caches[cp].cache);
 
             // Associate the index, file, and cache in the reverse look-up.
 

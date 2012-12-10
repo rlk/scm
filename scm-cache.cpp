@@ -48,9 +48,9 @@ scm_cache::scm_cache(scm_system *sys, int n, int c, int b) :
 
     for (int i = 0; i < 2 * need_queue_size; ++i)
     {
-        GLuint b;
-        glGenBuffers(1, &b);
-        pbos.push_back(b);
+        GLuint o;
+        glGenBuffers(1, &o);
+        pbos.push_back(o);
     }
 
     // Generate the array texture object.
@@ -71,7 +71,7 @@ scm_cache::scm_cache(scm_system *sys, int n, int c, int b) :
 
     const int m = s * (n + 2);
 
-    if (GLubyte *p = (GLubyte *) calloc(m * m, c * b))
+    if (GLubyte *p = (GLubyte *) calloc(m * m, scm_pixel_size(c, b)))
     {
         glTexImage2D(GL_TEXTURE_2D, 0, i, m, m, 0, e, y, p);
         free(p);

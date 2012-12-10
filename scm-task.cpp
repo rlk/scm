@@ -36,7 +36,7 @@ scm_task::scm_task(int f, long long i, uint64 o, int n, int c, int b, GLuint u)
 {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, u);
     {
-        const size_t s = size_t(n + 2) * size_t(n + 2) * c * b / 8;
+        const size_t s = size_t(n + 2) * size_t(n + 2) * scm_pixel_size(c, b);
         glBufferData(GL_PIXEL_UNPACK_BUFFER, s, 0, GL_STREAM_DRAW);
         p = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
     }
@@ -140,6 +140,16 @@ GLenum scm_external_type(uint16 c, uint16 b)
     else if (b == 32)           return GL_FLOAT;
     else if (b == 16)           return GL_UNSIGNED_SHORT;
     else                        return GL_UNSIGNED_BYTE;
+}
+
+// Return the storage size for the OpenGL pixel with c channels of b bits.
+
+GLsizei scm_pixel_size(uint16 c, uint16 b)
+{
+    if (b == 8 && c == 3)
+        return 4; // *
+    else
+        return c * b / 8;
 }
 
 // * BGRA order. 24-bit images are always padded to 32 bits.

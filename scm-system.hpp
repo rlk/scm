@@ -62,14 +62,17 @@ struct active_cache
 
 struct cache_param
 {
-    cache_param(scm_file *file) : n(file->get_w() - 2), c(file->get_c()),
-                                                        b(file->get_b()) { }
+    cache_param(scm_file *file) : n(int(file->get_w()) - 2),
+                                  c(int(file->get_c())),
+                                  b(int(file->get_b())) { }
     int n;
     int c;
     int b;
     bool operator<(const cache_param& that) const {
         if      (n < that.n) return true;
+        else if (n > that.n) return false;
         else if (c < that.c) return true;
+        else if (c > that.c) return false;
         else if (b < that.b) return true;
         else                 return false;
     }
@@ -136,7 +139,6 @@ private:
     int   serial;
     int   frame;
     float timer;
-    float radius;
 };
 
 //------------------------------------------------------------------------------

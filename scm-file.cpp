@@ -55,6 +55,13 @@ scm_file::scm_file(const std::string& tiff) :
     av(0), ac(0),
     zv(0), zc(0)
 {
+    cache_v[0] = 0;
+    cache_v[1] = 0;
+    cache_v[2] = 0;
+    cache_k    = 0;
+    cache_p    = 0;
+    cache_i     = (uint64) (-1);
+
     // If the given file name is absolute, use it.
 
     if (exists(tiff))
@@ -80,6 +87,8 @@ scm_file::scm_file(const std::string& tiff) :
         }
     }
 
+    // Attempt to load the located TIFF.
+
     if (!path.empty())
     {
         if (TIFF *T = open())
@@ -87,10 +96,14 @@ scm_file::scm_file(const std::string& tiff) :
             uint64 n = 0;
             void  *p = 0;
 
+            // Cache the image parameters.
+
             TIFFGetField(T, TIFFTAG_IMAGEWIDTH,      &w);
             TIFFGetField(T, TIFFTAG_IMAGELENGTH,     &h);
             TIFFGetField(T, TIFFTAG_BITSPERSAMPLE,   &b);
             TIFFGetField(T, TIFFTAG_SAMPLESPERPIXEL, &c);
+
+            // Preload all metadata.
 
             if (TIFFGetField(T, 0xFFB1, &n, &p))
             {
@@ -125,12 +138,9 @@ scm_file::scm_file(const std::string& tiff) :
                 }
             }
 
-            cache_p    = malloc(TIFFScanlineSize(T) * h);
-            cache_i    = (uint64) (-1);
-            cache_v[0] = 0;
-            cache_v[1] = 0;
-            cache_v[2] = 0;
-            cache_k    = 0;
+            // Allocate a sample cache.
+
+            cache_p = malloc(TIFFScanlineSize(T) * h);
 
             TIFFClose(T);
         }
@@ -342,16 +352,14 @@ bool scm_load_page(TIFF *T, uint64 o, int w, int h, int c, int b, void *p, void 
         {
             if (q && c == 3 && b == 8)
             {
-                const int S = w * 4 * b / 8;
-
                 for (r = 0; r < h; ++r)
                 {
                     TIFFReadScanline(T, q, r, 0);
 
                     for (int j = w - 1; j >= 0; --j)
                     {
-                        uint8 *src = (uint8 *) q         + j * c * b / 8;
-                        uint8 *dst = (uint8 *) p + r * S + j * 4 * b / 8;
+                        uint8 *src = (uint8 *) q             + j * c;
+                        uint8 *dst = (uint8 *) p + r * w * 4 + j * 4;
 
                         dst[0] = src[2];
                         dst[1] = src[1];
