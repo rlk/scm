@@ -105,13 +105,7 @@ public:
     float      get_current_height(const double *) const;
     float      get_minimum_height()               const;
 
-    void       set_sphere_radius(float);
-    void       set_sphere_detail(int);
-    void       set_sphere_limit (int);
-
-    float      get_sphere_radius() const;
-    int        get_sphere_detail() const;
-    int        get_sphere_limit () const;
+    scm_sphere *get_sphere() const;
 
     // Internal Interface
 

@@ -126,8 +126,13 @@ float scm_system::get_minimum_height() const
         return 1.f;
 }
 
-//------------------------------------------------------------------------------
+scm_sphere *scm_system::get_sphere() const
+{
+    return sphere;
+}
 
+//------------------------------------------------------------------------------
+#if 0
 void scm_system::set_sphere_detail(int d)
 {
     int l = get_sphere_limit();
@@ -151,7 +156,7 @@ int scm_system::get_sphere_limit () const
 {
     return sphere ? sphere->get_limit() : 512;
 }
-
+#endif
 //------------------------------------------------------------------------------
 
 int scm_system::acquire_scm(const std::string& name)

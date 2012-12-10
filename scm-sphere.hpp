@@ -31,6 +31,12 @@ public:
     void prep(scm_scene *, const double *, int, int, int);
     void draw(scm_scene *, const double *, int, int, int, int);
 
+    void set_detail(int);
+    void set_limit (int);
+
+    int  get_detail() const { return detail; }
+    int  get_limit () const { return limit;  }
+
     void set_zoom(double x, double y, double z, double k)
     {
         zoomv[0] = x;
@@ -38,9 +44,6 @@ public:
         zoomv[2] = z;
         zoomk    = k;
     }
-
-    int get_detail() const { return detail; }
-    int get_limit()  const { return limit;  }
 
 private:
 

@@ -25,7 +25,7 @@
 
 //------------------------------------------------------------------------------
 
-#if 0
+#if 1
 typedef GLushort         GLindex;
 #define GL_ELEMENT_INDEX GL_UNSIGNED_SHORT
 #else
@@ -81,7 +81,7 @@ void scm_sphere::zoom(double *w, const double *v)
 
 scm_sphere::scm_sphere(int d, int l) : detail(d), limit(l)
 {
-    init_arrays(detail);
+    init_arrays(d);
 
     zoomv[0] =  0;
     zoomv[1] =  0;
@@ -92,6 +92,24 @@ scm_sphere::scm_sphere(int d, int l) : detail(d), limit(l)
 scm_sphere::~scm_sphere()
 {
     free_arrays();
+}
+
+//------------------------------------------------------------------------------
+
+void scm_sphere::set_detail(int d)
+{
+    if (0 < d && d < 256)
+    {
+        free_arrays( );
+        detail = d;
+        init_arrays(d);
+    }
+}
+
+void scm_sphere::set_limit(int l)
+{
+    if (0 < l)
+        limit = l;
 }
 
 //------------------------------------------------------------------------------
@@ -504,7 +522,7 @@ void scm_sphere::draw(scm_scene *scene, const double *M,
 }
 
 //------------------------------------------------------------------------------
-
+#if 0
 static inline int up(int d)
 {
     return (d % 2) ? d + 1 : d;
@@ -514,6 +532,7 @@ static inline int dn(int d)
 {
     return (d % 2) ? d - 1 : d;
 }
+#endif
 
 static void init_vertices(int n)
 {
