@@ -107,9 +107,15 @@ public:
     scm_step   *get_step(int);
     int         get_step_count() const { return int(steps.size()); }
 
-    scm_sphere *get_sphere()                       const;
+    double      get_current_step () const   { return step;  }
+    void        set_current_step (double s) { step  = s;    }
+    int         get_current_scene() const   { return scene; }
+    void        set_current_scene(int    s) { scene = s;    }
+
+    void        get_current_matrix(      double *) const;
     float       get_current_height(const double *) const;
     float       get_minimum_height()               const;
+    scm_sphere *get_sphere()                       const;
 
     // Internal Interface
 
@@ -126,20 +132,22 @@ public:
 
 private:
 
-    scm_scene *get_current_scene() const;
+    double _get_step()  const;
+    int    _get_scene() const;
 
     scm_step_v     steps;
     scm_scene_v    scenes;
-    scm_sphere     *sphere;
-    SDL_mutex      *mutex;
+    scm_sphere    *sphere;
+    SDL_mutex     *mutex;
 
     active_file_m  files;
     active_cache_m caches;
     active_pair_m  pairs;
 
-    int   serial;
-    int   frame;
-    float timer;
+    int    serial;
+    int    frame;
+    int    scene;
+    double step;
 };
 
 //------------------------------------------------------------------------------

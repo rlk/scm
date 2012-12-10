@@ -19,7 +19,7 @@
 
 //------------------------------------------------------------------------------
 
-scm_system::scm_system() : serial(1), frame(0), timer(0)
+scm_system::scm_system() : serial(1), frame(0), scene(0), step(0)
 
 {
     mutex = SDL_CreateMutex();
@@ -46,8 +46,8 @@ void scm_system::update_cache(bool sync)
 
 void scm_system::render_sphere(const double *M, int width, int height, int channel)
 {
-    if (scm_scene *scene = get_current_scene())
-        sphere->draw(scene, M, width, height, channel, frame);
+    if (!scenes.empty())
+        sphere->draw(scenes[_get_scene()], M, width, height, channel, frame);
 }
 
 void scm_system::render_cache()
@@ -130,33 +130,18 @@ scm_step *scm_system::get_step(int i)
 
 //------------------------------------------------------------------------------
 
-scm_scene *scm_system::get_current_scene() const
-{
-    int s = int(scenes.size());
-    int t = int(timer);
-
-    if (s)
-    {
-        while (t <  0) t += s;
-        while (t >= s) t -= s;
-
-        return scenes[t];
-    }
-    return 0;
-}
-
 float scm_system::get_current_height(const double *v) const
 {
-    if (scm_scene *scene = get_current_scene())
-        return scene->get_current_height(v);
+    if (!scenes.empty())
+        return scenes[_get_scene()]->get_current_height(v);
     else
         return 1.f;
 }
 
 float scm_system::get_minimum_height() const
 {
-    if (scm_scene *scene = get_current_scene())
-        return scene->get_minimum_height();
+    if (!scenes.empty())
+        return scenes[_get_scene()]->get_minimum_height();
     else
         return 1.f;
 }
@@ -166,32 +151,6 @@ scm_sphere *scm_system::get_sphere() const
     return sphere;
 }
 
-//------------------------------------------------------------------------------
-#if 0
-void scm_system::set_sphere_detail(int d)
-{
-    int l = get_sphere_limit();
-    delete sphere;
-    sphere = new scm_sphere(d, l);
-}
-
-void scm_system::set_sphere_limit(int l)
-{
-    int d = get_sphere_detail();
-    delete sphere;
-    sphere = new scm_sphere(d, l);
-}
-
-int scm_system::get_sphere_detail() const
-{
-    return sphere ? sphere->get_detail() : 32;
-}
-
-int scm_system::get_sphere_limit () const
-{
-    return sphere ? sphere->get_limit() : 512;
-}
-#endif
 //------------------------------------------------------------------------------
 
 int scm_system::acquire_scm(const std::string& name)
@@ -342,6 +301,30 @@ bool scm_system::get_page_status(int f, long long i)
         return file->get_page_status(uint64(i));
     else
         return false;
+}
+
+//------------------------------------------------------------------------------
+
+double scm_system::_get_step() const
+{
+    if (!steps.empty())
+    {
+        double d = double(steps.size());
+        double s = fmod(step, d);
+        return s < 0 ? s + d : s;
+    }
+    return 0;
+}
+
+int scm_system::_get_scene() const
+{
+    if (!scenes.empty())
+    {
+        int    d = int(scenes.size());
+        int    s = scene % d;
+        return s < 0 ? s + d : s;
+    }
+    return 0;
 }
 
 //------------------------------------------------------------------------------

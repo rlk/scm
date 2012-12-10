@@ -142,9 +142,9 @@ scm_step::scm_step(const scm_step *a, const scm_step *b, double t)
 // Initialize a new SCM viewer step using cubic interpolation of given steps.
 
 scm_step::scm_step(const scm_step *a,
-                     const scm_step *b,
-                     const scm_step *c,
-                     const scm_step *d, double t)
+                   const scm_step *b,
+                   const scm_step *c,
+                   const scm_step *d, double t)
 {
     assert(a);
     assert(b);
