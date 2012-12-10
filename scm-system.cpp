@@ -95,6 +95,41 @@ scm_scene *scm_system::get_scene(int i)
 
 //------------------------------------------------------------------------------
 
+// Allocate and insert a new step before i. Return its index.
+
+int scm_system::add_step(int i)
+{
+    int j = -1;
+
+    if (scm_step *step = new scm_step())
+    {
+        scm_step_i it = steps.insert(steps.begin() + i, step);
+        j        = it - steps.begin();
+    }
+    scm_log("scm_system add_step %d = %d", i, j);
+
+    return j;
+}
+
+// Delete the step at i.
+
+void scm_system::del_step(int i)
+{
+    scm_log("scm_system del_step %d", i);
+
+    delete steps[i];
+    steps.erase(steps.begin() + i);
+}
+
+// Return a pointer to the step at i.
+
+scm_step *scm_system::get_step(int i)
+{
+    return steps[i];
+}
+
+//------------------------------------------------------------------------------
+
 scm_scene *scm_system::get_current_scene() const
 {
     int s = int(scenes.size());

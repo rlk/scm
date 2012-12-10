@@ -19,6 +19,7 @@
 #include <SDL.h>
 #include <SDL_thread.h>
 
+#include "scm-step.hpp"
 #include "scm-scene.hpp"
 #include "scm-cache.hpp"
 #include "scm-sphere.hpp"
@@ -92,36 +93,42 @@ public:
     scm_system();
    ~scm_system();
 
-    void    render_sphere(const double *, int, int, int);
-    void    render_cache();
-    void    update_cache(bool);
+    void     render_sphere(const double *, int, int, int);
+    void     render_cache();
+    void     update_cache(bool);
 
-    int        add_scene(int);
-    void       del_scene(int);
-    scm_scene *get_scene(int);
-    int        get_scene_count() const { return int(scenes.size()); }
+    int         add_scene(int);
+    void        del_scene(int);
+    scm_scene  *get_scene(int);
+    int         get_scene_count() const { return int(scenes.size()); }
 
-    scm_scene *get_current_scene()                const;
-    float      get_current_height(const double *) const;
-    float      get_minimum_height()               const;
+    int         add_step(int);
+    void        del_step(int);
+    scm_step   *get_step(int);
+    int         get_step_count() const { return int(steps.size()); }
 
-    scm_sphere *get_sphere() const;
+    scm_sphere *get_sphere()                       const;
+    float       get_current_height(const double *) const;
+    float       get_minimum_height()               const;
 
     // Internal Interface
 
-    int acquire_scm(const std::string&);
-    int release_scm(const std::string&);
+    int     acquire_scm(const std::string&);
+    int     release_scm(const std::string&);
 
-    scm_cache *get_cache(int);
-    scm_file  *get_file (int);
-    TIFF      *get_tiff (int);
+    scm_cache  *get_cache(int);
+    scm_file   *get_file (int);
+    TIFF       *get_tiff (int);
 
-    float get_page_sample(int, const double *v);
-    bool  get_page_status(int, long long);
-    void  get_page_bounds(int, long long, float&, float&);
+    float  get_page_sample(int, const double *v);
+    bool   get_page_status(int, long long);
+    void   get_page_bounds(int, long long, float&, float&);
 
 private:
 
+    scm_scene *get_current_scene() const;
+
+    scm_step_v     steps;
     scm_scene_v    scenes;
     scm_sphere     *sphere;
     SDL_mutex      *mutex;
