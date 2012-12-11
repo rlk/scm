@@ -124,7 +124,6 @@ public:
 
     scm_cache  *get_cache(int);
     scm_file   *get_file (int);
-    TIFF       *get_tiff (int);
 
     float  get_page_sample(int, const double *v);
     bool   get_page_status(int, long long);

@@ -21,6 +21,7 @@
 //------------------------------------------------------------------------------
 
 class scm_file;
+class scm_cache;
 
 //------------------------------------------------------------------------------
 
@@ -28,19 +29,20 @@ struct scm_task : public scm_item
 {
     scm_task();
     scm_task(int, long long);
-    scm_task(int, long long, uint64, int, int, int, GLuint);
+    scm_task(int, long long, uint64, int, int, int, GLuint, scm_cache *);
 
     void make_page(int, int);
     void load_page(TIFF *T, void *);
     void dump_page();
 
-    uint64 o;          // SCM TIFF file offset of this page
-    int    n;
-    int    c;
-    int    b;
-    GLuint u;          // Pixel unpack buffer object
-    bool   d;          // Pixel unpack buffer dirty flag
-    void  *p;          // Pixel unpack buffer map address
+    uint64     o;          // SCM TIFF file offset of this page
+    int        n;
+    int        c;
+    int        b;
+    GLuint     u;          // Pixel unpack buffer object
+    bool       d;          // Pixel unpack buffer dirty flag
+    void      *p;          // Pixel unpack buffer map address
+    scm_cache *C;          // Destination cache
 };
 
 //------------------------------------------------------------------------------

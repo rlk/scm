@@ -17,6 +17,7 @@
 
 #include "util3d/math3d.h"
 #include "scm-index.hpp"
+#include "scm-cache.hpp"
 #include "scm-file.hpp"
 #include "scm-log.hpp"
 
@@ -49,7 +50,10 @@ static bool exists(const std::string& path)
 // and cache its meta-data.
 
 scm_file::scm_file(const std::string& tiff) :
-    name(tiff), w(0), h(0), c(0), b(0),
+    needs(32),
+    active(true),
+    name(tiff),
+    w(0), h(0), c(0), b(0),
     xv(0), xc(0),
     ov(0), oc(0),
     av(0), ac(0),
@@ -60,7 +64,8 @@ scm_file::scm_file(const std::string& tiff) :
     cache_v[2] = 0;
     cache_k    = 0;
     cache_p    = 0;
-    cache_i     = (uint64) (-1);
+    cache_T    = 0;
+    cache_i    = (uint64) (-1);
 
     // If the given file name is absolute, use it.
 
@@ -91,21 +96,21 @@ scm_file::scm_file(const std::string& tiff) :
 
     if (!path.empty())
     {
-        if (TIFF *T = open())
+        if ((cache_T = TIFFOpen(path.c_str(), "r")))
         {
             uint64 n = 0;
             void  *p = 0;
 
             // Cache the image parameters.
 
-            TIFFGetField(T, TIFFTAG_IMAGEWIDTH,      &w);
-            TIFFGetField(T, TIFFTAG_IMAGELENGTH,     &h);
-            TIFFGetField(T, TIFFTAG_BITSPERSAMPLE,   &b);
-            TIFFGetField(T, TIFFTAG_SAMPLESPERPIXEL, &c);
+            TIFFGetField(cache_T, TIFFTAG_IMAGEWIDTH,      &w);
+            TIFFGetField(cache_T, TIFFTAG_IMAGELENGTH,     &h);
+            TIFFGetField(cache_T, TIFFTAG_BITSPERSAMPLE,   &b);
+            TIFFGetField(cache_T, TIFFTAG_SAMPLESPERPIXEL, &c);
 
             // Preload all metadata.
 
-            if (TIFFGetField(T, 0xFFB1, &n, &p))
+            if (TIFFGetField(cache_T, 0xFFB1, &n, &p))
             {
                 if ((xv = (uint64 *) malloc(n * sizeof (uint64))))
                 {
@@ -113,7 +118,7 @@ scm_file::scm_file(const std::string& tiff) :
                     xc = n;
                 }
             }
-            if (TIFFGetField(T, 0xFFB2, &n, &p))
+            if (TIFFGetField(cache_T, 0xFFB2, &n, &p))
             {
                 if ((ov = (uint64 *) malloc(n * sizeof (uint64))))
                 {
@@ -121,7 +126,7 @@ scm_file::scm_file(const std::string& tiff) :
                     oc = n;
                 }
             }
-            if (TIFFGetField(T, 0xFFB3, &n, &p))
+            if (TIFFGetField(cache_T, 0xFFB3, &n, &p))
             {
                 if ((av = malloc(n * c * b / 8)))
                 {
@@ -129,7 +134,7 @@ scm_file::scm_file(const std::string& tiff) :
                     ac = n;
                 }
             }
-            if (TIFFGetField(T, 0xFFB4, &n, &p))
+            if (TIFFGetField(cache_T, 0xFFB4, &n, &p))
             {
                 if ((zv = malloc(n * c * b / 8)))
                 {
@@ -140,9 +145,14 @@ scm_file::scm_file(const std::string& tiff) :
 
             // Allocate a sample cache.
 
-            cache_p = malloc(TIFFScanlineSize(T) * h);
+            cache_p = malloc(TIFFScanlineSize(cache_T) * h);
 
-            TIFFClose(T);
+            // Launch the image loader threads.
+
+            int loader(void *data);
+
+            for (int i = 0; i < 2; ++i)
+                threads.push_back(SDL_CreateThread(loader, this));
         }
     }
     scm_log("scm_file constructor %s", path.c_str());
@@ -152,6 +162,21 @@ scm_file::~scm_file()
 {
     scm_log("scm_file destructor %s", path.c_str());
 
+    // If we are not already exiting, prepare to do so.
+
+    if (is_active()) finish();
+
+    // Await the exit of each loader.
+
+    int s = 0;
+
+    for (thread_i i = threads.begin(); i != threads.end(); ++i)
+        SDL_WaitThread(*i, &s);
+
+    // Release all resources.
+
+    TIFFClose(cache_T);
+
     free(cache_p);
     free(zv);
     free(av);
@@ -159,9 +184,23 @@ scm_file::~scm_file()
     free(xv);
 }
 
-TIFF *scm_file::open()
+bool scm_file::add_need(scm_task& task)
 {
-    return TIFFOpen(path.c_str(), "r");
+    return needs.try_insert(task);
+}
+
+void scm_file::finish()
+{
+    scm_task junk(-1, -1);
+
+    // Notify the loaders that they may disregard their tasks.
+
+    active.set(false);
+
+    // Make the queue non-empty to ensure that each loader unblocks.
+
+    for (thread_i i = threads.begin(); i != threads.end(); ++i)
+        needs.try_insert(junk);
 }
 
 //------------------------------------------------------------------------------
@@ -256,7 +295,7 @@ float scm_file::get_page_sample(const double *v)
 
         if (cache_i != i)
         {
-            scm_load_page(open(), o, w, h, c, b, cache_p, 0);
+            scm_load_page(cache_T, o, w, h, c, b, cache_p, 0);
             cache_i  = i;
         }
 
@@ -377,8 +416,36 @@ bool scm_load_page(TIFF *T, uint64 o, int w, int h, int c, int b, void *p, void 
             }
         }
     }
-    TIFFClose(T);
     return (r > 0);
+}
+
+int loader(void *data)
+{
+    scm_file *file = (scm_file *) data;
+    scm_task  task;
+
+    scm_log("loader thread begin %s", file->path.c_str());
+    {
+        TIFF *tiff = TIFFOpen(file->path.c_str(), "r");
+        void *temp = 0;
+
+        while ((task = file->needs.remove()).f >= 0)
+
+            if (file->is_active())
+            {
+                if ((temp) || (temp = malloc(TIFFScanlineSize(tiff))))
+                {
+                    task.load_page(tiff, temp);
+                    task.C->add_load(task);
+                }
+            }
+            else break;
+
+        free(temp);
+        TIFFClose(tiff);
+    }
+    scm_log("loader thread end %s", file->path.c_str());
+    return 0;
 }
 
 //------------------------------------------------------------------------------

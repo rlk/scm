@@ -45,7 +45,7 @@ public:
         SDL_mutexV(data_mutex);
     }
 
-    T get()
+    T get() const
     {
         T d;
         SDL_mutexP(data_mutex);

@@ -27,9 +27,7 @@ scm_cache::scm_cache(scm_system *sys, int n, int c, int b) :
     sys(sys),
     pages(),
     waits(),
-    needs(need_queue_size),
     loads(load_queue_size),
-    run(true),
     texture(0),
     s(cache_size),
     l(1),
@@ -37,13 +35,6 @@ scm_cache::scm_cache(scm_system *sys, int n, int c, int b) :
     c(c),
     b(b)
 {
-    // Launch the image loader threads.
-
-    int loader(void *data);
-
-    for (int i = 0; i < cache_threads; ++i)
-        threads.push_back(SDL_CreateThread(loader, this));
-
     // Generate pixel buffer objects.
 
     for (int i = 0; i < 2 * need_queue_size; ++i)
@@ -84,29 +75,9 @@ scm_cache::~scm_cache()
 {
     scm_log("scm_cache destructor %d %d %d", n, c, b);
 
-    // The following dance courts deadlock to terminate all synchronous IPC.
-
-    std::vector<SDL_Thread *>::iterator i;
-    int s = 0;
-    int t = 1;
-
-    // Notify the loaders that they need not complete their assigned tasks.
-
-    run.set(false);
-
     // Drain any completed loads to ensure that the loaders aren't blocked.
 
     update(0, true);
-
-    // Enqueue an exit command for each loader.
-
-    for (i = threads.begin(); i != threads.end(); ++i, ++t)
-        needs.insert(scm_task(-t, -t));
-
-    // Await the exit of each loader.
-
-    for (i = threads.begin(); i != threads.end(); ++i)
-        SDL_WaitThread(*i, &s);
 
     // Release the pixel buffer objects.
 
@@ -121,14 +92,17 @@ scm_cache::~scm_cache()
     glDeleteTextures(1, &texture);
 }
 
+void scm_cache::add_load(scm_task& task)
+{
+    loads.insert(task);
+}
+
 //------------------------------------------------------------------------------
 
 // Return the index for the requested page. Request the page if necessary.
 
 int scm_cache::get_page(int f, long long i, int t, int& u)
 {
-    // TODO: sys->get_file is called every frame for every page. That's a lot.
-
     if (scm_file *file = sys->get_file(f))
     {
         // If this page does not exist, return the filler.
@@ -162,10 +136,10 @@ int scm_cache::get_page(int f, long long i, int t, int& u)
 
         if (!pbos.empty())
         {
-            scm_task task(f, i, o, n, c, b, pbos.deq());
+            scm_task task(f, i, o, n, c, b, pbos.deq(), this);
             scm_page page(f, i, 0);
 
-            if (needs.try_insert(task))
+            if (file->add_need(task))
                 waits.insert(page, t);
             else
             {
@@ -214,7 +188,7 @@ void scm_cache::update(int t, bool b)
 
     for (c = 0; (b || c < max_loads_per_update) && loads.try_remove(task); ++c)
     {
-        if (task.d && is_running())
+        if (task.d)
         {
             scm_page page(task.f, task.i);
 
@@ -289,40 +263,3 @@ void scm_cache::flush()
 }
 
 //------------------------------------------------------------------------------
-
-// Load textures. Remove a task from the cache's needed queue, load the texture
-// to the task buffer, and insert the task in the cache's loaded queue. Ignore
-// the task if the cache is quitting. Exit when given a negative file index.
-
-int loader(void *data)
-{
-    scm_log("loader thread begin %p", data);
-    {
-        scm_cache *cache = (scm_cache *) data;
-        scm_task   task;
-
-        TIFF *tiff = 0;
-        void *temp = 0;
-
-        while ((task = cache->needs.remove()).f >= 0)
-        {
-            if (cache->is_running())
-            {
-                if ((tiff = cache->sys->get_tiff(task.f)))
-                {
-                    if ((temp) || (temp = malloc(TIFFScanlineSize(tiff))))
-                    {
-                        task.load_page(tiff, temp);
-                        cache->loads.insert(task);
-                    }
-                }
-            }
-        }
-        free(temp);
-    }
-    scm_log("loader thread end %p", data);
-    return 0;
-}
-
-//------------------------------------------------------------------------------
-

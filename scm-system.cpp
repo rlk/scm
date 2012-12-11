@@ -219,6 +219,10 @@ int scm_system::release_scm(const std::string& name)
         pairs.erase(files[name].index);
         SDL_mutexV(mutex);
 
+        // Drain the loader queues.
+
+        files[name].file->finish();
+
         // Release the associated cache and delete it if no uses remain.
 
         cache_param cp(files[name].file);
@@ -228,6 +232,8 @@ int scm_system::release_scm(const std::string& name)
             delete caches[cp].cache;
             caches.erase(cp);
         }
+
+        // Delete the file.
 
         delete files[name].file;
         files.erase(name);
@@ -255,23 +261,6 @@ scm_file *scm_system::get_file(int index)
         return 0;
     else
         return pairs[index].file;
-}
-
-// Return an open TIFF pointer for the file with the given index. This function
-// is called by the loader threads, so the index map must be mutually exclusive.
-
-TIFF *scm_system::get_tiff(int index)
-{
-    TIFF *T = 0;
-
-    SDL_mutexP(mutex);
-    {
-        if (pairs.find(index) != pairs.end())
-            T = pairs[index].file->open();
-    }
-    SDL_mutexV(mutex);
-
-    return T;
 }
 
 //------------------------------------------------------------------------------
