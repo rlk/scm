@@ -183,18 +183,17 @@ int scm_system::acquire_scm(const std::string& name)
                 caches[cp].uses++;
             else
             {
-                scm_cache *cache = new scm_cache(this, cp.n, cp.c, cp.b);
-                caches[cp].cache = cache;
+                caches[cp].cache = new scm_cache(this, cp.n, cp.c, cp.b);
                 caches[cp].uses  = 1;
             }
-
-            assert(caches[cp].cache);
 
             // Associate the index, file, and cache in the reverse look-up.
 
             SDL_mutexP(mutex);
             pairs[index] = active_pair(files[name].file, caches[cp].cache);
             SDL_mutexV(mutex);
+
+            file->activate(caches[cp].cache);
         }
         else
         {
@@ -219,24 +218,27 @@ int scm_system::release_scm(const std::string& name)
         pairs.erase(files[name].index);
         SDL_mutexV(mutex);
 
-        // Drain the loader queues.
+        // Signal the loaders to prepare to exit.
 
-        files[name].file->finish();
+        files[name].file->deactivate();
 
-        // Release the associated cache and delete it if no uses remain.
+        // Cycle the cache to ensure the loaders unblock.
 
         cache_param cp(files[name].file);
+        caches[cp].cache->update(0, true);
+
+        // Delete the file.
+
+        delete files[name].file;
+        files.erase(name);
+
+        // Release the associated cache and delete it if no uses remain.
 
         if (--caches[cp].uses == 0)
         {
             delete caches[cp].cache;
             caches.erase(cp);
         }
-
-        // Delete the file.
-
-        delete files[name].file;
-        files.erase(name);
     }
     return -1;
 }

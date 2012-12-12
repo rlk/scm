@@ -38,7 +38,10 @@ public:
     scm_file(const std::string& name);
    ~scm_file();
 
-    TIFF *open();
+    void   activate(scm_cache *);
+    void deactivate();
+
+    bool        add_need(scm_task&);
 
     bool        get_page_status(uint64)                 const;
     uint64      get_page_offset(uint64)                 const;
@@ -56,13 +59,11 @@ public:
     bool         is_valid()  const { return w && h && c && b && (w == h); }
     bool         is_active() const { return active.get();                 }
 
-    bool        add_need(scm_task&);
-    void        finish();
-
 private:
 
-    // Theaded IO handlers
+    // Threaded IO handling data
 
+    scm_cache          *cache;
     scm_queue<scm_task> needs;
     scm_guard<bool>     active;
     thread_v            threads;
@@ -93,7 +94,7 @@ private:
     float  cache_k;     // Sample cache last value
     void  *cache_p;     // Sample cache last page buffer
     uint64 cache_i;     // Sample cache last page index
-    TIFF  *cache_T;
+    TIFF  *cache_T;     // Sample cache open TIFF file
 
     float  tofloat(const void *, uint64) const;
     uint64 toindex(uint64)               const;

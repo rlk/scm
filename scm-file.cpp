@@ -146,13 +146,6 @@ scm_file::scm_file(const std::string& tiff) :
             // Allocate a sample cache.
 
             cache_p = malloc(TIFFScanlineSize(cache_T) * h);
-
-            // Launch the image loader threads.
-
-            int loader(void *data);
-
-            for (int i = 0; i < 2; ++i)
-                threads.push_back(SDL_CreateThread(loader, this));
         }
     }
     scm_log("scm_file constructor %s", path.c_str());
@@ -162,9 +155,9 @@ scm_file::~scm_file()
 {
     scm_log("scm_file destructor %s", path.c_str());
 
-    // If we are not already exiting, prepare to do so.
+    // If we are not already exiting, signal the intention to do so.
 
-    if (is_active()) finish();
+    if (is_active()) deactivate();
 
     // Await the exit of each loader.
 
@@ -184,23 +177,40 @@ scm_file::~scm_file()
     free(xv);
 }
 
-bool scm_file::add_need(scm_task& task)
+//------------------------------------------------------------------------------
+
+void scm_file::activate(scm_cache *cache)
 {
-    return needs.try_insert(task);
+    this->cache = cache;
+
+    // Launch the loader threads.
+
+    int loader(void *);
+    
+    for (int i = 0; i < 2; ++i)
+        threads.push_back(SDL_CreateThread(loader, this));
 }
 
-void scm_file::finish()
+void scm_file::deactivate()
 {
-    scm_task junk(-1, -1);
-
     // Notify the loaders that they may disregard their tasks.
 
     active.set(false);
 
-    // Make the queue non-empty to ensure that each loader unblocks.
+    // A non-empty queue ensures that each loader unblocks.
 
-    for (thread_i i = threads.begin(); i != threads.end(); ++i)
+    int t = 1;
+
+    for (thread_i i = threads.begin(); i != threads.end(); ++i, ++t)
+    {
+        scm_task junk(-t, -t);
         needs.try_insert(junk);
+    }
+}
+
+bool scm_file::add_need(scm_task& task)
+{
+    return needs.try_insert(task);
 }
 
 //------------------------------------------------------------------------------
@@ -436,7 +446,7 @@ int loader(void *data)
                 if ((temp) || (temp = malloc(TIFFScanlineSize(tiff))))
                 {
                     task.load_page(tiff, temp);
-                    task.C->add_load(task);
+                    file->cache->add_load(task);
                 }
             }
             else break;
