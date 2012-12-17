@@ -127,7 +127,7 @@ static inline double length(const double *a, const double *b, int w, int h)
 }
 
 double scm_sphere::view_page(const double *M, int vw, int vh,
-                            double r0, double r1, long long i)
+                             double r0, double r1, long long i)
 {
     // Compute the corner vectors of the zoomed page.
 

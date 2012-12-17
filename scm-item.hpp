@@ -26,10 +26,9 @@ struct scm_item
     bool is_valid() const { return (f >= 0 && i >= 0); }
 
     bool operator<(const scm_item& that) const {
-        if (i == that.i)
-            return f < that.f;
-        else
-            return i < that.i;
+        if     (i < that.i) return true;
+        if     (i > that.i) return false;
+        return (f < that.f);
     }
 };
 
