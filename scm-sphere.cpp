@@ -365,7 +365,7 @@ bool scm_sphere::prep_page(scm_scene *scene,
 
 void scm_sphere::draw_page(scm_scene *scene, int channel, int depth, int frame, long long i)
 {
-    GLuint program = scene->bind_page(channel, depth, frame, i);
+    scene->bind_page(channel, depth, frame, i);
     {
         long long i0 = scm_page_child(i, 0);
         long long i1 = scm_page_child(i, 1);
@@ -401,11 +401,8 @@ void scm_sphere::draw_page(scm_scene *scene, int channel, int depth, int frame, 
                 GLfloat x = m * c - C;
                 GLfloat y = m * r - R;
 
-                GLint A = glsl_uniform(program, "A[%d]", l);
-                GLint B = glsl_uniform(program, "B[%d]", l);
-
-                glUniform2f(A, m, m);
-                glUniform2f(B, x, y);
+                glUniform2f(scene->uA[l], m, m);
+                glUniform2f(scene->uB[l], x, y);
 
                 C /= 2;
                 R /= 2;
@@ -463,7 +460,7 @@ void scm_sphere::draw(scm_scene *scene, const double *M,
 
     // Configure the shaders and draw the six root pages.
 
-    GLuint program = scene->bind(channel);
+    scene->bind(channel);
     {
         static const GLfloat M[6][9] = {
             {  0.f,  0.f,  1.f,  0.f,  1.f,  0.f, -1.f,  0.f,  0.f },
@@ -474,7 +471,6 @@ void scm_sphere::draw(scm_scene *scene, const double *M,
             { -1.f,  0.f,  0.f,  0.f,  1.f,  0.f,  0.f,  0.f, -1.f },
         };
 
-        GLint uM = glsl_uniform(program, "M");
 #if 0
         glUniform1f(u_zoomk, GLfloat(zoomk));
         glUniform3f(u_zoomv, GLfloat(zoomv[0]),
@@ -483,32 +479,32 @@ void scm_sphere::draw(scm_scene *scene, const double *M,
 #endif
         if (is_set(0))
         {
-            glUniformMatrix3fv(uM, 1, GL_TRUE, M[0]);
+            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[0]);
             draw_page(scene, channel, 0, frame, 0);
         }
         if (is_set(1))
         {
-            glUniformMatrix3fv(uM, 1, GL_TRUE, M[1]);
+            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[1]);
             draw_page(scene, channel, 0, frame, 1);
         }
         if (is_set(2))
         {
-            glUniformMatrix3fv(uM, 1, GL_TRUE, M[2]);
+            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[2]);
             draw_page(scene, channel, 0, frame, 2);
         }
         if (is_set(3))
         {
-            glUniformMatrix3fv(uM, 1, GL_TRUE, M[3]);
+            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[3]);
             draw_page(scene, channel, 0, frame, 3);
         }
         if (is_set(4))
         {
-            glUniformMatrix3fv(uM, 1, GL_TRUE, M[4]);
+            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[4]);
             draw_page(scene, channel, 0, frame, 4);
         }
         if (is_set(5))
         {
-            glUniformMatrix3fv(uM, 1, GL_TRUE, M[5]);
+            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[5]);
             draw_page(scene, channel, 0, frame, 5);
         }
     }

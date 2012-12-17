@@ -69,7 +69,6 @@ void scm_image::init_uniforms(GLuint program)
             ub[d] = glsl_uniform(program, "%s.b[%d]", name.c_str(), d);
         }
     }
-    else uS = ur = uk0 = uk1 = -1;
 }
 
 void scm_image::bind(GLuint unit, GLuint program) const

@@ -46,10 +46,10 @@ public:
 
     void   init_uniforms();
 
-    GLuint bind(int) const;
+    void   bind(int) const;
     void unbind(int) const;
 
-    GLuint bind_page(int, int, int, long long) const;
+    void   bind_page(int, int, int, long long) const;
     void unbind_page(int, int)                 const;
     void  touch_page(int,      int, long long) const;
 
@@ -59,6 +59,9 @@ public:
     void    get_page_bounds(int, long long, float&, float &) const;
     bool    get_page_status(int, long long)                  const;
 
+    GLint   uA[16];
+    GLint   uB[16];
+    GLint   uM;
 
 private:
 

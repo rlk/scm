@@ -94,13 +94,22 @@ scm_image *scm_scene::get_image(int i)
 void scm_scene::init_uniforms()
 {
     if (render.program)
+    {
         for (int j = 0; j < get_image_count(); ++j)
             images[j]->init_uniforms(render.program);
+
+        for (int d = 0; d < 16; d++)
+        {
+            uA[d] = glsl_uniform(render.program, "A[%d]", d);
+            uB[d] = glsl_uniform(render.program, "B[%d]", d);
+        }
+        uM = glsl_uniform(render.program, "M");
+    }
 }
 
 // Bind the program and all image textures matching channel.
 
-GLuint scm_scene::bind(int channel) const
+void scm_scene::bind(int channel) const
 {
     GLenum unit = 0;
 
@@ -111,8 +120,6 @@ GLuint scm_scene::bind(int channel) const
             images[j]->bind(unit++, render.program);
 
     glActiveTexture(GL_TEXTURE0);
-
-    return render.program;
 }
 
 // Unbind the program and all image textures matching channel.
@@ -132,16 +139,13 @@ void scm_scene::unbind(int channel) const
 
 //------------------------------------------------------------------------------
 
-// For each image matching channel, bind page i. Return the program to allow the
-// caller to set uniforms.
+// For each image matching channel, bind page i.
 
-GLuint scm_scene::bind_page(int channel, int depth, int frame, long long i) const
+void scm_scene::bind_page(int channel, int depth, int frame, long long i) const
 {
     for (int j = 0; j < get_image_count(); ++j)
         if (images[j]->get_channel() == channel)
             images[j]->bind_page(render.program, depth, frame, i);
-
-    return render.program;
 }
 
 // For each image matching channel, unbind page i.
