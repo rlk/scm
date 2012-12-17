@@ -50,6 +50,8 @@ public:
     scm_image(scm_system *);
    ~scm_image();
 
+    void   init_uniforms(GLuint);
+
     void   bind(GLuint, GLuint) const;
     void unbind(GLuint)         const;
 
@@ -66,10 +68,18 @@ private:
     scm_system *sys;
     std::string scm;
     std::string name;
+
     int         channel;
     bool        height;
     float       k0;
     float       k1;
+
+    GLint       uS;
+    GLint       ur;
+    GLint       uk0;
+    GLint       uk1;
+    GLint       ua[16];
+    GLint       ub[16];
 
     scm_cache  *cache;
     int         index;

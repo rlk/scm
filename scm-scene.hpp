@@ -44,6 +44,8 @@ public:
 
     // Internal Interface
 
+    void   init_uniforms();
+
     GLuint bind(int) const;
     void unbind(int) const;
 

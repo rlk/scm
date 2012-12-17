@@ -186,7 +186,7 @@ void scm_file::activate(scm_cache *cache)
     // Launch the loader threads.
 
     int loader(void *);
-    
+
     for (int i = 0; i < 2; ++i)
         threads.push_back(SDL_CreateThread(loader, this));
 }
@@ -385,7 +385,7 @@ float scm_file::tofloat(const void *v, uint64 i) const
 
 bool scm_load_page(TIFF *T, uint64 o, int w, int h, int c, int b, void *p, void *q)
 {
-    int r = 0;
+    int i = 0;
 
     if (TIFFSetSubDirectory(T, o))
     {
@@ -401,14 +401,14 @@ bool scm_load_page(TIFF *T, uint64 o, int w, int h, int c, int b, void *p, void 
         {
             if (q && c == 3 && b == 8)
             {
-                for (r = 0; r < h; ++r)
+                for (i = 0; i < h; ++i)
                 {
-                    TIFFReadScanline(T, q, r, 0);
+                    TIFFReadScanline(T, q, i, 0);
 
                     for (int j = w - 1; j >= 0; --j)
                     {
                         uint8 *src = (uint8 *) q             + j * c;
-                        uint8 *dst = (uint8 *) p + r * w * 4 + j * 4;
+                        uint8 *dst = (uint8 *) p + i * w * 4 + j * 4;
 
                         dst[0] = src[2];
                         dst[1] = src[1];
@@ -419,14 +419,15 @@ bool scm_load_page(TIFF *T, uint64 o, int w, int h, int c, int b, void *p, void 
             }
             else
             {
-                const int S = int(TIFFScanlineSize(T));
+                tsize_t N = TIFFNumberOfStrips(T);
+                tsize_t S = TIFFStripSize(T);
 
-                for (r = 0; r < h; ++r)
-                    TIFFReadScanline(T, (uint8 *) p + r * S, r, 0);
+                for (i = 0; i < N; ++i)
+                    TIFFReadEncodedStrip(T, i, (uint8 *) p + i * S, -1);
             }
         }
     }
-    return (r > 0);
+    return (i > 0);
 }
 
 int loader(void *data)

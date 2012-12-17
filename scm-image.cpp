@@ -15,6 +15,28 @@
 #include "scm-system.hpp"
 #include "scm-image.hpp"
 #include "scm-index.hpp"
+#include "scm-log.hpp"
+
+//------------------------------------------------------------------------------
+
+scm_image::scm_image(scm_system *sys) :
+    sys(sys),
+    channel(0),
+    height(false),
+    k0 ( 0),
+    k1 ( 1),
+    uS (-1),
+    ur (-1),
+    uk0(-1),
+    uk1(-1),
+    index(-1)
+{
+}
+
+scm_image::~scm_image()
+{
+    set_scm("");
+}
 
 //------------------------------------------------------------------------------
 
@@ -27,40 +49,41 @@ void scm_image::set_scm(const std::string& s)
     cache = sys->get_cache(index);
 }
 
-scm_image::scm_image(scm_system *sys) :
-    sys(sys),
-    channel(0),
-    height(false),
-    k0(0),
-    k1(1),
-    index(-1)
-{
-}
-
-scm_image::~scm_image()
-{
-    set_scm("");
-}
-
 //------------------------------------------------------------------------------
+
+void scm_image::init_uniforms(GLuint program)
+{
+    scm_log("scm_image init_uniforms %s %s %d", scm.c_str(),
+                                               name.c_str(), program);
+
+    if (program && !name.empty())
+    {
+        uS  = glsl_uniform(program, "%s.S",  name.c_str());
+        ur  = glsl_uniform(program, "%s.r",  name.c_str());
+        uk0 = glsl_uniform(program, "%s.k0", name.c_str());
+        uk1 = glsl_uniform(program, "%s.k1", name.c_str());
+
+        for (int d = 0; d < 16; d++)
+        {
+            ua[d] = glsl_uniform(program, "%s.a[%d]", name.c_str(), d);
+            ub[d] = glsl_uniform(program, "%s.b[%d]", name.c_str(), d);
+        }
+    }
+    else uS = ur = uk0 = uk1 = -1;
+}
 
 void scm_image::bind(GLuint unit, GLuint program) const
 {
-    if (cache && !name.empty())
+    if (cache)
     {
-        const int s = cache->get_grid_size();
-        const int n = cache->get_page_size();
+        const GLfloat r = GLfloat(cache->get_page_size())
+                        / GLfloat(cache->get_page_size() + 2)
+                        / GLfloat(cache->get_grid_size());
 
-        GLuint uS  = glsl_uniform(program, "%s.S",  name.c_str());
-        GLuint ur  = glsl_uniform(program, "%s.r",  name.c_str());
-        GLuint uk0 = glsl_uniform(program, "%s.k0", name.c_str());
-        GLuint uk1 = glsl_uniform(program, "%s.k1", name.c_str());
-
+        glUniform1i(uS,  unit);
+        glUniform2f(ur,  r, r);
         glUniform1f(uk0, k0);
         glUniform1f(uk1, k1);
-        glUniform1i(uS, unit);
-        glUniform2f(ur, GLfloat(n) / (n + 2) / s,
-                        GLfloat(n) / (n + 2) / s);
 
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(GL_TEXTURE_2D, cache->get_texture());
@@ -77,11 +100,8 @@ void scm_image::unbind(GLuint unit) const
 
 void scm_image::bind_page(GLuint program, int d, int t, long long i) const
 {
-    if (cache && !name.empty())
+    if (cache)
     {
-        GLint ua = glsl_uniform(program, "%s.a[%d]", name.c_str(), d);
-        GLint ub = glsl_uniform(program, "%s.b[%d]", name.c_str(), d);
-
         int u;
         int l = cache->get_page(index, i, t, u);
 
@@ -94,22 +114,16 @@ void scm_image::bind_page(GLuint program, int d, int t, long long i) const
         const int s = cache->get_grid_size();
         const int n = cache->get_page_size();
 
-        glUniform1f(ua, GLfloat(a));
-        glUniform2f(ub, GLfloat((l % s) * (n + 2) + 1) / GLfloat(s * (n + 2)),
-                        GLfloat((l / s) * (n + 2) + 1) / GLfloat(s * (n + 2)));
+        glUniform1f(ua[d], GLfloat(a));
+        glUniform2f(ub[d], GLfloat((l % s) * (n + 2) + 1) / (s * (n + 2)),
+                           GLfloat((l / s) * (n + 2) + 1) / (s * (n + 2)));
     }
 }
 
 void scm_image::unbind_page(GLuint program, int d) const
 {
-    if (!name.empty())
-    {
-        GLint ua = glsl_uniform(program, "%s.a[%d]", name.c_str(), d);
-        GLint ub = glsl_uniform(program, "%s.b[%d]", name.c_str(), d);
-
-        glUniform1f(ua, 0.f);
-        glUniform2f(ub, 0.f, 0.f);
-    }
+    glUniform1f(ua[d], 0.f);
+    glUniform2f(ub[d], 0.f, 0.f);
 }
 
 void scm_image::touch_page(int t, long long i) const

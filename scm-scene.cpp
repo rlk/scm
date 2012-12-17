@@ -36,6 +36,8 @@ void scm_scene::set_vert(const std::string &s)
 
     if (!vert.empty() && !frag.empty())
         glsl_source(&render, vert.c_str(), frag.c_str());
+
+    init_uniforms();
 }
 
 void scm_scene::set_frag(const std::string &s)
@@ -46,6 +48,8 @@ void scm_scene::set_frag(const std::string &s)
 
     if (!vert.empty() && !frag.empty())
         glsl_source(&render, vert.c_str(), frag.c_str());
+
+    init_uniforms();
 }
 
 //------------------------------------------------------------------------------
@@ -84,6 +88,15 @@ scm_image *scm_scene::get_image(int i)
 }
 
 //------------------------------------------------------------------------------
+
+// Initialize the uniform locations of all images for the current program.
+
+void scm_scene::init_uniforms()
+{
+    if (render.program)
+        for (int j = 0; j < get_image_count(); ++j)
+            images[j]->init_uniforms(render.program);
+}
 
 // Bind the program and all image textures matching channel.
 
