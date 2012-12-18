@@ -18,16 +18,18 @@
 #include "scm-scene.hpp"
 #include "scm-cache.hpp"
 #include "scm-sphere.hpp"
+#include "scm-render.hpp"
 #include "scm-system.hpp"
 #include "scm-log.hpp"
 
 //------------------------------------------------------------------------------
 
-scm_system::scm_system() : serial(1), frame(0), scene(0), step(0)
-
+scm_system::scm_system(int w, int h, int d, int l) :
+    serial(1), frame(0), scene(0), step(0)
 {
     mutex  = SDL_CreateMutex();
-    sphere = new scm_sphere(32, 512);
+    sphere = new scm_sphere(d, l);
+    render = new scm_render(w, h);
 }
 
 scm_system::~scm_system()
@@ -36,6 +38,8 @@ scm_system::~scm_system()
         del_scene(0);
 
     delete sphere;
+    delete render;
+
     SDL_DestroyMutex(mutex);
 }
 
@@ -48,10 +52,13 @@ void scm_system::update_cache(bool sync)
     frame++;
 }
 
-void scm_system::render_sphere(const double *M, int width, int height, int channel)
+void scm_system::render_sphere(const double *M, int channel)
 {
+    const double t = scene - floor(scene);
+
     if (!scenes.empty())
-        sphere->draw(scenes[_get_scene()], M, width, height, channel, frame);
+        render->render(sphere, get_scene0(),
+                               get_scene1(), M, t, channel, frame);
 }
 
 void scm_system::render_cache()
@@ -137,7 +144,8 @@ scm_step *scm_system::get_step(int i)
 float scm_system::get_current_height(const double *v) const
 {
     if (!scenes.empty())
-        return scenes[_get_scene()]->get_current_height(v);
+        return std::max(get_scene0()->get_current_height(v),
+                        get_scene1()->get_current_height(v));
     else
         return 1.f;
 }
@@ -145,7 +153,8 @@ float scm_system::get_current_height(const double *v) const
 float scm_system::get_minimum_height() const
 {
     if (!scenes.empty())
-        return scenes[_get_scene()]->get_minimum_height();
+        return std::min(get_scene0()->get_minimum_height(),
+                        get_scene1()->get_minimum_height());
     else
         return 1.f;
 }
@@ -153,6 +162,11 @@ float scm_system::get_minimum_height() const
 scm_sphere *scm_system::get_sphere() const
 {
     return sphere;
+}
+
+scm_render *scm_system::get_render() const
+{
+    return render;
 }
 
 //------------------------------------------------------------------------------
@@ -300,26 +314,24 @@ bool scm_system::get_page_status(int f, long long i)
 
 //------------------------------------------------------------------------------
 
-double scm_system::_get_step() const
+scm_step *scm_system::get_step0() const
 {
-    if (!steps.empty())
-    {
-        double d = double(steps.size());
-        double s = fmod(step, d);
-        return s < 0 ? s + d : s;
-    }
-    return 0;
+    return steps[int(floor(step)) % steps.size()];
 }
 
-int scm_system::_get_scene() const
+scm_step *scm_system::get_step1() const
 {
-    if (!scenes.empty())
-    {
-        int    d = int(scenes.size());
-        int    s = scene % d;
-        return s < 0 ? s + d : s;
-    }
-    return 0;
+    return steps[int(ceil(step)) % steps.size()];
+}
+
+scm_scene *scm_system::get_scene0() const
+{
+    return scenes[int(floor(scene)) % scenes.size()];
+}
+
+scm_scene *scm_system::get_scene1() const
+{
+    return scenes[int(ceil(scene)) % scenes.size()];
 }
 
 //------------------------------------------------------------------------------

@@ -35,6 +35,7 @@ public:
                 scm_scene  *,
                 scm_scene  *, const double *, double, int, int);
 
+    void set_size(int, int);
     void set_blur(bool);
     void set_fade(bool);
 
@@ -42,6 +43,9 @@ private:
 
     int    width;
     int    height;
+
+    bool   do_blur;
+    bool   do_fade;
 
     GLuint color0;
     GLuint depth0;

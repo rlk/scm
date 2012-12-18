@@ -27,6 +27,7 @@ class scm_step;
 class scm_scene;
 class scm_cache;
 class scm_sphere;
+class scm_render;
 
 typedef std::vector<scm_step *>           scm_step_v;
 typedef std::vector<scm_step *>::iterator scm_step_i;
@@ -99,10 +100,10 @@ public:
 
     // External Interface
 
-    scm_system();
+    scm_system(int, int, int, int);
    ~scm_system();
 
-    void     render_sphere(const double *, int, int, int);
+    void     render_sphere(const double *, int);
     void     render_cache();
     void     update_cache(bool);
 
@@ -118,13 +119,15 @@ public:
 
     double      get_current_step () const   { return step;  }
     void        set_current_step (double s) { step  = s;    }
-    int         get_current_scene() const   { return scene; }
-    void        set_current_scene(int    s) { scene = s;    }
+    double      get_current_scene() const   { return scene; }
+    void        set_current_scene(double s) { scene = s;    }
 
     void        get_current_matrix(      double *) const;
     float       get_current_height(const double *) const;
     float       get_minimum_height()               const;
-    scm_sphere *get_sphere()                       const;
+
+    scm_sphere *get_sphere() const;
+    scm_render *get_render() const;
 
     // Internal Interface
 
@@ -140,12 +143,10 @@ public:
 
 private:
 
-    double _get_step()  const;
-    int    _get_scene() const;
-
     scm_step_v     steps;
     scm_scene_v    scenes;
     scm_sphere    *sphere;
+    scm_render    *render;
     SDL_mutex     *mutex;
 
     active_file_m  files;
@@ -154,8 +155,13 @@ private:
 
     int    serial;
     int    frame;
-    int    scene;
+    double scene;
     double step;
+
+    scm_step  *get_step0()  const;
+    scm_step  *get_step1()  const;
+    scm_scene *get_scene0() const;
+    scm_scene *get_scene1() const;
 };
 
 //------------------------------------------------------------------------------
