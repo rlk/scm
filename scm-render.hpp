@@ -35,6 +35,9 @@ public:
                 scm_scene  *,
                 scm_scene  *, const double *, double, int, int);
 
+    void set_blur(bool);
+    void set_fade(bool);
+
 private:
 
     int    width;

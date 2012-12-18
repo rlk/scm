@@ -14,9 +14,18 @@
 #define SCM_SCENE_HPP
 
 #include <vector>
+#include <string>
 
 #include "util3d/glsl.h"
-#include "scm-image.hpp"
+
+//------------------------------------------------------------------------------
+
+class scm_system;
+class scm_image;
+
+typedef std::vector<scm_image *>                 scm_image_v;
+typedef std::vector<scm_image *>::iterator       scm_image_i;
+typedef std::vector<scm_image *>::const_iterator scm_image_c;
 
 //------------------------------------------------------------------------------
 
@@ -74,9 +83,6 @@ private:
     scm_image_v images;
     glsl        render;
 };
-
-typedef std::vector<scm_scene *>           scm_scene_v;
-typedef std::vector<scm_scene *>::iterator scm_scene_i;
 
 //------------------------------------------------------------------------------
 

@@ -85,10 +85,6 @@ private:
     int         index;
 };
 
-typedef std::vector<scm_image *>                 scm_image_v;
-typedef std::vector<scm_image *>::iterator       scm_image_i;
-typedef std::vector<scm_image *>::const_iterator scm_image_c;
-
 //------------------------------------------------------------------------------
 
 #endif

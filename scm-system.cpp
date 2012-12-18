@@ -14,6 +14,10 @@
 #include <cmath>
 #include "util3d/math3d.h"
 
+#include "scm-step.hpp"
+#include "scm-scene.hpp"
+#include "scm-cache.hpp"
+#include "scm-sphere.hpp"
 #include "scm-system.hpp"
 #include "scm-log.hpp"
 
@@ -22,7 +26,7 @@
 scm_system::scm_system() : serial(1), frame(0), scene(0), step(0)
 
 {
-    mutex = SDL_CreateMutex();
+    mutex  = SDL_CreateMutex();
     sphere = new scm_sphere(32, 512);
 }
 

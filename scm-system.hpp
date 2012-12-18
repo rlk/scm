@@ -19,11 +19,20 @@
 #include <SDL.h>
 #include <SDL_thread.h>
 
-#include "scm-step.hpp"
-#include "scm-scene.hpp"
-#include "scm-cache.hpp"
-#include "scm-sphere.hpp"
 #include "scm-file.hpp"
+
+//------------------------------------------------------------------------------
+
+class scm_step;
+class scm_scene;
+class scm_cache;
+class scm_sphere;
+
+typedef std::vector<scm_step *>           scm_step_v;
+typedef std::vector<scm_step *>::iterator scm_step_i;
+
+typedef std::vector<scm_scene *>           scm_scene_v;
+typedef std::vector<scm_scene *>::iterator scm_scene_i;
 
 //------------------------------------------------------------------------------
 

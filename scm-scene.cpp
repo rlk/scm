@@ -11,6 +11,7 @@
 // more details.
 
 #include "scm-scene.hpp"
+#include "scm-image.hpp"
 #include "scm-log.hpp"
 
 //------------------------------------------------------------------------------

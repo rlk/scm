@@ -13,6 +13,7 @@
 #include "util3d/glsl.h"
 
 #include "scm-system.hpp"
+#include "scm-cache.hpp"
 #include "scm-image.hpp"
 #include "scm-index.hpp"
 #include "scm-log.hpp"
