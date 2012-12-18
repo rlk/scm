@@ -36,16 +36,16 @@ public:
                 scm_scene  *, const double *, double, int, int);
 
     void set_size(int, int);
-    void set_blur(bool);
-    void set_fade(bool);
+    void set_blur(int);
 
 private:
 
+    void init_ogl();
+    void free_ogl();
+
     int    width;
     int    height;
-
-    bool   do_blur;
-    bool   do_fade;
+    int    motion;
 
     GLuint color0;
     GLuint depth0;
@@ -54,6 +54,8 @@ private:
     GLuint color1;
     GLuint depth1;
     GLuint framebuffer1;
+
+    double L[16];
 
     glsl   fade;
     glsl   blur;
