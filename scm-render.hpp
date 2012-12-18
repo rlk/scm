@@ -40,6 +40,9 @@ public:
 
 private:
 
+    void render0(scm_sphere *, scm_scene *, const double *, int, int);
+    void render1(scm_sphere *, scm_scene *, const double *, int, int);
+
     void init_ogl();
     void free_ogl();
 
@@ -55,11 +58,16 @@ private:
     GLuint depth1;
     GLuint framebuffer1;
 
-    double L[16];
+    GLfloat L[16];
 
     glsl   fade;
     glsl   blur;
     glsl   both;
+
+    GLint  fade_ut, both_ut;
+    GLint  blur_uL, both_uL;
+    GLint  blur_uI, both_uI;
+    GLint  blur_un, both_un;
 };
 
 

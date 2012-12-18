@@ -1,6 +1,12 @@
 #version 120
 
+uniform sampler2DRect color0;
+uniform sampler2DRect color1;
+
+uniform float t;
+
 void main()
 {
-    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+	gl_FragColor = mix(texture2DRect(color0, gl_FragCoord.xy),
+					   texture2DRect(color1, gl_FragCoord.xy), t);
 }

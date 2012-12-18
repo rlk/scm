@@ -25,7 +25,6 @@
 scm_render::scm_render(int w, int h) :
     width(w), height(h), motion(8)
 {
-    midentity(L);
     init_ogl();
 }
 
@@ -35,6 +34,20 @@ scm_render::~scm_render()
 }
 
 //------------------------------------------------------------------------------
+
+// Initialize the uniforms of the given GLSL program object.
+
+static void init_uniforms(GLuint program)
+{
+    glUseProgram(program);
+    {
+        glUniform1i(glGetUniformLocation(program, "color0"), 0);
+        glUniform1i(glGetUniformLocation(program, "color1"), 1);
+        glUniform1i(glGetUniformLocation(program, "depth0"), 2);
+        glUniform1i(glGetUniformLocation(program, "depth1"), 3);
+    }
+    glUseProgram(0);
+}
 
 // Initialize the storage and parameters of an off-screen color buffer.
 
@@ -98,12 +111,25 @@ static void init_fbo(GLuint& color,
 
 void scm_render::init_ogl()
 {
-    init_fbo(framebuffer0, color0, depth0, width, height);
-    init_fbo(framebuffer1, color1, depth1, width, height);
-
     glsl_create(&fade, "scm/scm-render-fade.vert", "scm/scm-render-fade.frag");
     glsl_create(&blur, "scm/scm-render-blur.vert", "scm/scm-render-blur.frag");
     glsl_create(&both, "scm/scm-render-both.vert", "scm/scm-render-both.frag");
+
+    init_uniforms(fade.program);
+    init_uniforms(blur.program);
+    init_uniforms(both.program);
+
+    fade_ut = glsl_uniform(fade.program, "t");
+    both_ut = glsl_uniform(both.program, "t");
+    blur_un = glsl_uniform(blur.program, "n");
+    both_un = glsl_uniform(both.program, "n");
+    blur_uI = glsl_uniform(blur.program, "I");
+    both_uI = glsl_uniform(both.program, "I");
+    blur_uL = glsl_uniform(blur.program, "L");
+    both_uL = glsl_uniform(both.program, "L");
+
+    init_fbo(color0, depth0, framebuffer0, width, height);
+    init_fbo(color1, depth1, framebuffer1, width, height);
 
     scm_log("scm_render init_ogl %d %d", width, height);
 }
@@ -130,14 +156,141 @@ void scm_render::free_ogl()
 
 //------------------------------------------------------------------------------
 
+static void fillscreen()
+{
+    glPushAttrib(GL_POLYGON_BIT | GL_DEPTH_BUFFER_BIT);
+    {
+        glFrontFace(GL_CCW);
+        glDepthMask(GL_FALSE);
+
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+
+        glBegin(GL_QUADS);
+        {
+            glVertex2f(-1.0f, -1.0f);
+            glVertex2f(+1.0f, -1.0f);
+            glVertex2f(+1.0f, +1.0f);
+            glVertex2f(-1.0f, +1.0f);
+        }
+        glEnd();
+
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+    }
+    glPopAttrib();
+}
+
+void scm_render::render0(scm_sphere *sphere,
+                         scm_scene  *scene,
+                         const double *M, int channel, int frame)
+{
+    glPushAttrib(GL_VIEWPORT_BIT);
+    {
+        glViewport(0, 0, width, height);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer0);
+        {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            sphere->draw(scene, M, width, height, channel, frame);
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    glPopAttrib();
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_RECTANGLE, depth0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_RECTANGLE, color0);
+}
+
+void scm_render::render1(scm_sphere *sphere,
+                         scm_scene  *scene,
+                         const double *M, int channel, int frame)
+{
+    glPushAttrib(GL_VIEWPORT_BIT);
+    {
+        glViewport(0, 0, width, height);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer1);
+        {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            sphere->draw(scene, M, width, height, channel, frame);
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    glPopAttrib();
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_RECTANGLE, depth1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_RECTANGLE, color1);
+    glActiveTexture(GL_TEXTURE0);
+}
+
 void scm_render::render(scm_sphere *sphere,
                         scm_scene  *scene0,
                         scm_scene  *scene1,
                         const double *M, double t, int channel, int frame)
 {
-    sphere->draw(scene0, M, width, height, channel, frame);
+    const bool mixing = (t >= 1.0 / 256.0);
 
-    memcpy(L, M, 16 * sizeof (double));
+    if (!mixing && !motion)
+    {
+        sphere->draw(scene0, M, width, height, channel, frame);
+    }
+    else
+    {
+        double  T[16];
+        GLfloat I[16];
+        minvert(T, M);
+
+        for (int i = 0; i < 16; i++)
+            I[i] = GLfloat(T[i]);
+
+        if (mixing)
+        {
+            render1(sphere, scene1, M, channel, frame);
+            render0(sphere, scene0, M, channel, frame);
+        }
+        else
+        {
+            render0(sphere, scene0, M, channel, frame);
+        }
+
+        if      (mixing && motion)
+        {
+            glUseProgram      (both.program);
+            glUniform1f       (both_ut,       t);
+            glUniform1i       (both_un,  motion);
+            glUniformMatrix4fv(both_uL, 1, 0, L);
+            glUniformMatrix4fv(both_uI, 1, 0, I);
+        }
+        else if (mixing && !motion)
+        {
+            glUseProgram      (fade.program);
+            glUniform1f       (fade_ut,       t);
+        }
+        else if (!mixing && motion)
+        {
+            glUseProgram      (blur.program);
+            glUniform1i       (blur_un,  motion);
+            glUniformMatrix4fv(blur_uL, 1, 0, L);
+            glUniformMatrix4fv(blur_uI, 1, 0, I);
+        }
+
+        fillscreen();
+        glUseProgram(0);
+
+        for (int i = 0; i < 16; i++)
+            L[i] = I[i];
+    }
 }
 
 //------------------------------------------------------------------------------
