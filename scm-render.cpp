@@ -37,7 +37,7 @@ scm_render::~scm_render()
 
 // Initialize the uniforms of the given GLSL program object.
 
-static void init_uniforms(GLuint program)
+static void init_uniforms(GLuint program, int w, int h)
 {
     glUseProgram(program);
     {
@@ -45,6 +45,7 @@ static void init_uniforms(GLuint program)
         glUniform1i(glGetUniformLocation(program, "color1"), 1);
         glUniform1i(glGetUniformLocation(program, "depth0"), 2);
         glUniform1i(glGetUniformLocation(program, "depth1"), 3);
+        glUniform2f(glGetUniformLocation(program, "size"), w, h);
     }
     glUseProgram(0);
 }
@@ -115,9 +116,9 @@ void scm_render::init_ogl()
     glsl_create(&blur, "scm/scm-render-blur.vert", "scm/scm-render-blur.frag");
     glsl_create(&both, "scm/scm-render-both.vert", "scm/scm-render-both.frag");
 
-    init_uniforms(fade.program);
-    init_uniforms(blur.program);
-    init_uniforms(both.program);
+    init_uniforms(fade.program, width, height);
+    init_uniforms(blur.program, width, height);
+    init_uniforms(both.program, width, height);
 
     fade_ut = glsl_uniform(fade.program, "t");
     both_ut = glsl_uniform(both.program, "t");
@@ -194,7 +195,6 @@ void scm_render::render0(scm_sphere *sphere,
     glPushAttrib(GL_VIEWPORT_BIT);
     {
         glViewport(0, 0, width, height);
-
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer0);
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -203,11 +203,6 @@ void scm_render::render0(scm_sphere *sphere,
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     glPopAttrib();
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_RECTANGLE, depth0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE, color0);
 }
 
 void scm_render::render1(scm_sphere *sphere,
@@ -217,7 +212,6 @@ void scm_render::render1(scm_sphere *sphere,
     glPushAttrib(GL_VIEWPORT_BIT);
     {
         glViewport(0, 0, width, height);
-
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer1);
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -226,12 +220,6 @@ void scm_render::render1(scm_sphere *sphere,
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     glPopAttrib();
-
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_RECTANGLE, depth1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_RECTANGLE, color1);
-    glActiveTexture(GL_TEXTURE0);
 }
 
 void scm_render::render(scm_sphere *sphere,
@@ -254,15 +242,28 @@ void scm_render::render(scm_sphere *sphere,
         for (int i = 0; i < 16; i++)
             I[i] = GLfloat(T[i]);
 
+        // Render the scene to the offscreen framebuffers.
+
         if (mixing)
         {
             render1(sphere, scene1, M, channel, frame);
             render0(sphere, scene0, M, channel, frame);
         }
         else
-        {
             render0(sphere, scene0, M, channel, frame);
-        }
+
+        // Bind the resurting textures.
+
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_RECTANGLE, depth1);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_RECTANGLE, depth0);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_RECTANGLE, color1);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_RECTANGLE, color0);
+
+        // Bind the right shader and set the necessary uniforms.
 
         if      (mixing && motion)
         {

@@ -195,7 +195,7 @@ scm_step::scm_step(const scm_step *a,
     distance       = hermite(a->distance,
                              b->distance,
                              c->distance,
-                             d->distance,  t, b->tension, b->bias);
+                             d->distance, t, b->tension, b->bias);
 
     speed          = lerp(b->speed,   c->speed,   t);
     tension        = lerp(b->tension, c->tension, t);
