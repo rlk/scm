@@ -103,7 +103,7 @@ static void init_fbo(GLuint& color,
                                GL_TEXTURE_RECTANGLE, depth, 0);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            scm_log("init_fbo incomplete");
+            scm_log("* init_fbo incomplete");
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
