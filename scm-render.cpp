@@ -23,7 +23,7 @@
 //------------------------------------------------------------------------------
 
 scm_render::scm_render(int w, int h) :
-    width(w), height(h), motion(8)
+    width(w), height(h), motion(16)
 {
     init_ogl();
 }
@@ -244,6 +244,8 @@ void scm_render::render(scm_sphere *sphere,
 
         // Render the scene to the offscreen framebuffers.
 
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+
         if (mixing)
         {
             render1(sphere, scene1, M, channel, frame);
@@ -251,6 +253,8 @@ void scm_render::render(scm_sphere *sphere,
         }
         else
             render0(sphere, scene0, M, channel, frame);
+
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // Bind the resurting textures.
 
@@ -269,7 +273,7 @@ void scm_render::render(scm_sphere *sphere,
         {
             glUseProgram      (both.program);
             glUniform1f       (both_ut,       t);
-            glUniform1i       (both_un,  motion);
+            glUniform1f       (both_un,  motion);
             glUniformMatrix4fv(both_uL, 1, 0, L);
             glUniformMatrix4fv(both_uI, 1, 0, I);
         }
@@ -281,7 +285,7 @@ void scm_render::render(scm_sphere *sphere,
         else if (!mixing && motion)
         {
             glUseProgram      (blur.program);
-            glUniform1i       (blur_un,  motion);
+            glUniform1f       (blur_un,  motion);
             glUniformMatrix4fv(blur_uL, 1, 0, L);
             glUniformMatrix4fv(blur_uI, 1, 0, I);
         }
@@ -290,7 +294,7 @@ void scm_render::render(scm_sphere *sphere,
         glUseProgram(0);
 
         for (int i = 0; i < 16; i++)
-            L[i] = I[i];
+            L[i] = GLfloat(M[i]);
     }
 }
 

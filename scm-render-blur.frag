@@ -1,21 +1,31 @@
 #version 120
-#extension GL_ARB_texture_rectangle : require
 
 uniform sampler2DRect color0;
 uniform sampler2DRect depth0;
 
-uniform mat4 L;
-uniform mat4 I;
-uniform vec2 size;
+uniform float n;
+uniform mat4  L;
+uniform mat4  I;
+uniform vec2  size;
+
+// Make this use the alpha channel to prevent off-planet sampling.
 
 void main()
 {
-    vec4 c0 = texture2DRect(color0, gl_FragCoord.xy);
-    vec4 d0 = texture2DRect(depth0, gl_FragCoord.xy);
+    float D = texture2DRect(depth0, gl_FragCoord.xy).r;
 
-//  vec4 e0 = vec4(2.0 * vec3(gl_FragCoord.xy / size, d0) - 1.0, 1.0);
-//  vec4 w  = I * e0;
-//  vec4 e1 = L * w;
+    vec4 en = vec4(2.0 * vec3(gl_FragCoord.xy / size, D) - 1.0, 1.0);
+    vec4 wn = I * en;
+    vec4 ep = L * wn;
+    
+    vec2 pn = gl_FragCoord.xy;
+    vec2 pp = size * (ep.xy + 1.0) / 2.0;
 
-    gl_FragColor = vec4(vec3(d0 * 0.5), 1.0);
+    vec3  C = vec3(0.0);
+    float i;
+
+    for (i = 0; i < n; i++)
+        C += texture2DRect(color0, mix(pp, pn, i / n)).rgb;
+
+    gl_FragColor = vec4(C / n, 1.0);
 }
