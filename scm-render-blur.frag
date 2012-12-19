@@ -8,7 +8,17 @@ uniform mat4  L;
 uniform mat4  I;
 uniform vec2  size;
 
-// Make this use the alpha channel to prevent off-planet sampling.
+
+vec2 toeye(vec2 p)
+{
+    return 2.0 * p / size - 1.0;
+}
+
+vec2 topix(vec2 e)
+{
+    return size * (e + 1.0) / 2.0;
+}
+
 
 void main()
 {
@@ -21,11 +31,16 @@ void main()
     vec2 pn = gl_FragCoord.xy;
     vec2 pp = size * (ep.xy + 1.0) / 2.0;
 
-    vec3  C = vec3(0.0);
+    vec4  C = vec4(0.0);
+    float a = 0.0;
     float i;
 
     for (i = 0; i < n; i++)
-        C += texture2DRect(color0, mix(pp, pn, i / n)).rgb;
+    {
+        vec4 c = texture2DRect(color0, mix(pp, pn, i / n));
+        C.rgb += c.a * c.rgb;
+        C.a   += c.a;
+    }
 
-    gl_FragColor = vec4(C / n, 1.0);
+    gl_FragColor = vec4(C.rgb / C.a, 1.0);
 }
