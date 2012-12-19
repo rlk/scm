@@ -229,19 +229,19 @@ void scm_render::render(scm_sphere *sphere,
 {
     const bool mixing = (t >= 1.0 / 256.0);
 
+    double  T[16];
+    GLfloat I[16];
+    minvert(T, M);
+
+    for (int i = 0; i < 16; i++)
+        I[i] = GLfloat(T[i]);
+
     if (!mixing && !motion)
     {
         sphere->draw(scene0, M, width, height, channel, frame);
     }
     else
     {
-        double  T[16];
-        GLfloat I[16];
-        minvert(T, M);
-
-        for (int i = 0; i < 16; i++)
-            I[i] = GLfloat(T[i]);
-
         // Render the scene to the offscreen framebuffers.
 
         glClearColor(0.f, 0.f, 0.f, 0.f);
@@ -290,10 +290,10 @@ void scm_render::render(scm_sphere *sphere,
 
         fillscreen();
         glUseProgram(0);
-
-        for (int i = 0; i < 16; i++)
-            L[i] = GLfloat(M[i]);
     }
+
+    for (int i = 0; i < 16; i++)
+        L[i] = GLfloat(M[i]);
 }
 
 //------------------------------------------------------------------------------
