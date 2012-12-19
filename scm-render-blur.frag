@@ -3,41 +3,33 @@
 uniform sampler2DRect color0;
 uniform sampler2DRect depth0;
 
-uniform float n;
-uniform mat4  L;
-uniform mat4  I;
-uniform vec2  size;
+uniform vec2 size;
+uniform mat4 L;
+uniform mat4 I;
+uniform int  n;
 
-
-vec2 toeye(vec2 p)
+vec4 toneg(vec4 p)
 {
-    return 2.0 * p / size - 1.0;
+    return (p * 2.0) - 1.0;
 }
 
-vec2 topix(vec2 e)
+vec4 topos(vec4 n)
 {
-    return size * (e + 1.0) / 2.0;
+    return (n + 1.0) / 2.0;
 }
-
 
 void main()
 {
-    float D = texture2DRect(depth0, gl_FragCoord.xy).r;
+    float d0 = texture2DRect(depth0, gl_FragCoord.xy).r;
 
-    vec4 en = vec4(2.0 * vec3(gl_FragCoord.xy / size, D) - 1.0, 1.0);
-    vec4 wn = I * en;
-    vec4 ep = L * wn;
-    
     vec2 pn = gl_FragCoord.xy;
-    vec2 pp = size * (ep.xy + 1.0) / 2.0;
+    vec2 pp = size * topos(L * I * toneg(vec4(pn / size, d0, 1.0))).xy;
 
-    vec4  C = vec4(0.0);
-    float a = 0.0;
-    float i;
+    vec4 C = vec4(0.0);
 
-    for (i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
-        vec4 c = texture2DRect(color0, mix(pp, pn, i / n));
+        vec4 c = texture2DRect(color0, mix(pn, pp, float(i) / n));
         C.rgb += c.a * c.rgb;
         C.a   += c.a;
     }

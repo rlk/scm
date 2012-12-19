@@ -271,7 +271,7 @@ void scm_render::render(scm_sphere *sphere,
         {
             glUseProgram      (both.program);
             glUniform1f       (both_ut,       t);
-            glUniform1f       (both_un,  motion);
+            glUniform1i       (both_un,  motion);
             glUniformMatrix4fv(both_uL, 1, 0, L);
             glUniformMatrix4fv(both_uI, 1, 0, I);
         }
@@ -283,7 +283,7 @@ void scm_render::render(scm_sphere *sphere,
         else if (!mixing && motion)
         {
             glUseProgram      (blur.program);
-            glUniform1f       (blur_un,  motion);
+            glUniform1i       (blur_un,  motion);
             glUniformMatrix4fv(blur_uL, 1, 0, L);
             glUniformMatrix4fv(blur_uI, 1, 0, I);
         }
