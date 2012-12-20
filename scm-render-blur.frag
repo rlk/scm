@@ -19,19 +19,22 @@ vec4 topos(vec4 n)
 
 void main()
 {
-    float d0 = texture2DRect(depth0, gl_FragCoord.xy).r;
+    vec4 c0 = texture2DRect(color0, gl_FragCoord.xy);
+    vec4 d0 = texture2DRect(depth0, gl_FragCoord.xy);
 
-    vec2 pn = gl_FragCoord.xy;
-    vec2 pp = size * topos(T * toneg(vec4(pn / size, d0, 1.0))).xy;
+    vec4 pn =          gl_FragCoord;
+    vec4 pp = T * vec4(gl_FragCoord.xy, d0.r, 1.0);
+
+//    vec2 pp = size * topos(T * toneg(vec4(pn / size, d0, 1.0))).xy;
 
     vec4 C = vec4(0.0);
 
     for (int i = 0; i < n; i++)
     {
-        vec4 c = texture2DRect(color0, mix(pn, pp, float(i) / n));
+        vec4 c = texture2DRect(color0, mix(pn.xy, pp.xy, float(i) / n));
         C.rgb += c.a * c.rgb;
         C.a   += c.a;
     }
 
-    gl_FragColor = vec4(C.rgb / C.a, 1.0);
+    gl_FragColor = vec4(c0.a * C.rgb / C.a, 1.0);
 }

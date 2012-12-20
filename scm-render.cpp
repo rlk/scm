@@ -26,6 +26,8 @@ scm_render::scm_render(int w, int h) :
     width(w), height(h), blur(16), wire(false)
 {
     init_ogl();
+    init_matrices();
+
     midentity(L);
 }
 
@@ -110,6 +112,32 @@ static void init_fbo(GLuint& color,
 }
 
 //------------------------------------------------------------------------------
+
+void scm_render::init_matrices()
+{
+    double w = double(width);
+    double h = double(height);
+
+    A[0] = 1/w; A[4] = 0.0; A[ 8] = 0.0; A[12] =  0.0;
+    A[1] = 0.0; A[5] = 1/h; A[ 9] = 0.0; A[13] =  0.0;
+    A[2] = 0.0; A[6] = 0.0; A[10] = 1.0; A[14] =  0.0;
+    A[3] = 0.0; A[7] = 0.0; A[11] = 0.0; A[15] =  1.0;
+
+    B[0] = 2.0; B[4] = 0.0; B[ 8] = 0.0; B[12] = -1.0;
+    B[1] = 0.0; B[5] = 2.0; B[ 9] = 0.0; B[13] = -1.0;
+    B[2] = 0.0; B[6] = 0.0; B[10] = 2.0; B[14] = -1.0;
+    B[3] = 0.0; B[7] = 0.0; B[11] = 0.0; B[15] =  1.0;
+
+    C[0] = 0.5; C[4] = 0.0; C[ 8] = 0.0; C[12] = +0.5;
+    C[1] = 0.0; C[5] = 0.5; C[ 9] = 0.0; C[13] = +0.5;
+    C[2] = 0.0; C[6] = 0.0; C[10] = 0.5; C[14] = +0.5;
+    C[3] = 0.0; C[7] = 0.0; C[11] = 0.0; C[15] =  1.0;
+
+    D[0] =   w; D[4] = 0.0; D[ 8] = 0.0; D[12] =  0.0;
+    D[1] = 0.0; D[5] =   h; D[ 9] = 0.0; D[13] =  0.0;
+    D[2] = 0.0; D[6] = 0.0; D[10] = 1.0; D[14] =  0.0;
+    D[3] = 0.0; D[7] = 0.0; D[11] = 0.0; D[15] =  1.0;
+}
 
 void scm_render::init_ogl()
 {
@@ -249,14 +277,22 @@ void scm_render::render(scm_sphere *sphere,
 {
     const bool mixing = (t >= 1.0 / 256.0);
 
-    // Compute the transform taking current screen coordinates to previous.
+    // Compose the transform taking current screen coordinates to previous.
 
     double  I[16];
     double  U[16];
     GLfloat T[16];
 
     minvert  (I, M);
-    mmultiply(U, L, I);
+
+    midentity(U);
+    mcompose (U, D);
+    mcompose (U, C);
+    mcompose (U, L);
+    mcompose (U, I);
+    mcompose (U, B);
+    mcompose (U, A);
+
     mcpy     (L, M);
 
     for (int i = 0; i < 16; i++)
@@ -331,6 +367,7 @@ void scm_render::set_size(int w, int h)
     width  = w;
     height = h;
     init_ogl();
+    init_matrices();
 }
 
 void scm_render::set_blur(int b)

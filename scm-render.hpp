@@ -47,6 +47,7 @@ private:
     void render0(scm_sphere *, scm_scene *, const double *, int, int);
     void render1(scm_sphere *, scm_scene *, const double *, int, int);
 
+    void init_matrices();
     void init_ogl();
     void free_ogl();
 
@@ -63,6 +64,10 @@ private:
     GLuint depth1;
     GLuint framebuffer1;
 
+    double A[16];
+    double B[16];
+    double C[16];
+    double D[16];
     double L[16];
 
     glsl   render_fade;
