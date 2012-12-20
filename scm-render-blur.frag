@@ -1,9 +1,8 @@
-#version 120
+#extension GL_ARB_texture_rectangle : enable
 
 uniform sampler2DRect color0;
 uniform sampler2DRect depth0;
 
-uniform vec2 size;
 uniform mat4 T;
 uniform int  n;
 
@@ -17,14 +16,15 @@ void main()
 
     pp = pp / pp.w;
 
-    vec4 C = vec4(0.0);
+    vec4 B = vec4(0.0);
 
     for (int i = 0; i < n; i++)
     {
-        vec4 c = texture2DRect(color0, mix(pn.xy, pp.xy, float(i) / n));
-        C.rgb += c.a * c.rgb;
-        C.a   += c.a;
+        float k = float(i) / float(n);
+        vec4  b = texture2DRect(color0, mix(pn.xy, pp.xy, k));
+        B.rgb  += b.a * b.rgb;
+        B.a    += b.a;
     }
 
-    gl_FragColor = vec4(C.rgb * c0.a / C.a, 1.0);
+    gl_FragColor = vec4(B.rgb * c0.a / B.a, 1.0);
 }

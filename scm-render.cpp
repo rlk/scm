@@ -48,7 +48,6 @@ static void init_uniforms(GLuint program, int w, int h)
         glUniform1i(glGetUniformLocation(program, "color1"), 1);
         glUniform1i(glGetUniformLocation(program, "depth0"), 2);
         glUniform1i(glGetUniformLocation(program, "depth1"), 3);
-        glUniform2f(glGetUniformLocation(program, "size"), w, h);
     }
     glUseProgram(0);
 }
@@ -187,6 +186,18 @@ void scm_render::free_ogl()
 
 //------------------------------------------------------------------------------
 
+static bool is_same_transform(const double *A, const double *B)
+{
+    return (A[ 0] == B[ 0] && A[ 1] == B[ 1]
+         && A[ 2] == B[ 2] && A[ 3] == A[ 3]
+         && A[ 4] == B[ 4] && A[ 5] == B[ 5]
+         && A[ 6] == B[ 6] && A[ 7] == A[ 7]
+         && A[ 8] == B[ 8] && A[ 9] == B[ 9]
+         && A[10] == B[10] && A[11] == A[11]
+         && A[12] == B[12] && A[13] == B[13]
+         && A[14] == B[14] && A[15] == A[15]);
+}
+
 static void fillscreen()
 {
     glPushAttrib(GL_POLYGON_BIT | GL_DEPTH_BUFFER_BIT);
@@ -275,7 +286,8 @@ void scm_render::render(scm_sphere *sphere,
                         scm_scene  *scene1,
                         const double *M, double t, int channel, int frame)
 {
-    const bool mixing = (t >= 1.0 / 256.0);
+    const bool do_fade = !(scene0 == scene1 || t < 1.0 / 256.0);
+    const bool do_blur = !(blur == 0 || is_same_transform(M, L));
 
     // Compose the transform taking current screen coordinates to previous.
 
@@ -297,7 +309,7 @@ void scm_render::render(scm_sphere *sphere,
     for (int i = 0; i < 16; i++)
         T[i] = GLfloat(U[i]);
 
-    if (!mixing && !blur)
+    if (!do_fade && !do_blur)
     {
         sphere->draw(scene0, M, width, height, channel, frame);
     }
@@ -310,7 +322,7 @@ void scm_render::render(scm_sphere *sphere,
         if (wire)
             wire_on();
 
-        if (mixing)
+        if (do_fade)
         {
             render1(sphere, scene1, M, channel, frame);
             render0(sphere, scene0, M, channel, frame);
@@ -334,19 +346,19 @@ void scm_render::render(scm_sphere *sphere,
 
         // Bind the right shader and set the necessary uniforms.
 
-        if      (mixing && blur)
+        if      (do_fade && do_blur)
         {
             glUseProgram(render_both.program);
             glUniform1f       (uniform_both_t,       t);
             glUniform1i       (uniform_both_n,    blur);
             glUniformMatrix4fv(uniform_both_T, 1, 0, T);
         }
-        else if (mixing && !blur)
+        else if (do_fade && !do_blur)
         {
             glUseProgram(render_fade.program);
             glUniform1f       (uniform_fade_t,       t);
         }
-        else if (!mixing && blur)
+        else if (!do_fade && do_blur)
         {
             glUseProgram(render_blur.program);
             glUniform1i       (uniform_blur_n,    blur);
