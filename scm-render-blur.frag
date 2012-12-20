@@ -7,16 +7,6 @@ uniform vec2 size;
 uniform mat4 T;
 uniform int  n;
 
-vec4 toneg(vec4 p)
-{
-    return (p * 2.0) - 1.0;
-}
-
-vec4 topos(vec4 n)
-{
-    return (n + 1.0) / 2.0;
-}
-
 void main()
 {
     vec4 c0 = texture2DRect(color0, gl_FragCoord.xy);
@@ -25,7 +15,7 @@ void main()
     vec4 pn =          gl_FragCoord;
     vec4 pp = T * vec4(gl_FragCoord.xy, d0.r, 1.0);
 
-//    vec2 pp = size * topos(T * toneg(vec4(pn / size, d0, 1.0))).xy;
+    pp = pp / pp.w;
 
     vec4 C = vec4(0.0);
 
@@ -36,5 +26,5 @@ void main()
         C.a   += c.a;
     }
 
-    gl_FragColor = vec4(c0.a * C.rgb / C.a, 1.0);
+    gl_FragColor = vec4(C.rgb * c0.a / C.a, 1.0);
 }

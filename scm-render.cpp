@@ -128,9 +128,9 @@ void scm_render::init_matrices()
     B[2] = 0.0; B[6] = 0.0; B[10] = 2.0; B[14] = -1.0;
     B[3] = 0.0; B[7] = 0.0; B[11] = 0.0; B[15] =  1.0;
 
-    C[0] = 0.5; C[4] = 0.0; C[ 8] = 0.0; C[12] = +0.5;
-    C[1] = 0.0; C[5] = 0.5; C[ 9] = 0.0; C[13] = +0.5;
-    C[2] = 0.0; C[6] = 0.0; C[10] = 0.5; C[14] = +0.5;
+    C[0] = 0.5; C[4] = 0.0; C[ 8] = 0.0; C[12] =  0.5;
+    C[1] = 0.0; C[5] = 0.5; C[ 9] = 0.0; C[13] =  0.5;
+    C[2] = 0.0; C[6] = 0.0; C[10] = 0.5; C[14] =  0.5;
     C[3] = 0.0; C[7] = 0.0; C[11] = 0.0; C[15] =  1.0;
 
     D[0] =   w; D[4] = 0.0; D[ 8] = 0.0; D[12] =  0.0;
@@ -283,17 +283,16 @@ void scm_render::render(scm_sphere *sphere,
     double  U[16];
     GLfloat T[16];
 
-    minvert  (I, M);
+    minvert (I, M);
 
-    midentity(U);
-    mcompose (U, D);
-    mcompose (U, C);
-    mcompose (U, L);
-    mcompose (U, I);
-    mcompose (U, B);
-    mcompose (U, A);
+    mcpy    (U, D);
+    mcompose(U, C);
+    mcompose(U, L);
+    mcompose(U, I);
+    mcompose(U, B);
+    mcompose(U, A);
 
-    mcpy     (L, M);
+    mcpy    (L, M);
 
     for (int i = 0; i < 16; i++)
         T[i] = GLfloat(U[i]);
