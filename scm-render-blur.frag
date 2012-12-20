@@ -4,8 +4,7 @@ uniform sampler2DRect color0;
 uniform sampler2DRect depth0;
 
 uniform vec2 size;
-uniform mat4 L;
-uniform mat4 I;
+uniform mat4 T;
 uniform int  n;
 
 vec4 toneg(vec4 p)
@@ -23,7 +22,7 @@ void main()
     float d0 = texture2DRect(depth0, gl_FragCoord.xy).r;
 
     vec2 pn = gl_FragCoord.xy;
-    vec2 pp = size * topos(L * I * toneg(vec4(pn / size, d0, 1.0))).xy;
+    vec2 pp = size * topos(T * toneg(vec4(pn / size, d0, 1.0))).xy;
 
     vec4 C = vec4(0.0);
 

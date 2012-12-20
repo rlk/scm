@@ -37,6 +37,10 @@ public:
 
     void set_size(int, int);
     void set_blur(int);
+    void set_wire(bool);
+
+    int  get_blue() const { return blur; }
+    bool get_wire() const { return wire; }
 
 private:
 
@@ -48,7 +52,8 @@ private:
 
     int    width;
     int    height;
-    int    motion;
+    int    blur;
+    bool   wire;
 
     GLuint color0;
     GLuint depth0;
@@ -58,16 +63,15 @@ private:
     GLuint depth1;
     GLuint framebuffer1;
 
-    GLfloat L[16];
+    double L[16];
 
-    glsl   fade;
-    glsl   blur;
-    glsl   both;
+    glsl   render_fade;
+    glsl   render_blur;
+    glsl   render_both;
 
-    GLint  fade_ut, both_ut;
-    GLint  blur_uL, both_uL;
-    GLint  blur_uI, both_uI;
-    GLint  blur_un, both_un;
+    GLint  uniform_fade_t, uniform_both_t;
+    GLint  uniform_blur_T, uniform_both_T;
+    GLint  uniform_blur_n, uniform_both_n;
 };
 
 

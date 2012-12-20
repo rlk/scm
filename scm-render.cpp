@@ -23,9 +23,10 @@
 //------------------------------------------------------------------------------
 
 scm_render::scm_render(int w, int h) :
-    width(w), height(h), motion(16)
+    width(w), height(h), blur(16), wire(false)
 {
     init_ogl();
+    midentity(L);
 }
 
 scm_render::~scm_render()
@@ -112,22 +113,23 @@ static void init_fbo(GLuint& color,
 
 void scm_render::init_ogl()
 {
-    glsl_create(&fade, "scm/scm-render-fade.vert", "scm/scm-render-fade.frag");
-    glsl_create(&blur, "scm/scm-render-blur.vert", "scm/scm-render-blur.frag");
-    glsl_create(&both, "scm/scm-render-both.vert", "scm/scm-render-both.frag");
+    glsl_create(&render_fade, "scm/scm-render-fade.vert",
+                              "scm/scm-render-fade.frag");
+    glsl_create(&render_blur, "scm/scm-render-blur.vert",
+                              "scm/scm-render-blur.frag");
+    glsl_create(&render_both, "scm/scm-render-both.vert",
+                              "scm/scm-render-both.frag");
 
-    init_uniforms(fade.program, width, height);
-    init_uniforms(blur.program, width, height);
-    init_uniforms(both.program, width, height);
+    init_uniforms(render_fade.program, width, height);
+    init_uniforms(render_blur.program, width, height);
+    init_uniforms(render_both.program, width, height);
 
-    fade_ut = glsl_uniform(fade.program, "t");
-    both_ut = glsl_uniform(both.program, "t");
-    blur_un = glsl_uniform(blur.program, "n");
-    both_un = glsl_uniform(both.program, "n");
-    blur_uI = glsl_uniform(blur.program, "I");
-    both_uI = glsl_uniform(both.program, "I");
-    blur_uL = glsl_uniform(blur.program, "L");
-    both_uL = glsl_uniform(both.program, "L");
+    uniform_fade_t = glsl_uniform(render_fade.program, "t");
+    uniform_both_t = glsl_uniform(render_both.program, "t");
+    uniform_blur_n = glsl_uniform(render_blur.program, "n");
+    uniform_both_n = glsl_uniform(render_both.program, "n");
+    uniform_blur_T = glsl_uniform(render_blur.program, "T");
+    uniform_both_T = glsl_uniform(render_both.program, "T");
 
     init_fbo(color0, depth0, framebuffer0, width, height);
     init_fbo(color1, depth1, framebuffer1, width, height);
@@ -139,9 +141,9 @@ void scm_render::free_ogl()
 {
     scm_log("scm_render free_ogl %d %d", width, height);
 
-    glsl_delete(&fade);
-    glsl_delete(&blur);
-    glsl_delete(&both);
+    glsl_delete(&render_fade);
+    glsl_delete(&render_blur);
+    glsl_delete(&render_both);
 
     if (color0)       glDeleteTextures    (1, &color0);
     if (depth0)       glDeleteTextures    (1, &depth0);
@@ -188,6 +190,24 @@ static void fillscreen()
     glPopAttrib();
 }
 
+static void wire_on()
+{
+    glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_POLYGON_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glLineWidth(1.0);
+}
+
+static void wire_off()
+{
+    glPopAttrib();
+}
+
+//------------------------------------------------------------------------------
+
 void scm_render::render0(scm_sphere *sphere,
                          scm_scene  *scene,
                          const double *M, int channel, int frame)
@@ -229,14 +249,20 @@ void scm_render::render(scm_sphere *sphere,
 {
     const bool mixing = (t >= 1.0 / 256.0);
 
-    double  T[16];
-    GLfloat I[16];
-    minvert(T, M);
+    // Compute the transform taking current screen coordinates to previous.
+
+    double  I[16];
+    double  U[16];
+    GLfloat T[16];
+
+    minvert  (I, M);
+    mmultiply(U, L, I);
+    mcpy     (L, M);
 
     for (int i = 0; i < 16; i++)
-        I[i] = GLfloat(T[i]);
+        T[i] = GLfloat(U[i]);
 
-    if (!mixing && !motion)
+    if (!mixing && !blur)
     {
         sphere->draw(scene0, M, width, height, channel, frame);
     }
@@ -246,6 +272,9 @@ void scm_render::render(scm_sphere *sphere,
 
         glClearColor(0.f, 0.f, 0.f, 0.f);
 
+        if (wire)
+            wire_on();
+
         if (mixing)
         {
             render1(sphere, scene1, M, channel, frame);
@@ -253,6 +282,9 @@ void scm_render::render(scm_sphere *sphere,
         }
         else
             render0(sphere, scene0, M, channel, frame);
+
+        if (wire)
+            wire_off();
 
         // Bind the resurting textures.
 
@@ -267,33 +299,28 @@ void scm_render::render(scm_sphere *sphere,
 
         // Bind the right shader and set the necessary uniforms.
 
-        if      (mixing && motion)
+        if      (mixing && blur)
         {
-            glUseProgram      (both.program);
-            glUniform1f       (both_ut,       t);
-            glUniform1i       (both_un,  motion);
-            glUniformMatrix4fv(both_uL, 1, 0, L);
-            glUniformMatrix4fv(both_uI, 1, 0, I);
+            glUseProgram(render_both.program);
+            glUniform1f       (uniform_both_t,       t);
+            glUniform1i       (uniform_both_n,    blur);
+            glUniformMatrix4fv(uniform_both_T, 1, 0, T);
         }
-        else if (mixing && !motion)
+        else if (mixing && !blur)
         {
-            glUseProgram      (fade.program);
-            glUniform1f       (fade_ut,       t);
+            glUseProgram(render_fade.program);
+            glUniform1f       (uniform_fade_t,       t);
         }
-        else if (!mixing && motion)
+        else if (!mixing && blur)
         {
-            glUseProgram      (blur.program);
-            glUniform1i       (blur_un,  motion);
-            glUniformMatrix4fv(blur_uL, 1, 0, L);
-            glUniformMatrix4fv(blur_uI, 1, 0, I);
+            glUseProgram(render_blur.program);
+            glUniform1i       (uniform_blur_n,    blur);
+            glUniformMatrix4fv(uniform_blur_T, 1, 0, T);
         }
 
         fillscreen();
         glUseProgram(0);
     }
-
-    for (int i = 0; i < 16; i++)
-        L[i] = GLfloat(M[i]);
 }
 
 //------------------------------------------------------------------------------
@@ -306,9 +333,14 @@ void scm_render::set_size(int w, int h)
     init_ogl();
 }
 
-void scm_render::set_blur(int m)
+void scm_render::set_blur(int b)
 {
-    motion = m;
+    blur = b;
+}
+
+void scm_render::set_wire(bool w)
+{
+    wire = w;
 }
 
 //------------------------------------------------------------------------------
