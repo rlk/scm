@@ -31,10 +31,8 @@ void main()
         float k = float(i) / float(n);
         vec4 b0 = texture2DRect(color0, mix(pn.xy, p0.xy, k));
         vec4 b1 = texture2DRect(color1, mix(pn.xy, p1.xy, k));
-        B0.rgb += b0.a * b0.rgb;
-        B1.rgb += b1.a * b1.rgb;
-        B0.a   += b0.a;
-        B1.a   += b1.a;
+        B0 += b0.a * vec4(b0.rgb, 1.0);
+        B1 += b1.a * vec4(b1.rgb, 1.0);
     }
 
     gl_FragColor = vec4(mix(B0.rgb * c0.a / B0.a,
