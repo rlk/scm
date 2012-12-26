@@ -311,7 +311,9 @@ void scm_render::render(scm_sphere *sphere,
 
     if (!do_fade && !do_blur)
     {
+        if (wire) wire_on();
         sphere->draw(scene0, M, width, height, channel, frame);
+        if (wire) wire_off();
     }
     else
     {
@@ -319,8 +321,7 @@ void scm_render::render(scm_sphere *sphere,
 
         glClearColor(0.f, 0.f, 0.f, 0.f);
 
-        if (wire)
-            wire_on();
+        if (wire) wire_on();
 
         if (do_fade)
         {
@@ -330,8 +331,7 @@ void scm_render::render(scm_sphere *sphere,
         else
             render0(sphere, scene0, M, channel, frame);
 
-        if (wire)
-            wire_off();
+        if (wire) wire_off();
 
         // Bind the resurting textures.
 
