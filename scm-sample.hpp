@@ -34,7 +34,7 @@ public:
 
 private:
 
-    float lookup(int, int);
+    float lookup(int, int) const;
 
     TIFF     *tiff;
     scm_file *file;

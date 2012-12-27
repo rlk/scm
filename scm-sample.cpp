@@ -39,7 +39,7 @@ scm_sample::scm_sample(scm_file *file) : file(file)
 
         last_p = (uint8 *) malloc(S * N);
 
-        scm_log("scm_sample constructor");
+        scm_log("scm_sample constructor %s", file->get_path());
     }
 }
 
@@ -54,7 +54,7 @@ scm_sample::~scm_sample()
 
 //------------------------------------------------------------------------------
 
-float scm_sample::lookup(int y, int x)
+float scm_sample::lookup(int y, int x) const
 {
     int w = file->get_w();
     int c = file->get_c();

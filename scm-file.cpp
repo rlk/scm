@@ -138,8 +138,6 @@ scm_file::scm_file(const std::string& tiff) :
             }
 
             TIFFClose(T);
-
-            sampler = new scm_sample(this);
         }
     }
     scm_log("scm_file constructor %s", path.c_str());
@@ -162,7 +160,7 @@ scm_file::~scm_file()
 
     // Release all resources.
 
-    delete sampler;
+    if (sampler) delete sampler;
 
     free(zv);
     free(av);
@@ -261,7 +259,10 @@ void scm_file::get_page_bounds(uint64 i, float& r0, float& r1) const
 
 float scm_file::get_page_sample(const double *v)
 {
-    return sampler->get(v);
+    if (sampler == 0)
+        sampler = new scm_sample(this);
+
+    return sampler ? sampler->get(v) : 1.f;;
 }
 
 //------------------------------------------------------------------------------
