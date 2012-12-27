@@ -52,6 +52,7 @@ static bool exists(const std::string& path)
 scm_file::scm_file(const std::string& tiff) :
     needs(32),
     active(true),
+    sampler(0),
     name(tiff),
     w(0), h(0), c(0), b(0),
     xv(0), xc(0),
@@ -59,15 +60,6 @@ scm_file::scm_file(const std::string& tiff) :
     av(0), ac(0),
     zv(0), zc(0)
 {
-    cache_v[0] = 0;
-    cache_v[1] = 0;
-    cache_v[2] = 0;
-    cache_k    = 0;
-    cache_p    = 0;
-    cache_T    = 0;
-    cache_o    = 0;
-    cache_i0   = (tsize_t) (-1);
-    cache_i1   = (tsize_t) (-1);
 
     // If the given file name is absolute, use it.
 
@@ -98,21 +90,21 @@ scm_file::scm_file(const std::string& tiff) :
 
     if (!path.empty())
     {
-        if ((cache_T = TIFFOpen(path.c_str(), "r")))
+        if (TIFF *T = TIFFOpen(path.c_str(), "r"))
         {
             uint64 n = 0;
             void  *p = 0;
 
             // Cache the image parameters.
 
-            TIFFGetField(cache_T, TIFFTAG_IMAGEWIDTH,      &w);
-            TIFFGetField(cache_T, TIFFTAG_IMAGELENGTH,     &h);
-            TIFFGetField(cache_T, TIFFTAG_BITSPERSAMPLE,   &b);
-            TIFFGetField(cache_T, TIFFTAG_SAMPLESPERPIXEL, &c);
+            TIFFGetField(T, TIFFTAG_IMAGEWIDTH,      &w);
+            TIFFGetField(T, TIFFTAG_IMAGELENGTH,     &h);
+            TIFFGetField(T, TIFFTAG_BITSPERSAMPLE,   &b);
+            TIFFGetField(T, TIFFTAG_SAMPLESPERPIXEL, &c);
 
             // Preload all metadata.
 
-            if (TIFFGetField(cache_T, 0xFFB1, &n, &p))
+            if (TIFFGetField(T, 0xFFB1, &n, &p))
             {
                 if ((xv = (uint64 *) malloc(n * sizeof (uint64))))
                 {
@@ -120,7 +112,7 @@ scm_file::scm_file(const std::string& tiff) :
                     xc = n;
                 }
             }
-            if (TIFFGetField(cache_T, 0xFFB2, &n, &p))
+            if (TIFFGetField(T, 0xFFB2, &n, &p))
             {
                 if ((ov = (uint64 *) malloc(n * sizeof (uint64))))
                 {
@@ -128,7 +120,7 @@ scm_file::scm_file(const std::string& tiff) :
                     oc = n;
                 }
             }
-            if (TIFFGetField(cache_T, 0xFFB3, &n, &p))
+            if (TIFFGetField(T, 0xFFB3, &n, &p))
             {
                 if ((av = malloc(n * c * b / 8)))
                 {
@@ -136,7 +128,7 @@ scm_file::scm_file(const std::string& tiff) :
                     ac = n;
                 }
             }
-            if (TIFFGetField(cache_T, 0xFFB4, &n, &p))
+            if (TIFFGetField(T, 0xFFB4, &n, &p))
             {
                 if ((zv = malloc(n * c * b / 8)))
                 {
@@ -145,9 +137,9 @@ scm_file::scm_file(const std::string& tiff) :
                 }
             }
 
-            // Allocate a sample cache.
+            TIFFClose(T);
 
-            cache_p = (uint8 *) malloc(TIFFScanlineSize(cache_T) * h);
+            sampler = new scm_sample(this);
         }
     }
     scm_log("scm_file constructor %s", path.c_str());
@@ -170,9 +162,8 @@ scm_file::~scm_file()
 
     // Release all resources.
 
-    if (cache_T) TIFFClose(cache_T);
+    delete sampler;
 
-    free(cache_p);
     free(zv);
     free(av);
     free(ov);
@@ -270,106 +261,7 @@ void scm_file::get_page_bounds(uint64 i, float& r0, float& r1) const
 
 float scm_file::get_page_sample(const double *v)
 {
-    if (v[0] != cache_v[0] || v[1] != cache_v[1] || v[2] != cache_v[2])
-    {
-        // Locate the face and coordinates of vector v.
-
-        long long a;
-        double    y;
-        double    x;
-
-        scm_locate(&a, &y, &x, v);
-
-        // Assume for now that height height maps are for planets, thus inside-out.
-
-        x = 1 - x;
-
-        // Seek the deepest page at this location.
-
-        long long n = 1;
-        long long l = 1;
-        uint64    i = a;
-        uint64    j = 0;
-        uint64    o = ov[a];
-
-        while ((j = toindex(scm_page_index(a, l, int(2 * n * y),
-                                                 int(2 * n * x)))) < oc)
-            if (ov[j])
-            {
-                i = xv[j];
-                o = ov[j];
-                l = l + 1;
-                n = n * 2;
-            }
-            else break;
-
-        // Convert the root face coordinate to a local face coordinate.
-
-        x = (x * n) - floor(x * n);
-        y = (y * n) - floor(y * n);
-
-        double r = y * (h - 2.0) + 0.5;
-        double c = x * (w - 2.0) + 0.5;
-
-        int r0 = int(floor(r)), r1 = r0 + 1;
-        int c0 = int(floor(c)), c1 = c0 + 1;
-
-        tsize_t i0 = TIFFComputeStrip(cache_T, r0, 0);
-        tsize_t i1 = TIFFComputeStrip(cache_T, r1, 0);
-
-        // If the required page is not current, set it.
-
-        if (cache_o != o)
-        {
-            if (TIFFSetSubDirectory(cache_T, o))
-            {
-                cache_i0 = (tsize_t) -1;
-                cache_i1 = (tsize_t) -1;
-                cache_o  = o;
-            }
-        }
-
-        // If the required data is not cached, load it.
-
-        if (cache_o == o)
-        {
-            if (cache_i0 != i0 || cache_i1 != i1)
-            {
-                tsize_t S = TIFFStripSize(cache_T);
-
-                if (i0 == i1)
-                    TIFFReadEncodedStrip(cache_T, i0, cache_p + i0 * S, S);
-                else
-                {
-                    TIFFReadEncodedStrip(cache_T, i0, cache_p + i0 * S, S);
-                    TIFFReadEncodedStrip(cache_T, i1, cache_p + i1 * S, S);
-                }
-                cache_i0 = i0;
-                cache_i1 = i1;
-            }
-
-            if (cache_i0 == i0 && cache_i1 == i1)
-            {
-                double rr = r - floor(r);
-                double cc = c - floor(c);
-
-                // Sample the cache with linear filtering.
-
-                float s00 = tofloat(cache_p, (this->w * r0 + c0) * this->c);
-                float s01 = tofloat(cache_p, (this->w * r0 + c1) * this->c);
-                float s10 = tofloat(cache_p, (this->w * r1 + c0) * this->c);
-                float s11 = tofloat(cache_p, (this->w * r1 + c1) * this->c);
-
-                // Cache the request and its result.
-
-                cache_v[0] = v[0];
-                cache_v[1] = v[1];
-                cache_v[2] = v[2];
-                cache_k    = lerp(lerp(s00, s01, cc), lerp(s10, s11, cc), rr);
-            }
-        }
-    }
-    return cache_k;
+    return sampler->get(v);
 }
 
 //------------------------------------------------------------------------------
@@ -411,6 +303,36 @@ float scm_file::tofloat(const void *v, uint64 i) const
     else if (b == 16) return ((unsigned short *) v)[i] / 65535.f;
     else if (b == 32) return ((         float *) v)[i];
     else return 0.f;
+}
+
+//------------------------------------------------------------------------------
+
+// Seek the deepest page at this location (x, y) of root page a. Return the
+// file offset of this page and convert (x, y) to local coordinates there.
+
+uint64 scm_file::find_page(long long a, double& y, double& x) const
+{
+    long long n = 1;
+    long long l = 1;
+    uint64    i = a;
+    uint64    j = 0;
+    uint64    o = ov[a];
+
+    while ((j = toindex(scm_page_index(a, l, int(2 * n * y),
+                                             int(2 * n * x)))) < oc)
+        if (ov[j])
+        {
+            i = xv[j];
+            o = ov[j];
+            l = l + 1;
+            n = n * 2;
+        }
+        else break;
+
+    x = (x * n) - floor(x * n);
+    y = (y * n) - floor(y * n);
+
+    return o;
 }
 
 //------------------------------------------------------------------------------

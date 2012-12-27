@@ -23,6 +23,7 @@
 #include "scm-queue.hpp"
 #include "scm-guard.hpp"
 #include "scm-task.hpp"
+#include "scm-sample.hpp"
 
 //------------------------------------------------------------------------------
 
@@ -59,13 +60,16 @@ public:
     bool         is_valid()  const { return w && h && c && b && (w == h); }
     bool         is_active() const { return active.get();                 }
 
+    uint64     find_page(long long, double&, double&) const;
+
 private:
 
-    // Threaded IO handling data
+    // IO handling and threading data
 
     scm_cache          *cache;
     scm_queue<scm_task> needs;
     scm_guard<bool>     active;
+    scm_sample         *sampler;
     thread_v            threads;
 
     // Image parameters
@@ -89,14 +93,6 @@ private:
 
     void   *zv;         // Page maxima
     uint64  zc;
-
-    double  cache_v[3];  // Sample cache last vector
-    float   cache_k;     // Sample cache last value
-    uint64  cache_o;     // Sample cache last page offset
-    tsize_t cache_i0;    // Sample cache last strip
-    tsize_t cache_i1;    // Sample cache last strip
-    uint8  *cache_p;     // Sample cache last page buffer
-    TIFF   *cache_T;     // Sample cache open TIFF file
 
     float  tofloat(const void *, uint64) const;
     uint64 toindex(uint64)               const;
