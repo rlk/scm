@@ -65,7 +65,9 @@ scm_file::scm_file(const std::string& tiff) :
     cache_k    = 0;
     cache_p    = 0;
     cache_T    = 0;
-    cache_i    = (uint64) (-1);
+    cache_o    = 0;
+    cache_i0   = (tsize_t) (-1);
+    cache_i1   = (tsize_t) (-1);
 
     // If the given file name is absolute, use it.
 
@@ -145,7 +147,7 @@ scm_file::scm_file(const std::string& tiff) :
 
             // Allocate a sample cache.
 
-            cache_p = malloc(TIFFScanlineSize(cache_T) * h);
+            cache_p = (uint8 *) malloc(TIFFScanlineSize(cache_T) * h);
         }
     }
     scm_log("scm_file constructor %s", path.c_str());
@@ -301,38 +303,71 @@ float scm_file::get_page_sample(const double *v)
             }
             else break;
 
-        // If this is not the cached page, load it.
-
-        if (cache_i != i)
-        {
-            scm_load_page(cache_T, o, w, h, c, b, cache_p, 0);
-            cache_i  = i;
-        }
-
         // Convert the root face coordinate to a local face coordinate.
 
         x = (x * n) - floor(x * n);
         y = (y * n) - floor(y * n);
 
-        // Sample this page with linear filtering.
-
-        double r = y * (h - 2.0) + 0.5, rr = r - floor(r);
-        double c = x * (w - 2.0) + 0.5, cc = c - floor(c);
+        double r = y * (h - 2.0) + 0.5;
+        double c = x * (w - 2.0) + 0.5;
 
         int r0 = int(floor(r)), r1 = r0 + 1;
         int c0 = int(floor(c)), c1 = c0 + 1;
 
-        float s00 = tofloat(cache_p, (this->w * r0 + c0) * this->c);
-        float s01 = tofloat(cache_p, (this->w * r0 + c1) * this->c);
-        float s10 = tofloat(cache_p, (this->w * r1 + c0) * this->c);
-        float s11 = tofloat(cache_p, (this->w * r1 + c1) * this->c);
+        tsize_t i0 = TIFFComputeStrip(cache_T, r0, 0);
+        tsize_t i1 = TIFFComputeStrip(cache_T, r1, 0);
 
-        // Cache the request and its result.
+        // If the required page is not current, set it.
 
-        cache_v[0] = v[0];
-        cache_v[1] = v[1];
-        cache_v[2] = v[2];
-        cache_k    = lerp(lerp(s00, s01, cc), lerp(s10, s11, cc), rr);
+        if (cache_o != o)
+        {
+            if (TIFFSetSubDirectory(cache_T, o))
+            {
+                cache_i0 = (tsize_t) -1;
+                cache_i1 = (tsize_t) -1;
+                cache_o  = o;
+            }
+        }
+
+        // If the required data is not cached, load it.
+
+        if (cache_o == o)
+        {
+            if (cache_i0 != i0 || cache_i1 != i1)
+            {
+                tsize_t S = TIFFStripSize(cache_T);
+
+                if (i0 == i1)
+                    TIFFReadEncodedStrip(cache_T, i0, cache_p + i0 * S, S);
+                else
+                {
+                    TIFFReadEncodedStrip(cache_T, i0, cache_p + i0 * S, S);
+                    TIFFReadEncodedStrip(cache_T, i1, cache_p + i1 * S, S);
+                }
+                cache_i0 = i0;
+                cache_i1 = i1;
+            }
+
+            if (cache_i0 == i0 && cache_i1 == i1)
+            {
+                double rr = r - floor(r);
+                double cc = c - floor(c);
+
+                // Sample the cache with linear filtering.
+
+                float s00 = tofloat(cache_p, (this->w * r0 + c0) * this->c);
+                float s01 = tofloat(cache_p, (this->w * r0 + c1) * this->c);
+                float s10 = tofloat(cache_p, (this->w * r1 + c0) * this->c);
+                float s11 = tofloat(cache_p, (this->w * r1 + c1) * this->c);
+
+                // Cache the request and its result.
+
+                cache_v[0] = v[0];
+                cache_v[1] = v[1];
+                cache_v[2] = v[2];
+                cache_k    = lerp(lerp(s00, s01, cc), lerp(s10, s11, cc), rr);
+            }
+        }
     }
     return cache_k;
 }

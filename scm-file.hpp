@@ -90,11 +90,13 @@ private:
     void   *zv;         // Page maxima
     uint64  zc;
 
-    double cache_v[3];  // Sample cache last vector
-    float  cache_k;     // Sample cache last value
-    void  *cache_p;     // Sample cache last page buffer
-    uint64 cache_i;     // Sample cache last page index
-    TIFF  *cache_T;     // Sample cache open TIFF file
+    double  cache_v[3];  // Sample cache last vector
+    float   cache_k;     // Sample cache last value
+    uint64  cache_o;     // Sample cache last page offset
+    tsize_t cache_i0;    // Sample cache last strip
+    tsize_t cache_i1;    // Sample cache last strip
+    uint8  *cache_p;     // Sample cache last page buffer
+    TIFF   *cache_T;     // Sample cache open TIFF file
 
     float  tofloat(const void *, uint64) const;
     uint64 toindex(uint64)               const;
@@ -104,6 +106,7 @@ private:
 
 //------------------------------------------------------------------------------
 
+bool scm_load_part(TIFF *T, uint64, int, int, int, int, void *, int, int);
 bool scm_load_page(TIFF *T, uint64, int, int, int, int, void *, void *);
 
 //------------------------------------------------------------------------------
