@@ -106,8 +106,7 @@ private:
 
 //------------------------------------------------------------------------------
 
-bool scm_load_part(TIFF *T, uint64, int, int, int, int, void *, int, int);
-bool scm_load_page(TIFF *T, uint64, int, int, int, int, void *, void *);
+bool scm_load_page(TIFF *T, uint64, int, int, int, int, void *);
 
 //------------------------------------------------------------------------------
 

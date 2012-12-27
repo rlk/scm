@@ -415,10 +415,10 @@ float scm_file::tofloat(const void *v, uint64 i) const
 
 //------------------------------------------------------------------------------
 
-// Load the page at offset o of TIFF T. Store it in buffer p and use buffer q
-// to swizzle if necessary. Confirm the image parameters and return success.
+// Load the page at offset o of TIFF T. Confirm the image parameters and return
+// success.
 
-bool scm_load_page(TIFF *T, uint64 o, int w, int h, int c, int b, void *p, void *q)
+bool scm_load_page(TIFF *T, uint64 o, int w, int h, int c, int b, void *p)
 {
     int i = 0;
 
@@ -434,32 +434,11 @@ bool scm_load_page(TIFF *T, uint64 o, int w, int h, int c, int b, void *p, void 
 
         if (int(W) == w && int(H) == h && int(B) == b && int(C) == c)
         {
-            if (q && c == 3 && b == 8)
-            {
-                for (i = 0; i < h; ++i)
-                {
-                    TIFFReadScanline(T, q, i, 0);
+            tsize_t N = TIFFNumberOfStrips(T);
+            tsize_t S = TIFFStripSize(T);
 
-                    for (int j = w - 1; j >= 0; --j)
-                    {
-                        uint8 *src = (uint8 *) q             + j * c;
-                        uint8 *dst = (uint8 *) p + i * w * 4 + j * 4;
-
-                        dst[0] = src[2];
-                        dst[1] = src[1];
-                        dst[2] = src[0];
-                        dst[3] = 0xFF;
-                    }
-                }
-            }
-            else
-            {
-                tsize_t N = TIFFNumberOfStrips(T);
-                tsize_t S = TIFFStripSize(T);
-
-                for (i = 0; i < N; ++i)
-                    TIFFReadEncodedStrip(T, i, (uint8 *) p + i * S, -1);
-            }
+            for (i = 0; i < N; ++i)
+                TIFFReadEncodedStrip(T, i, (uint8 *) p + i * S, -1);
         }
     }
     return (i > 0);
@@ -473,21 +452,16 @@ int loader(void *data)
     scm_log("loader thread begin %s", file->path.c_str());
     {
         TIFF *tiff = TIFFOpen(file->path.c_str(), "r");
-        void *temp = 0;
 
         while ((task = file->needs.remove()).f >= 0)
 
             if (file->is_active())
             {
-                if ((temp) || (temp = malloc(TIFFScanlineSize(tiff))))
-                {
-                    task.load_page(tiff, temp);
-                    file->cache->add_load(task);
-                }
+                task.load_page(tiff);
+                file->cache->add_load(task);
             }
             else break;
 
-        free(temp);
         TIFFClose(tiff);
     }
     scm_log("loader thread end %s", file->path.c_str());

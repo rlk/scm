@@ -32,7 +32,7 @@ struct scm_task : public scm_item
     scm_task(int, long long, uint64, int, int, int, GLuint, scm_cache *);
 
     void make_page(int, int);
-    void load_page(TIFF *T, void *);
+    void load_page(TIFF *T);
     void dump_page();
 
     uint64     o;          // SCM TIFF file offset of this page
