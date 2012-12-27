@@ -123,8 +123,8 @@ public:
     void        set_current_scene(double s) { scene = s;    }
 
     void        get_current_matrix(      double *) const;
-    float       get_current_height(const double *) const;
-    float       get_minimum_height()               const;
+    float       get_current_ground(const double *) const;
+    float       get_minimum_ground()               const;
 
     scm_sphere *get_sphere() const;
     scm_render *get_render() const;

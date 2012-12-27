@@ -23,7 +23,6 @@
 scm_image::scm_image(scm_system *sys) :
     sys(sys),
     channel(0),
-    height(false),
     k0 ( 0),
     k1 ( 1),
     uS (-1),
@@ -47,7 +46,7 @@ void scm_image::set_scm(const std::string& s)
     scm = s;
     if (!scm.empty()) index = sys->acquire_scm(scm);
 
-    cache = sys->get_cache(index);
+    cache = (index < 0) ? 0 : sys->get_cache(index);
 }
 
 //------------------------------------------------------------------------------
@@ -100,7 +99,7 @@ void scm_image::unbind(GLuint unit) const
 
 void scm_image::bind_page(GLuint program, int d, int t, long long i) const
 {
-    if (cache)
+    if (cache && index >= 0)
     {
         int u;
         int l = cache->get_page(index, i, t, u);

@@ -141,20 +141,20 @@ scm_step *scm_system::get_step(int i)
 
 //------------------------------------------------------------------------------
 
-float scm_system::get_current_height(const double *v) const
+float scm_system::get_current_ground(const double *v) const
 {
     if (!scenes.empty())
-        return std::max(get_scene0()->get_current_height(v),
-                        get_scene1()->get_current_height(v));
+        return std::max(get_scene0()->get_current_ground(v),
+                        get_scene1()->get_current_ground(v));
     else
         return 1.f;
 }
 
-float scm_system::get_minimum_height() const
+float scm_system::get_minimum_ground() const
 {
     if (!scenes.empty())
-        return std::min(get_scene0()->get_minimum_height(),
-                        get_scene1()->get_minimum_height());
+        return std::min(get_scene0()->get_minimum_ground(),
+                        get_scene1()->get_minimum_ground());
     else
         return 1.f;
 }

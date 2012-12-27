@@ -117,7 +117,7 @@ void scm_scene::bind(int channel) const
     glUseProgram(render.program);
 
     for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->get_channel() == channel)
+        if (images[j]->is_channel(channel))
             images[j]->bind(unit++, render.program);
 
     glActiveTexture(GL_TEXTURE0);
@@ -132,7 +132,7 @@ void scm_scene::unbind(int channel) const
     glUseProgram(0);
 
     for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->get_channel() == channel)
+        if (images[j]->is_channel(channel))
             images[j]->unbind(unit++);
 
     glActiveTexture(GL_TEXTURE0);
@@ -145,7 +145,7 @@ void scm_scene::unbind(int channel) const
 void scm_scene::bind_page(int channel, int depth, int frame, long long i) const
 {
     for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->get_channel() == channel)
+        if (images[j]->is_channel(channel))
             images[j]->bind_page(render.program, depth, frame, i);
 }
 
@@ -154,7 +154,7 @@ void scm_scene::bind_page(int channel, int depth, int frame, long long i) const
 void scm_scene::unbind_page(int channel, int depth) const
 {
     for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->get_channel() == channel)
+        if (images[j]->is_channel(channel))
             images[j]->unbind_page(render.program, depth);
 }
 
@@ -163,29 +163,29 @@ void scm_scene::unbind_page(int channel, int depth) const
 void scm_scene::touch_page(int channel, int frame, long long i) const
 {
     for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->get_channel() == channel)
+        if (images[j]->is_channel(channel))
             images[j]->touch_page(frame, i);
 }
 
 //------------------------------------------------------------------------------
 
-// Sample the height image along vector v.
+// Sample the ground image along vector v.
 
-float scm_scene::get_current_height(const double *v) const
+float scm_scene::get_current_ground(const double *v) const
 {
     for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->get_height())
+        if (images[j]->is_channel(-1))
             return images[j]->get_page_sample(v);
 
     return 1.f;
 }
 
-// Return the smallest value in the height image.
+// Return the smallest value in the ground image.
 
-float scm_scene::get_minimum_height() const
+float scm_scene::get_minimum_ground() const
 {
     for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->get_height())
+        if (images[j]->is_channel(-1))
             return images[j]->get_normal_min();
 
     return 1.f;
@@ -196,7 +196,7 @@ float scm_scene::get_minimum_height() const
 void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) const
 {
     for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->get_height())
+        if (images[j]->is_channel(-1))
         {
             images[j]->get_page_bounds(i, r0, r1);
             return;
@@ -211,7 +211,7 @@ void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) 
 bool scm_scene::get_page_status(int channel, long long i) const
 {
     for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->get_channel() == channel &&
+        if (images[j]->is_channel(channel) &&
             images[j]->get_page_status(i))
             return true;
 

@@ -168,7 +168,7 @@ scm_file::~scm_file()
 
     // Release all resources.
 
-    TIFFClose(cache_T);
+    if (cache_T) TIFFClose(cache_T);
 
     free(cache_p);
     free(zv);
