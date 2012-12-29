@@ -104,6 +104,8 @@ public:
    ~scm_system();
 
     void     render_sphere(const double *, int);
+
+    void      flush_cache();
     void     render_cache();
     void     update_cache(bool);
 

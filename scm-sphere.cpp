@@ -518,17 +518,6 @@ void scm_sphere::draw(scm_scene *scene, const double *M,
 }
 
 //------------------------------------------------------------------------------
-#if 0
-static inline int up(int d)
-{
-    return (d % 2) ? d + 1 : d;
-}
-
-static inline int dn(int d)
-{
-    return (d % 2) ? d - 1 : d;
-}
-#endif
 
 static void init_vertices(int n)
 {

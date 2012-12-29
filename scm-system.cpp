@@ -45,13 +45,6 @@ scm_system::~scm_system()
 
 //------------------------------------------------------------------------------
 
-void scm_system::update_cache(bool sync)
-{
-    for (active_cache_i i = caches.begin(); i != caches.end(); ++i)
-        i->second.cache->update(frame, sync);
-    frame++;
-}
-
 void scm_system::render_sphere(const double *M, int channel)
 {
     const double t = scene - floor(scene);
@@ -61,12 +54,25 @@ void scm_system::render_sphere(const double *M, int channel)
                                get_scene1(), M, t, channel, frame);
 }
 
+void scm_system::flush_cache()
+{
+    for (active_cache_i i = caches.begin(); i != caches.end(); ++i)
+        i->second.cache->flush();
+}
+
 void scm_system::render_cache()
 {
     int ii = 0, nn = caches.size();
 
     for (active_cache_i i = caches.begin(); i != caches.end(); ++i, ++ii)
         i->second.cache->render(ii, nn);
+}
+
+void scm_system::update_cache(bool sync)
+{
+    for (active_cache_i i = caches.begin(); i != caches.end(); ++i)
+        i->second.cache->update(frame, sync);
+    frame++;
 }
 
 //------------------------------------------------------------------------------
