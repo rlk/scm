@@ -122,21 +122,20 @@ scm_file::scm_file(const std::string& tiff) :
             }
             if (TIFFGetField(T, 0xFFB3, &n, &p))
             {
-                if ((av = malloc(n * c * b / 8)))
+                if ((av = malloc(n * b / 8)))
                 {
-                    memcpy(av, p, n * c * b / 8);
+                    memcpy(av, p, n * b / 8);
                     ac = n;
                 }
             }
             if (TIFFGetField(T, 0xFFB4, &n, &p))
             {
-                if ((zv = malloc(n * c * b / 8)))
+                if ((zv = malloc(n * b / 8)))
                 {
-                    memcpy(zv, p, n * c * b / 8);
+                    memcpy(zv, p, n * b / 8);
                     zc = n;
                 }
             }
-
             TIFFClose(T);
         }
     }
