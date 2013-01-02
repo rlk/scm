@@ -138,14 +138,21 @@ void scm_render::init_matrices()
     D[3] = 0.0; D[7] = 0.0; D[11] = 0.0; D[15] =  1.0;
 }
 
+#include <scm-render-fade-vert.h>
+#include <scm-render-fade-frag.h>
+#include <scm-render-blur-vert.h>
+#include <scm-render-blur-frag.h>
+#include <scm-render-both-vert.h>
+#include <scm-render-both-frag.h>
+
 void scm_render::init_ogl()
 {
-    glsl_create(&render_fade, "scm/scm-render-fade.vert",
-                              "scm/scm-render-fade.frag");
-    glsl_create(&render_blur, "scm/scm-render-blur.vert",
-                              "scm/scm-render-blur.frag");
-    glsl_create(&render_both, "scm/scm-render-both.vert",
-                              "scm/scm-render-both.frag");
+    glsl_source(&render_fade, (const char *) scm_render_fade_vert,
+                              (const char *) scm_render_fade_frag);
+    glsl_source(&render_blur, (const char *) scm_render_blur_vert,
+                              (const char *) scm_render_blur_frag);
+    glsl_source(&render_both, (const char *) scm_render_both_vert,
+                              (const char *) scm_render_both_frag);
 
     init_uniforms(render_fade.program, width, height);
     init_uniforms(render_blur.program, width, height);
