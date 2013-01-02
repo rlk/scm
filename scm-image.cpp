@@ -73,17 +73,17 @@ void scm_image::init_uniforms(GLuint program)
 
 void scm_image::bind(GLuint unit, GLuint program) const
 {
+    glUniform1i(uS,  unit);
+    glUniform1f(uk0, k0);
+    glUniform1f(uk1, k1);
+
     if (cache)
     {
         const GLfloat r = GLfloat(cache->get_page_size())
                         / GLfloat(cache->get_page_size() + 2)
                         / GLfloat(cache->get_grid_size());
 
-        glUniform1i(uS,  unit);
         glUniform2f(ur,  r, r);
-        glUniform1f(uk0, k0);
-        glUniform1f(uk1, k1);
-
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(GL_TEXTURE_2D, cache->get_texture());
     }
@@ -99,7 +99,7 @@ void scm_image::unbind(GLuint unit) const
 
 void scm_image::bind_page(GLuint program, int d, int t, long long i) const
 {
-    if (cache && index >= 0)
+    if (cache)
     {
         int u;
         int l = cache->get_page(index, i, t, u);
@@ -127,7 +127,7 @@ void scm_image::unbind_page(GLuint program, int d) const
 
 void scm_image::touch_page(int t, long long i) const
 {
-    if (cache && index >= 0)
+    if (cache)
     {
         int ignored;
         cache->get_page(index, i, t, ignored);

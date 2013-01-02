@@ -261,7 +261,7 @@ float scm_file::get_page_sample(const double *v)
     if (sampler == 0)
         sampler = new scm_sample(this);
 
-    return sampler ? sampler->get(v) : 1.f;;
+    return sampler ? sampler->get(v) : 1.f;
 }
 
 //------------------------------------------------------------------------------

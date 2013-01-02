@@ -212,12 +212,12 @@ void scm_label::parse(const void *data_ptr, size_t data_len, double radius)
 
 //------------------------------------------------------------------------------
 
-#include "scm-label-icons.h"
+#include <scm-label-icons.h>
 
-#include "scm-label-circle-vert.h"
-#include "scm-label-circle-frag.h"
-#include "scm-label-sprite-vert.h"
-#include "scm-label-sprite-frag.h"
+#include <scm-label-circle-vert.h>
+#include <scm-label-circle-frag.h>
+#include <scm-label-sprite-vert.h>
+#include <scm-label-sprite-frag.h>
 
 scm_label::scm_label(const void *data_ptr, size_t data_len,
                      const void *font_ptr, size_t font_len,
