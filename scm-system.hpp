@@ -120,10 +120,8 @@ public:
     scm_step   *get_step(int);
     int         get_step_count() const { return int(steps.size()); }
 
-    double      get_current_step () const   { return step;  }
-    void        set_current_step (double s) { step  = s;    }
-    double      get_current_scene() const   { return scene; }
-    void        set_current_scene(double s) { scene = s;    }
+    double      get_current_step() const { return step;  }
+    void        set_current_step(double s);
 
     void        get_current_matrix(      double *) const;
     float       get_current_ground(const double *) const;
@@ -146,11 +144,15 @@ public:
 
 private:
 
+    SDL_mutex     *mutex;
+
     scm_step_v     steps;
     scm_scene_v    scenes;
+
+    scm_scene     *scene0;
+    scm_scene     *scene1;
     scm_sphere    *sphere;
     scm_render    *render;
-    SDL_mutex     *mutex;
 
     active_file_m  files;
     active_cache_m caches;
@@ -158,13 +160,7 @@ private:
 
     int    serial;
     int    frame;
-    double scene;
     double step;
-
-    scm_step  *get_step0()  const;
-    scm_step  *get_step1()  const;
-    scm_scene *get_scene0() const;
-    scm_scene *get_scene1() const;
 };
 
 //------------------------------------------------------------------------------

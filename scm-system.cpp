@@ -25,11 +25,13 @@
 //------------------------------------------------------------------------------
 
 scm_system::scm_system(int w, int h, int d, int l) :
-    serial(1), frame(0), scene(0), step(0)
+    serial(1), frame(0), step(0)
 {
     mutex  = SDL_CreateMutex();
     sphere = new scm_sphere(d, l);
     render = new scm_render(w, h);
+    scene0 = 0;
+    scene1 = 0;
 }
 
 scm_system::~scm_system()
@@ -47,11 +49,10 @@ scm_system::~scm_system()
 
 void scm_system::render_sphere(const double *M, int channel) const
 {
-    const double t = scene - floor(scene);
+    const double t = step - floor(step);
 
-    if (!scenes.empty())
-        render->render(sphere, get_scene0(),
-                               get_scene1(), M, t, channel, frame);
+    if (scene0 && scene1)
+        render->render(sphere, scene0, scene1, M, t, channel, frame);
 }
 
 void scm_system::render_path() const
@@ -91,6 +92,9 @@ int scm_system::add_scene(int i)
     {
         scm_scene_i it = scenes.insert(scenes.begin() + i, scene);
         j         = it - scenes.begin();
+
+        scene0 = scene;
+        scene1 = scene;
     }
     scm_log("scm_system add_scene %d = %d", i, j);
 
@@ -105,6 +109,8 @@ void scm_system::del_scene(int i)
 
     delete scenes[i];
     scenes.erase(scenes.begin() + i);
+
+    set_current_step(get_current_step());
 }
 
 // Return a pointer to the scene at i.
@@ -140,6 +146,8 @@ void scm_system::del_step(int i)
 
     delete steps[i];
     steps.erase(steps.begin() + i);
+
+    set_current_step(get_current_step());
 }
 
 // Return a pointer to the step at i.
@@ -151,20 +159,39 @@ scm_step *scm_system::get_step(int i)
 
 //------------------------------------------------------------------------------
 
+void scm_system::set_current_step(double s)
+{
+    if (!steps.empty())
+    {
+        step = s;
+        step = std::max(step, 0.0);
+        step = std::min(step, steps.size() - 1.0);
+
+        scm_step *step0 = steps[int(floor(step))];
+        scm_step *step1 = steps[int( ceil(step))];
+
+        for (size_t i = 0; i < scenes.size(); i++)
+        {
+            if (scenes[i]->get_name() == step0->get_scene()) scene0 = scenes[i];
+            if (scenes[i]->get_name() == step1->get_scene()) scene1 = scenes[i];
+        }
+    }
+}
+
 float scm_system::get_current_ground(const double *v) const
 {
-    if (!scenes.empty())
-        return std::max(get_scene0()->get_current_ground(v),
-                        get_scene1()->get_current_ground(v));
+    if (scene0 && scene1)
+        return std::max(scene0->get_current_ground(v),
+                        scene1->get_current_ground(v));
     else
         return 1.f;
 }
 
 float scm_system::get_minimum_ground() const
 {
-    if (!scenes.empty())
-        return std::min(get_scene0()->get_minimum_ground(),
-                        get_scene1()->get_minimum_ground());
+    if (scene0 && scene1)
+        return std::min(scene0->get_minimum_ground(),
+                        scene1->get_minimum_ground());
     else
         return 1.f;
 }
@@ -320,28 +347,6 @@ bool scm_system::get_page_status(int f, long long i)
         return file->get_page_status(uint64(i));
     else
         return false;
-}
-
-//------------------------------------------------------------------------------
-
-scm_step *scm_system::get_step0() const
-{
-    return steps[int(floor(step)) % steps.size()];
-}
-
-scm_step *scm_system::get_step1() const
-{
-    return steps[int(ceil(step)) % steps.size()];
-}
-
-scm_scene *scm_system::get_scene0() const
-{
-    return scenes[int(floor(scene)) % scenes.size()];
-}
-
-scm_scene *scm_system::get_scene1() const
-{
-    return scenes[int(ceil(scene)) % scenes.size()];
 }
 
 //------------------------------------------------------------------------------
