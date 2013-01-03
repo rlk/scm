@@ -30,12 +30,11 @@ public:
              const scm_step *,
              const scm_step *, double);
 
-    void draw() const;
+    void draw_point();
 
     // Basic accessors
 
     const std::string& get_name()  const { return name;  }
-    const std::string& get_label() const { return label; }
     const std::string& get_scene() const { return scene; }
 
     void   get_orientation(double *) const;
@@ -50,7 +49,6 @@ public:
     // Basic mutators
 
     void   set_name (const std::string& s) { name = s;  }
-    void   set_label(const std::string& s) { label = s; }
     void   set_scene(const std::string& s) { scene = s; }
 
     void   set_orientation(const double *);
@@ -78,7 +76,6 @@ public:
 private:
 
     std::string name;
-    std::string label;
     std::string scene;
 
     double orientation[4]; // View orientation

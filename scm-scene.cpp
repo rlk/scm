@@ -12,11 +12,12 @@
 
 #include "scm-scene.hpp"
 #include "scm-image.hpp"
+#include "scm-label.hpp"
 #include "scm-log.hpp"
 
 //------------------------------------------------------------------------------
 
-scm_scene::scm_scene(scm_system *sys) : sys(sys)
+scm_scene::scm_scene(scm_system *sys) : sys(sys), label(0)
 {
     memset(&render, 0, sizeof (glsl));
 }
@@ -25,30 +26,43 @@ scm_scene::~scm_scene()
 {
     while (get_image_count())
         del_image(0);
+
+    if (label)
+        delete label;
 }
 
 //------------------------------------------------------------------------------
 
+void scm_scene::set_label(const std::string &s)
+{
+    label_file = s;
+
+    if (label)
+        delete label;
+
+    label = new scm_label(label_file);
+}
+
 void scm_scene::set_vert(const std::string &s)
 {
-    vert = s;
+    vert_file = s;
 
     glsl_delete(&render);
 
-    if (!vert.empty() && !frag.empty())
-        glsl_source(&render, vert.c_str(), frag.c_str());
+    if (!vert_file.empty() && !frag_file.empty())
+        glsl_source(&render, vert_file.c_str(), frag_file.c_str());
 
     init_uniforms();
 }
 
 void scm_scene::set_frag(const std::string &s)
 {
-    frag = s;
+    frag_file = s;
 
     glsl_delete(&render);
 
-    if (!vert.empty() && !frag.empty())
-        glsl_source(&render, vert.c_str(), frag.c_str());
+    if (!vert_file.empty() && !frag_file.empty())
+        glsl_source(&render, vert_file.c_str(), frag_file.c_str());
 
     init_uniforms();
 }

@@ -25,7 +25,7 @@
 //------------------------------------------------------------------------------
 
 scm_system::scm_system(int w, int h, int d, int l) :
-    serial(1), frame(0), step(0)
+    serial(1), frame(0), scene(0), step(0)
 {
     mutex  = SDL_CreateMutex();
     sphere = new scm_sphere(d, l);
@@ -165,7 +165,7 @@ void scm_system::set_current_step(double s)
     {
         step = s;
         step = std::max(step, 0.0);
-        step = std::min(step, steps.size() - 1.0);
+        step = std::min(step, double(steps.size() - 1));
 
         scm_step *step0 = steps[int(floor(step))];
         scm_step *step1 = steps[int( ceil(step))];
@@ -175,6 +175,19 @@ void scm_system::set_current_step(double s)
             if (scenes[i]->get_name() == step0->get_scene()) scene0 = scenes[i];
             if (scenes[i]->get_name() == step1->get_scene()) scene1 = scenes[i];
         }
+    }
+}
+
+void scm_system::set_current_scene(int s)
+{
+    if (!scenes.empty())
+    {
+        scene = s;
+        scene = std::max(scene, 0);
+        scene = std::min(scene, int(scenes.size() - 1));
+
+        scene0 = scenes[scene];
+        scene1 = scenes[scene];
     }
 }
 

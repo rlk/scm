@@ -229,7 +229,7 @@ scm_label::scm_label(const void *data_ptr, size_t data_len,
 {
     // Initialize the font.
 
-    label_font  = font_create(font_ptr, font_len, 64, 1.0);
+    label_font = font_create(font_ptr, font_len, 64, 1.0);
 
     // Initialize the shaders.
 

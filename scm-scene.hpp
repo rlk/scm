@@ -21,6 +21,7 @@
 //------------------------------------------------------------------------------
 
 class scm_system;
+class scm_label;
 class scm_image;
 
 typedef std::vector<scm_image *>                 scm_image_v;
@@ -38,13 +39,15 @@ public:
 
     // External Interface
 
-    const std::string& get_name() const { return name; }
-    const std::string& get_vert() const { return vert; }
-    const std::string& get_frag() const { return frag; }
+    const std::string& get_name () const { return name;       }
+    const std::string& get_label() const { return label_file; }
+    const std::string& get_vert () const { return  vert_file; }
+    const std::string& get_frag () const { return  frag_file; }
 
-    void               set_name(const std::string &s) { name = s; }
-    void               set_vert(const std::string &s);
-    void               set_frag(const std::string &s);
+    void               set_name (const std::string &s) { name = s; }
+    void               set_label(const std::string &s);
+    void               set_vert (const std::string &s);
+    void               set_frag (const std::string &s);
 
     int                add_image(int);
     void               del_image(int);
@@ -77,9 +80,11 @@ private:
     scm_system *sys;
 
     std::string name;
-    std::string vert;
-    std::string frag;
+    std::string label_file;
+    std::string  vert_file;
+    std::string  frag_file;
 
+    scm_label  *label;
     scm_image_v images;
     glsl        render;
 };

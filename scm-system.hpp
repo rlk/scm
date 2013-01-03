@@ -120,8 +120,10 @@ public:
     scm_step   *get_step(int);
     int         get_step_count() const { return int(steps.size()); }
 
-    double      get_current_step() const { return step;  }
-    void        set_current_step(double s);
+    double      get_current_step () const { return step;  }
+    int         get_current_scene() const { return scene; }
+    void        set_current_step (double);
+    void        set_current_scene(int);
 
     void        get_current_matrix(      double *) const;
     float       get_current_ground(const double *) const;
@@ -160,6 +162,7 @@ private:
 
     int    serial;
     int    frame;
+    int    scene;
     double step;
 };
 

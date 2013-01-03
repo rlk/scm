@@ -76,34 +76,6 @@ scm_step::scm_step()
     zoom           = 1.0;
 }
 
-// Initialize a new SCM viewer state using the given XML node.
-#if 0
-scm_step::scm_step(app::node n)
-{
-    orientation[0] = n.get_f("q0", 0.0);
-    orientation[1] = n.get_f("q1", 0.0);
-    orientation[2] = n.get_f("q2", 0.0);
-    orientation[3] = n.get_f("q3", 1.0);
-
-    position[0]    = n.get_f("p0", 0.0);
-    position[1]    = n.get_f("p1", 0.0);
-    position[2]    = n.get_f("p2", 0.0);
-
-    light[0]       = n.get_f("l0", 1.0);
-    light[1]       = n.get_f("l1", 0.0);
-    light[2]       = n.get_f("l2", 0.0);
-
-    speed          = n.get_f("s",  1.0);
-    distance       = n.get_f("r",  0.0);
-    tension        = n.get_f("t",  0.0);
-    bias           = n.get_f("b",  0.0);
-    zoom           = n.get_f("z",  1.0);
-
-    name           = n.get_s("name");
-    label          = n.get_s("label");
-}
-#endif
-
 // Initialize a new SCM viewer step using linear interpolation of given steps.
 
 scm_step::scm_step(const scm_step *a, const scm_step *b, double t)
@@ -209,7 +181,7 @@ scm_step::scm_step(const scm_step *a,
 
 //------------------------------------------------------------------------------
 
-void scm_step::draw() const
+void scm_step::draw_point()
 {
     double v[3];
 
@@ -222,38 +194,6 @@ void scm_step::draw() const
     glVertex3dv(v);
 }
 
-// Serialize this step to a new XML step element. Add attributes for only those
-// properties with non-default values.
-#if 0
-app::node scm_step::serialize() const
-{
-    app::node n("step");
-
-    if (orientation[0] != 0.0) n.set_f("q0", orientation[0]);
-    if (orientation[1] != 0.0) n.set_f("q1", orientation[1]);
-    if (orientation[2] != 0.0) n.set_f("q2", orientation[2]);
-    if (orientation[3] != 0.0) n.set_f("q3", orientation[3]);
-
-    if (position[0]    != 0.0) n.set_f("p0", position[0]);
-    if (position[1]    != 0.0) n.set_f("p1", position[1]);
-    if (position[2]    != 0.0) n.set_f("p2", position[2]);
-
-    if (light[0]       != 0.0) n.set_f("l0", light[0]);
-    if (light[1]       != 0.0) n.set_f("l1", light[1]);
-    if (light[2]       != 0.0) n.set_f("l2", light[2]);
-
-    if (speed          != 1.0) n.set_f("s",  speed);
-    if (distance       != 0.0) n.set_f("r",  distance);
-    if (tension        != 0.0) n.set_f("t",  tension);
-    if (bias           != 0.0) n.set_f("b",  bias);
-    if (zoom           != 1.0) n.set_f("z",  zoom);
-
-    if (!name.empty())  n.set_s("name",  name);
-    if (!label.empty()) n.set_s("label", label);
-
-    return n;
-}
-#endif
 //------------------------------------------------------------------------------
 
 // Return the view transformation matrix.
