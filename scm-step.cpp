@@ -256,35 +256,6 @@ app::node scm_step::serialize() const
 #endif
 //------------------------------------------------------------------------------
 
-void scm_step::transform_orientation(const double *M)
-{
-    double A[16];
-    double B[16];
-
-    mquaternion(A, orientation);
-    mmultiply(B, M, A);
-    qmatrix(orientation, B);
-    qnormalize(orientation, orientation);
-}
-
-void scm_step::transform_position(const double *M)
-{
-    double v[3];
-
-    vtransform(v, M, position);
-    vnormalize(position, v);
-}
-
-void scm_step::transform_light(const double *M)
-{
-    double v[3];
-
-    vtransform(v, M, light);
-    vnormalize(light, v);
-}
-
-//------------------------------------------------------------------------------
-
 // Return the view transformation matrix.
 
 void scm_step::get_matrix(double *M) const
@@ -303,13 +274,6 @@ void scm_step::get_matrix(double *M) const
     M[ 7] = 0.0;
     M[11] = 0.0;
     M[15] = 1.0;
-}
-
-// Return the position vector.
-
-void scm_step::get_position(double *v) const
-{
-    vcpy(v, position);
 }
 
 // Return the Y axis of the matrix form of the orientation quaternion, thus
@@ -337,11 +301,50 @@ void scm_step::get_forward(double *v) const
     vneg(v, v);
 }
 
+//------------------------------------------------------------------------------
+
+// Return the orientation quaternion.
+
+void scm_step::get_orientation(double *q) const
+{
+    qcpy(q, orientation);
+}
+
+// Return the position vector.
+
+void scm_step::get_position(double *v) const
+{
+    vcpy(v, position);
+}
+
 // Return the light direction vector.
 
 void scm_step::get_light(double *v) const
 {
     vcpy(v, light);
+}
+
+//------------------------------------------------------------------------------
+
+// Set the orientation quaternion.
+
+void scm_step::set_orientation(const double *q)
+{
+    qcpy(orientation, q);
+}
+
+// Set the position vector.
+
+void scm_step::set_position(const double *v)
+{
+    vcpy(position, v);
+}
+
+// Set the light direction vector.
+
+void scm_step::set_light(const double *v)
+{
+    vcpy(light, v);
 }
 
 //------------------------------------------------------------------------------
@@ -378,6 +381,35 @@ void scm_step::set_pitch(double a)
 
     qmatrix   (orientation, R);
     qnormalize(orientation, orientation);
+}
+
+//------------------------------------------------------------------------------
+
+void scm_step::transform_orientation(const double *M)
+{
+    double A[16];
+    double B[16];
+
+    mquaternion(A, orientation);
+    mmultiply(B, M, A);
+    qmatrix(orientation, B);
+    qnormalize(orientation, orientation);
+}
+
+void scm_step::transform_position(const double *M)
+{
+    double v[3];
+
+    vtransform(v, M, position);
+    vnormalize(position, v);
+}
+
+void scm_step::transform_light(const double *M)
+{
+    double v[3];
+
+    vtransform(v, M, light);
+    vnormalize(light, v);
 }
 
 //------------------------------------------------------------------------------

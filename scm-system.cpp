@@ -45,13 +45,17 @@ scm_system::~scm_system()
 
 //------------------------------------------------------------------------------
 
-void scm_system::render_sphere(const double *M, int channel)
+void scm_system::render_sphere(const double *M, int channel) const
 {
     const double t = scene - floor(scene);
 
     if (!scenes.empty())
         render->render(sphere, get_scene0(),
                                get_scene1(), M, t, channel, frame);
+}
+
+void scm_system::render_path() const
+{
 }
 
 void scm_system::flush_cache()
