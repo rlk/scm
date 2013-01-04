@@ -255,7 +255,7 @@ static void wire_off()
 //------------------------------------------------------------------------------
 
 void scm_render::render0(scm_sphere *sphere,
-                         scm_scene  *scene,
+                         scm_scene  *scene0,
                          const double *M, int channel, int frame)
 {
     glPushAttrib(GL_VIEWPORT_BIT);
@@ -264,8 +264,8 @@ void scm_render::render0(scm_sphere *sphere,
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer0);
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            sphere->draw(scene, M, width, height, channel, frame);
-            scene->draw_label();
+            sphere->draw(scene0, M, width, height, channel, frame);
+            scene0->draw_label();
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -273,7 +273,7 @@ void scm_render::render0(scm_sphere *sphere,
 }
 
 void scm_render::render1(scm_sphere *sphere,
-                         scm_scene  *scene,
+                         scm_scene  *scene1,
                          const double *M, int channel, int frame)
 {
     glPushAttrib(GL_VIEWPORT_BIT);
@@ -282,8 +282,8 @@ void scm_render::render1(scm_sphere *sphere,
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer1);
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            sphere->draw(scene, M, width, height, channel, frame);
-            scene->draw_label();
+            sphere->draw(scene1, M, width, height, channel, frame);
+            scene1->draw_label();
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -322,8 +322,8 @@ void scm_render::render(scm_sphere *sphere,
     {
         if (wire) wire_on();
         sphere->draw(scene0, M, width, height, channel, frame);
-        if (wire) wire_off();
         scene0->draw_label();
+        if (wire) wire_off();
     }
     else
     {

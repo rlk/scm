@@ -57,7 +57,7 @@ public:
     // Internal Interface
 
     void   init_uniforms();
-    void   draw_label() const;
+    void   draw_label();
 
     void   bind(int) const;
     void unbind(int) const;

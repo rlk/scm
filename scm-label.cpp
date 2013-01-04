@@ -210,8 +210,6 @@ void scm_label::parse(const std::string& file)
 
         if ((fp = fopen(path.c_str(), "r")))
         {
-            scm_log("scm_label parsing %s", path.c_str());
-
             while (scan(fp, L))
                 labels.push_back(L);
 
@@ -347,10 +345,14 @@ scm_label::scm_label(const std::string& file, int size) :
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    scm_log("scm_label constructor %s", file.c_str());
 }
 
 scm_label::~scm_label()
 {
+    scm_log("scm_label destructor");
+
     glDeleteBuffers(1, &sprite_vbo);
     glDeleteBuffers(1, &circle_vbo);
 
@@ -369,11 +371,16 @@ void scm_label::draw()
 
     glPushAttrib(GL_ENABLE_BIT | GL_POLYGON_BIT);
     {
+        // Ensure we're in clockwise mode regardless of sphere winding.
+
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glFrontFace(GL_CCW);
+
+        // Blend for antialiasing but preserve dest alpha for the blur shader.
+
+        glEnable(GL_BLEND);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
 
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
         {

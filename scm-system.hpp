@@ -116,17 +116,17 @@ public:
     int         add_scene(int);
     void        del_scene(int);
     scm_scene  *get_scene(int);
-    int         get_scene_count()   const { return int(scenes.size()); }
 
     int         add_step(int);
     void        del_step(int);
     scm_step   *get_step(int);
-    int         get_step_count()    const { return int(steps.size()); }
+
+    int         get_scene_count()   const { return int(scenes.size()); }
+    int         get_step_count()    const { return int( steps.size()); }
 
     scm_step    get_current_step()  const { return interpolate(time); }
     double      get_current_time()  const { return time;  }
     void        set_current_time(double);
-
     void        set_current_scene(int);
 
     float       get_current_ground(const double *) const;

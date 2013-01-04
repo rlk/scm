@@ -20,10 +20,14 @@
 scm_scene::scm_scene(scm_system *sys) : sys(sys), label(0)
 {
     memset(&render, 0, sizeof (glsl));
+
+    scm_log("scm_scene constructor");
 }
 
 scm_scene::~scm_scene()
 {
+    scm_log("scm_scene destructor");
+
     while (get_image_count())
         del_image(0);
 
@@ -35,12 +39,11 @@ scm_scene::~scm_scene()
 
 void scm_scene::set_label(const std::string &s)
 {
-    label_file = s;
-
     if (label)
         delete label;
 
-    label = new scm_label(label_file, 16);
+    label_file = s;
+    label      = 0;
 }
 
 void scm_scene::set_vert(const std::string &s)
@@ -124,10 +127,16 @@ void scm_scene::init_uniforms()
 
 // Render the labels for this scene, if any.
 
-void scm_scene::draw_label() const
+void scm_scene::draw_label()
 {
-    if (label)
-        label->draw();
+    if (!label_file.empty())
+    {
+        if (label == 0)
+            label = new scm_label(label_file, 16);
+
+        if (label)
+            label->draw();
+    }
 }
 
 // Bind the program and all image textures matching channel.

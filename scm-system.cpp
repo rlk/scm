@@ -115,8 +115,8 @@ void scm_system::render_queue()
             glLineWidth(2.0);
             glBegin(GL_LINE_STRIP);
             {
-                for (size_t i = 0; i <= n * 10; i++)
-                    interpolate(double(i) / 10.0).draw();
+                for (size_t i = 0; i <= n * 64; i++)
+                    interpolate(double(i) / 64.0).draw();
             }
             glEnd();
 
