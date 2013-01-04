@@ -22,6 +22,8 @@
 #include "util3d/glsl.h"
 
 #include "scm-label.hpp"
+#include "scm-path.hpp"
+#include "scm-log.hpp"
 
 #define LABEL_R 0xFF
 #define LABEL_G 0x80
@@ -180,15 +182,15 @@ struct sprite
 
 //------------------------------------------------------------------------------
 
-int scm_label::scan(const char *dat, label& L)
+int scm_label::scan(FILE *fp, label& L)
 {
     int n;
 
-    if (sscanf(dat, "\"%63[^\"]\",%f,%f,%f,%f,%c%c\n%n",
+    if (fscanf(fp, "\"%63[^\"]\",%f,%f,%f,%f,%c%c\n%n",
         L.str, &L.lat, &L.lon, &L.dia, &L.rad, &L.typ[0], &L.typ[1], &n) > 5)
         return n;
 
-    if (sscanf(dat,      "%63[^,],%f,%f,%f,%f,%c%c\n%n",
+    if (fscanf(fp,      "%63[^,],%f,%f,%f,%f,%c%c\n%n",
         L.str, &L.lat, &L.lon, &L.dia, &L.rad, &L.typ[0], &L.typ[1], &n) > 5)
         return n;
 
@@ -197,31 +199,38 @@ int scm_label::scan(const char *dat, label& L)
 
 // Parse the label definition file.
 
-void scm_label::parse(const void *data_ptr, size_t data_len, double radius)
+void scm_label::parse(const std::string& file)
 {
-    const char *dat = (const char *) data_ptr;
-    label L;
-    int   n;
+    std::string path = scm_path_search(file);
 
-    while ((n = scan(dat, L)))
+    if (!path.empty())
     {
-        labels.push_back(L);
-        dat += n;
+        FILE *fp;
+        label L;
+
+        if ((fp = fopen(path.c_str(), "r")))
+        {
+            scm_log("scm_label parsing %s", path.c_str());
+
+            while (scan(fp, L))
+                labels.push_back(L);
+
+            fclose(fp);
+        }
     }
 }
 
 //------------------------------------------------------------------------------
 
 #include <scm-label-icons.h>
+#include <scm-label-font.h>
 
 #include <scm-label-circle-vert.h>
 #include <scm-label-circle-frag.h>
 #include <scm-label-sprite-vert.h>
 #include <scm-label-sprite-frag.h>
 
-scm_label::scm_label(const void *data_ptr, size_t data_len,
-                     const void *font_ptr, size_t font_len,
-                     double radius, int size) :
+scm_label::scm_label(const std::string& file, double radius, int size) :
     label_line(0),
     num_circles(0),
     num_sprites(0),
@@ -229,7 +238,7 @@ scm_label::scm_label(const void *data_ptr, size_t data_len,
 {
     // Initialize the font.
 
-    label_font = font_create(font_ptr, font_len, 64, 1.0);
+    label_font = font_create(Vera_ttf, Vera_ttf_len, 64, 1.0);
 
     // Initialize the shaders.
 
@@ -246,7 +255,7 @@ scm_label::scm_label(const void *data_ptr, size_t data_len,
 
     // Parse the data file into labels.
 
-    parse(data_ptr, data_len, radius);
+    parse(file);
 
     // Generate an annotation for each label.
 
@@ -265,11 +274,9 @@ scm_label::scm_label(const void *data_ptr, size_t data_len,
         double y = 0.0;
         double z = 0.0;
 
-        // double r = sqrt(labels[i].rad / radius -
-        //                 labels[i].dia * labels[i].dia / 4.0);
-
-        double d = labels[i].dia / radius;
-        double r = labels[i].rad / radius;
+        double d = labels[i].dia;
+        double r = labels[i].rad;
+        double k = d / r;
 
         // Transform it into position
 
@@ -297,7 +304,7 @@ scm_label::scm_label(const void *data_ptr, size_t data_len,
 
         // Add the string and matrix to the list.
 
-        double e = 0.001 * clamp(d, 0.0005, 0.5) / d;
+        double e = 0.001 * clamp(k, 0.0, 0.5) / k;
 
         M.scale(e);
         M.translate(x, y, z);
@@ -360,16 +367,13 @@ void scm_label::draw()
 {
     size_t sz = sizeof (point);
 
-    glPushAttrib(GL_ENABLE_BIT);
+    glPushAttrib(GL_ENABLE_BIT | GL_POLYGON_BIT);
     {
-        glDisable(GL_LIGHTING);
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-        glEnable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        glColor4ub(LABEL_R, LABEL_G, LABEL_B, LABEL_A);
+        glFrontFace(GL_CCW);
 
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
         {
@@ -408,6 +412,9 @@ void scm_label::draw()
         // Draw the labels.
 
         glUseProgram(0);
+        glDisable(GL_LIGHTING);
+        glEnable(GL_TEXTURE_2D);
+        glColor4ub(LABEL_R, LABEL_G, LABEL_B, LABEL_A);
 
         line_render(label_line);
     }

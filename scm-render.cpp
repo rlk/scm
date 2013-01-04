@@ -265,6 +265,7 @@ void scm_render::render0(scm_sphere *sphere,
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             sphere->draw(scene, M, width, height, channel, frame);
+            scene->draw_label();
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -282,6 +283,7 @@ void scm_render::render1(scm_sphere *sphere,
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             sphere->draw(scene, M, width, height, channel, frame);
+            scene->draw_label();
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -321,6 +323,7 @@ void scm_render::render(scm_sphere *sphere,
         if (wire) wire_on();
         sphere->draw(scene0, M, width, height, channel, frame);
         if (wire) wire_off();
+        scene0->draw_label();
     }
     else
     {

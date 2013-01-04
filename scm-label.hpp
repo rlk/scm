@@ -82,8 +82,7 @@ class scm_label
 {
 public:
 
-    scm_label(const void *, size_t,
-              const void *, size_t, double, int);
+    scm_label(const std::string&, double, int);
    ~scm_label();
 
     void draw();
@@ -113,8 +112,8 @@ private:
         }
     };
 
-    int  scan (const char *, label&);
-    void parse(const void *, size_t, double);
+    int  scan (FILE *, label&);
+    void parse(const std::string&);
     void apply(label *);
 
     font *label_font;

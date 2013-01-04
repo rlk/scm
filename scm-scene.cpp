@@ -40,7 +40,7 @@ void scm_scene::set_label(const std::string &s)
     if (label)
         delete label;
 
-    label = new scm_label(label_file);
+    label = new scm_label(label_file, 1737400.0, 16);
 }
 
 void scm_scene::set_vert(const std::string &s)
@@ -120,6 +120,14 @@ void scm_scene::init_uniforms()
         }
         uM = glsl_uniform(render.program, "M");
     }
+}
+
+// Render the labels for this scene, if any.
+
+void scm_scene::draw_label() const
+{
+    if (label)
+        label->draw();
 }
 
 // Bind the program and all image textures matching channel.

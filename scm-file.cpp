@@ -12,37 +12,14 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <sstream>
 #include <cmath>
 
 #include "util3d/math3d.h"
 #include "scm-index.hpp"
 #include "scm-cache.hpp"
 #include "scm-file.hpp"
+#include "scm-path.hpp"
 #include "scm-log.hpp"
-
-//------------------------------------------------------------------------------
-
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#ifdef _WIN32
-#define PATH_LIST_SEP ';'
-#else
-#define PATH_LIST_SEP ':'
-#endif
-
-// Does the given path name an existing regular file?
-
-static bool exists(const std::string& path)
-{
-    struct stat info;
-
-    if (stat(path.c_str(), &info) == 0)
-        return ((info.st_mode & S_IFMT) == S_IFREG);
-    else
-        return false;
-}
 
 //------------------------------------------------------------------------------
 
@@ -60,33 +37,9 @@ scm_file::scm_file(const std::string& tiff) :
     av(0), ac(0),
     zv(0), zc(0)
 {
+    // Attempt to find and load the located TIFF.
 
-    // If the given file name is absolute, use it.
-
-    if (exists(tiff))
-        path = tiff;
-
-    // Otherwise, search the SCM path for the file.
-
-    else if (char *val = getenv("SCMPATH"))
-    {
-        std::stringstream list(val);
-        std::string       dir;
-        std::string       temp;
-
-        while (std::getline(list, dir, PATH_LIST_SEP))
-        {
-            temp = dir + "/" + tiff;
-
-            if (exists(temp))
-            {
-                path = temp;
-                break;
-            }
-        }
-    }
-
-    // Attempt to load the located TIFF.
+    path = scm_path_search(tiff);
 
     if (!path.empty())
     {
