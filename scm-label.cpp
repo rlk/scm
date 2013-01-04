@@ -230,7 +230,7 @@ void scm_label::parse(const std::string& file)
 #include <scm-label-sprite-vert.h>
 #include <scm-label-sprite-frag.h>
 
-scm_label::scm_label(const std::string& file, double radius, int size) :
+scm_label::scm_label(const std::string& file, int size) :
     label_line(0),
     num_circles(0),
     num_sprites(0),

@@ -30,7 +30,7 @@ public:
              const scm_step *,
              const scm_step *, double);
 
-    void draw_point();
+    void draw();
 
     // Basic accessors
 

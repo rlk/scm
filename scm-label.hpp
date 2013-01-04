@@ -82,7 +82,7 @@ class scm_label
 {
 public:
 
-    scm_label(const std::string&, double, int);
+    scm_label(const std::string&, int);
    ~scm_label();
 
     void draw();

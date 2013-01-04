@@ -40,7 +40,7 @@ void scm_scene::set_label(const std::string &s)
     if (label)
         delete label;
 
-    label = new scm_label(label_file, 1737400.0, 16);
+    label = new scm_label(label_file, 16);
 }
 
 void scm_scene::set_vert(const std::string &s)

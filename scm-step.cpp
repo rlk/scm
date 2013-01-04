@@ -181,7 +181,7 @@ scm_step::scm_step(const scm_step *a,
 
 //------------------------------------------------------------------------------
 
-void scm_step::draw_point()
+void scm_step::draw()
 {
     double v[3];
 

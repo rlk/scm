@@ -20,10 +20,10 @@
 #include <SDL_thread.h>
 
 #include "scm-file.hpp"
+#include "scm-step.hpp"
 
 //------------------------------------------------------------------------------
 
-class scm_step;
 class scm_scene;
 class scm_cache;
 class scm_sphere;
@@ -104,28 +104,32 @@ public:
    ~scm_system();
 
     void     render_sphere(const double *, int) const;
-    void     render_path()                      const;
 
     void      flush_cache();
     void     render_cache();
     void     update_cache(bool);
 
+    void      flush_queue();
+    void     append_queue(scm_step *);
+    void     render_queue();
+
     int         add_scene(int);
     void        del_scene(int);
     scm_scene  *get_scene(int);
-    int         get_scene_count() const { return int(scenes.size()); }
+    int         get_scene_count()   const { return int(scenes.size()); }
 
     int         add_step(int);
     void        del_step(int);
     scm_step   *get_step(int);
-    int         get_step_count() const { return int(steps.size()); }
+    int         get_step_count()    const { return int(steps.size()); }
 
-    double      get_current_step () const { return step;  }
-    int         get_current_scene() const { return scene; }
-    void        set_current_step (double);
+    scm_step    get_current_step()  const { return interpolate(time); }
+    double      get_current_time()  const { return time;  }
+    void        set_current_time(double);
+
+//  void        set_current_step (int);
     void        set_current_scene(int);
 
-    void        get_current_matrix(      double *) const;
     float       get_current_ground(const double *) const;
     float       get_minimum_ground()               const;
 
@@ -140,15 +144,16 @@ public:
     scm_cache  *get_cache(int);
     scm_file   *get_file (int);
 
-    float  get_page_sample(int, const double *v);
-    bool   get_page_status(int, long long);
-    void   get_page_bounds(int, long long, float&, float&);
+    float       get_page_sample(int, const double *v);
+    bool        get_page_status(int, long long);
+    void        get_page_bounds(int, long long, float&, float&);
 
 private:
 
     SDL_mutex     *mutex;
 
     scm_step_v     steps;
+    scm_step_v     queue;
     scm_scene_v    scenes;
 
     scm_scene     *scene0;
@@ -162,8 +167,9 @@ private:
 
     int    serial;
     int    frame;
-    int    scene;
-    double step;
+    double time;
+
+    scm_step interpolate(double) const;
 };
 
 //------------------------------------------------------------------------------
