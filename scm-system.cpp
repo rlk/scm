@@ -214,16 +214,17 @@ scm_step *scm_system::get_step(int i)
 }
 
 //------------------------------------------------------------------------------
-#if 0
-void scm_system::set_current_step(int s)
-{
-    if (!steps.empty())
-    {
-        s = std::max(s, 0);
-        s = std::min(s, int(steps.size() - 1));
 
-        scm_step *step0 = steps[int(floor(s))];
-        scm_step *step1 = steps[int( ceil(s))];
+void scm_system::set_current_time(double t)
+{
+    if (!queue.empty())
+    {
+        time = t;
+        time = std::max(time, 0.0);
+        time = std::min(time, double(queue.size() - 1));
+
+        scm_step *step0 = queue[int(floor(time))];
+        scm_step *step1 = queue[int( ceil(time))];
 
         for (size_t i = 0; i < scenes.size(); i++)
         {
@@ -231,14 +232,6 @@ void scm_system::set_current_step(int s)
             if (scenes[i]->get_name() == step1->get_scene()) scene1 = scenes[i];
         }
     }
-}
-#endif
-
-void scm_system::set_current_time(double t)
-{
-    time = t;
-    time = std::max(time, 0.0);
-    time = std::min(time, double(queue.size() - 1));
 }
 
 void scm_system::set_current_scene(int s)

@@ -127,7 +127,6 @@ public:
     double      get_current_time()  const { return time;  }
     void        set_current_time(double);
 
-//  void        set_current_step (int);
     void        set_current_scene(int);
 
     float       get_current_ground(const double *) const;
