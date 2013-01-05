@@ -99,12 +99,15 @@ void scm_system::append_queue(scm_step *s)
 
 void scm_system::render_queue()
 {
-    if (size_t n = queue.size() - 1)
+    if (!queue.empty())
     {
+        size_t n = queue.size() - 1;
+
         glPushAttrib(GL_ENABLE_BIT);
         {
             glDisable(GL_LIGHTING);
             glDisable(GL_TEXTURE_2D);
+            glEnable(GL_DEPTH_CLAMP);
 
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -150,7 +153,7 @@ int scm_system::add_scene(int i)
 
     if (scm_scene *scene = new scm_scene(this))
     {
-        scm_scene_i it = scenes.insert(scenes.begin() + i, scene);
+        scm_scene_i it = scenes.insert(scenes.begin() + std::max(i, 0), scene);
         j         = it - scenes.begin();
 
         scene0 = scene;
@@ -175,7 +178,10 @@ void scm_system::del_scene(int i)
 
 scm_scene *scm_system::get_scene(int i)
 {
-    return scenes[i];
+    if (0 <= i && i < int(scenes.size()))
+        return scenes[i];
+    else
+        return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -188,7 +194,7 @@ int scm_system::add_step(int i)
 
     if (scm_step *step = new scm_step())
     {
-        scm_step_i it = steps.insert(steps.begin() + i, step);
+        scm_step_i it = steps.insert(steps.begin() + std::max(i, 0), step);
         j        = it - steps.begin();
     }
     scm_log("scm_system add_step %d = %d", i, j);
@@ -210,7 +216,10 @@ void scm_system::del_step(int i)
 
 scm_step *scm_system::get_step(int i)
 {
-    return steps[i];
+    if (0 <= i && i < int(steps.size()))
+        return steps[i];
+    else
+        return 0;
 }
 
 //------------------------------------------------------------------------------

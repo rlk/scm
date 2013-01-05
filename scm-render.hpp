@@ -39,7 +39,7 @@ public:
     void set_blur(int);
     void set_wire(bool);
 
-    int  get_blue() const { return blur; }
+    int  get_blur() const { return blur; }
     bool get_wire() const { return wire; }
 
 private:
