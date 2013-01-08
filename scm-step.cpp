@@ -65,15 +65,17 @@ scm_step::scm_step()
     position[1]    = 0.0;
     position[2]    = 1.0;
 
-    light[0]       = 1.0;
-    light[1]       = 0.0;
-    light[2]       = 0.0;
+    light[0]       = 0.0;
+    light[1]       = 2.0;
+    light[2]       = 1.0;
 
     speed          = 1.0;
     distance       = 0.0;
     tension        = 0.0;
     bias           = 0.0;
     zoom           = 1.0;
+
+    vnormalize(light, light);
 }
 
 // Initialize a new SCM viewer step using linear interpolation of given steps.
@@ -270,21 +272,21 @@ void scm_step::get_light(double *v) const
 
 void scm_step::set_orientation(const double *q)
 {
-    qcpy(orientation, q);
+    qnormalize(orientation, q);
 }
 
 // Set the position vector.
 
 void scm_step::set_position(const double *v)
 {
-    vcpy(position, v);
+    vnormalize(position, v);
 }
 
 // Set the light direction vector.
 
 void scm_step::set_light(const double *v)
 {
-    vcpy(light, v);
+    vnormalize(light, v);
 }
 
 //------------------------------------------------------------------------------

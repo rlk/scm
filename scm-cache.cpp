@@ -222,6 +222,7 @@ void scm_cache::render(int ii, int nn)
         const GLdouble a = GLdouble(v[2]) / GLdouble(v[3]);
 
         glDisable(GL_LIGHTING);
+        glDisable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
 
         glMatrixMode(GL_PROJECTION);

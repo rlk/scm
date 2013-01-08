@@ -23,7 +23,7 @@
 //------------------------------------------------------------------------------
 
 scm_render::scm_render(int w, int h) :
-    width(w), height(h), blur(0), wire(false)
+    width(w), height(h), blur(16), wire(false)
 {
     init_ogl();
     init_matrices();
