@@ -91,6 +91,8 @@ static void init_fbo(GLuint& color,
 {
     GLint previous;
 
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previous);
+
     glGenFramebuffers(1, &framebuffer);
     glGenTextures    (1, &color);
     glGenTextures    (1, &depth);
@@ -100,7 +102,6 @@ static void init_fbo(GLuint& color,
 
     glBindTexture(GL_TEXTURE_RECTANGLE, 0);
 
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previous);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -268,7 +269,7 @@ void scm_render::render0(scm_sphere *sphere,
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     sphere->draw(scene0, M, width, height, channel, frame);
-    scene0->draw_label();
+    // scene0->draw_label();
 }
 
 void scm_render::render1(scm_sphere *sphere,
@@ -279,7 +280,7 @@ void scm_render::render1(scm_sphere *sphere,
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     sphere->draw(scene1, M, width, height, channel, frame);
-    scene1->draw_label();
+    // scene1->draw_label();
 }
 
 void scm_render::render(scm_sphere *sphere,
@@ -347,48 +348,46 @@ void scm_render::render(scm_sphere *sphere,
         // Bind the resurting textures.
 
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_RECTANGLE, depth1);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_RECTANGLE, depth0);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_RECTANGLE, color1);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_RECTANGLE, color0);
 
-        // Bind the right shader and set the necessary uniforms.
+        // This texture push should NOT be necessary.
 
-        if      (do_fade && do_blur)
+        glPushAttrib(GL_TEXTURE_BIT);
         {
-            glUseProgram(render_both.program);
-            glUniform1f       (uniform_both_t,       t);
-            glUniform1i       (uniform_both_n,    blur);
-            glUniformMatrix4fv(uniform_both_T, 1, 0, T);
-        }
-        else if (do_fade && !do_blur)
-        {
-            glUseProgram(render_fade.program);
-            glUniform1f       (uniform_fade_t,       t);
-        }
-        else if (!do_fade && do_blur)
-        {
-            glUseProgram(render_blur.program);
-            glUniform1i       (uniform_blur_n,    blur);
-            glUniformMatrix4fv(uniform_blur_T, 1, 0, T);
-        }
+            glActiveTexture(GL_TEXTURE3);
+            glBindTexture(GL_TEXTURE_RECTANGLE, depth1);
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_RECTANGLE, depth0);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_RECTANGLE, color1);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_RECTANGLE, color0);
 
-        fillscreen();
+            // Bind the right shader and set the necessary uniforms.
 
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_RECTANGLE, 0);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_RECTANGLE, 0);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_RECTANGLE, 0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_RECTANGLE, 0);
+            if      (do_fade && do_blur)
+            {
+                glUseProgram(render_both.program);
+                glUniform1f       (uniform_both_t,       t);
+                glUniform1i       (uniform_both_n,    blur);
+                glUniformMatrix4fv(uniform_both_T, 1, 0, T);
+            }
+            else if (do_fade && !do_blur)
+            {
+                glUseProgram(render_fade.program);
+                glUniform1f       (uniform_fade_t,       t);
+            }
+            else if (!do_fade && do_blur)
+            {
+                glUseProgram(render_blur.program);
+                glUniform1i       (uniform_blur_n,    blur);
+                glUniformMatrix4fv(uniform_blur_T, 1, 0, T);
+            }
 
-        glUseProgram(0);
+            fillscreen();
+
+            glUseProgram(0);
+        }
+    glPopAttrib();
     }
 }
 
