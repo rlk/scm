@@ -163,12 +163,19 @@ void scm_render::init_ogl()
     init_uniforms(render_blur.program, width, height);
     init_uniforms(render_both.program, width, height);
 
+    glUseProgram(render_fade.program);
     uniform_fade_t = glsl_uniform(render_fade.program, "t");
-    uniform_both_t = glsl_uniform(render_both.program, "t");
+
+    glUseProgram(render_blur.program);
     uniform_blur_n = glsl_uniform(render_blur.program, "n");
-    uniform_both_n = glsl_uniform(render_both.program, "n");
     uniform_blur_T = glsl_uniform(render_blur.program, "T");
+
+    glUseProgram(render_both.program);
+    uniform_both_t = glsl_uniform(render_both.program, "t");
+    uniform_both_n = glsl_uniform(render_both.program, "n");
     uniform_both_T = glsl_uniform(render_both.program, "T");
+
+    glUseProgram(0);
 
     init_fbo(color0, depth0, framebuffer0, width, height);
     init_fbo(color1, depth1, framebuffer1, width, height);
@@ -269,7 +276,7 @@ void scm_render::render0(scm_sphere *sphere,
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     sphere->draw(scene0, M, width, height, channel, frame);
-    // scene0->draw_label();
+    scene0->draw_label();
 }
 
 void scm_render::render1(scm_sphere *sphere,
@@ -280,7 +287,7 @@ void scm_render::render1(scm_sphere *sphere,
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     sphere->draw(scene1, M, width, height, channel, frame);
-    // scene1->draw_label();
+    scene1->draw_label();
 }
 
 void scm_render::render(scm_sphere *sphere,
@@ -324,35 +331,35 @@ void scm_render::render(scm_sphere *sphere,
 
         glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebuffer);
 
-        // Render the scene to the offscreen framebuffers.
-
-        glPushAttrib(GL_VIEWPORT_BIT);
-        {
-            glViewport(0, 0, width, height);
-            glClearColor(0.f, 0.f, 0.f, 0.f);
-
-            if (wire) wire_on();
-
-            if (do_fade)
-            {
-                render0(sphere, scene0, M, channel, frame);
-                render1(sphere, scene1, M, channel, frame);
-            }
-            else
-                render0(sphere, scene0, M, channel, frame);
-
-            if (wire) wire_off();
-        }
-        glPopAttrib();
-
-        // Bind the resurting textures.
-
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
         // This texture push should NOT be necessary.
 
         glPushAttrib(GL_TEXTURE_BIT);
         {
+            glPushAttrib(GL_VIEWPORT_BIT);
+            {
+                // Render the scene to the offscreen framebuffers.
+
+                glViewport(0, 0, width, height);
+                glClearColor(0.f, 0.f, 0.f, 0.f);
+
+                if (wire) wire_on();
+
+                if (do_fade)
+                {
+                    render0(sphere, scene0, M, channel, frame);
+                    render1(sphere, scene1, M, channel, frame);
+                }
+                else
+                    render0(sphere, scene0, M, channel, frame);
+
+                if (wire) wire_off();
+            }
+            glPopAttrib();
+
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+            // Bind the resurting textures.
+
             glActiveTexture(GL_TEXTURE3);
             glBindTexture(GL_TEXTURE_RECTANGLE, depth1);
             glActiveTexture(GL_TEXTURE2);
@@ -384,10 +391,9 @@ void scm_render::render(scm_sphere *sphere,
             }
 
             fillscreen();
-
-            glUseProgram(0);
         }
-    glPopAttrib();
+        glPopAttrib();
+        glUseProgram(0);
     }
 }
 
