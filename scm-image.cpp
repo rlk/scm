@@ -22,7 +22,8 @@
 
 scm_image::scm_image(scm_system *sys) :
     sys(sys),
-    channel(0),
+    channel(-1),
+    height(false),
     k0 ( 0),
     k1 ( 1),
     uS (-1),
@@ -47,6 +48,12 @@ void scm_image::set_scm(const std::string& s)
     if (!scm.empty()) index = sys->acquire_scm(scm);
 
     cache = (index < 0) ? 0 : sys->get_cache(index);
+}
+
+void scm_image::set_name(const std::string& s)
+{
+    name = s;
+    height = (name == "height");
 }
 
 //------------------------------------------------------------------------------

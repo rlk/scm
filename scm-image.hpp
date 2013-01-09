@@ -38,12 +38,13 @@ public:
     float              get_normal_max() const { return k1;      }
 
     void               set_scm       (const std::string& s);
-    void               set_name      (const std::string& s) { name    = s; }
+    void               set_name      (const std::string& s);
     void               set_channel   (int   c)              { channel = c; }
     void               set_normal_min(float k)              { k0      = k; }
     void               set_normal_max(float k)              { k1      = k; }
 
     bool is_channel(int c) const { return (channel == c || channel == -1); }
+    bool is_height()       const { return (height);                        }
 
     // Internal Interface
 
@@ -70,6 +71,7 @@ private:
     std::string name;
 
     int         channel;
+    bool        height;
     float       k0;
     float       k1;
 

@@ -205,7 +205,7 @@ void scm_scene::touch_page(int channel, int frame, long long i) const
 float scm_scene::get_current_ground(const double *v) const
 {
     for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->is_channel(-1))
+        if (images[j]->is_height())
             return images[j]->get_page_sample(v);
 
     return 1.f;
@@ -216,7 +216,7 @@ float scm_scene::get_current_ground(const double *v) const
 float scm_scene::get_minimum_ground() const
 {
     for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->is_channel(-1))
+        if (images[j]->is_height())
             return images[j]->get_normal_min();
 
     return 1.f;
@@ -227,7 +227,7 @@ float scm_scene::get_minimum_ground() const
 void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) const
 {
     for (int j = 0; j < get_image_count(); ++j)
-        if (images[j]->is_channel(-1))
+        if (images[j]->is_height())
         {
             images[j]->get_page_bounds(i, r0, r1);
             return;

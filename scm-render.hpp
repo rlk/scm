@@ -68,7 +68,7 @@ private:
     double B[16];
     double C[16];
     double D[16];
-    double L[16];
+    double L[16][16];
 
     glsl   render_fade;
     glsl   render_blur;
