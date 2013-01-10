@@ -111,7 +111,12 @@ void scm_image::bind_page(GLuint program, int d, int t, long long i) const
         int u;
         int l = cache->get_page(index, i, t, u);
 
+        // Compute the age. Or don't.
+#if 0
         double a = (t - u) / 60.0;
+#else
+        double a = 1.0;
+#endif
 
         if      (l ==  0) a = 0.0;
         else if (a > 1.0) a = 1.0;
