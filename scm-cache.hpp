@@ -47,14 +47,13 @@ public:
     void   render(int, int);
     void   flush ();
 
+    static int cache_size;
+    static int cache_threads;
+    static int need_queue_size;
+    static int load_queue_size;
+    static int loads_per_cycle;
+
 private:
-
-    static const int cache_size    = 12;
-    static const int cache_threads =  2;
-
-    static const int need_queue_size      = 32;   // 32
-    static const int load_queue_size      =  8;   //  8
-    static const int max_loads_per_update =  2;   //  2
 
     scm_system         *sys;
     scm_set             pages;  // Page set currently active
