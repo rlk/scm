@@ -25,7 +25,7 @@
 
 // Static cache configuration parameters and their defaults.
 
-int scm_cache::cache_size      = 12;
+int scm_cache::cache_size      = 16;
 int scm_cache::cache_threads   =  2;
 int scm_cache::need_queue_size = 32;
 int scm_cache::load_queue_size =  8;
