@@ -235,24 +235,10 @@ void scm_system::set_current_time(double t)
         scm_step *step0 = queue[int(floor(time))];
         scm_step *step1 = queue[int( ceil(time))];
 
-        for (size_t i = 0; i < scenes.size(); i++)
-        {
-            if (scenes[i]->get_name() == step0->get_scene()) scene0 = scenes[i];
-            if (scenes[i]->get_name() == step1->get_scene()) scene1 = scenes[i];
-        }
+        scene0 = find_scene(step0->get_scene());
+        scene1 = find_scene(step1->get_scene());
     }
-}
-
-void scm_system::set_current_scene(int s)
-{
-    if (!scenes.empty())
-    {
-        s = std::max(s, 0);
-        s = std::min(s, int(scenes.size() - 1));
-
-        scene0 = scenes[s];
-        scene1 = scenes[s];
-    }
+    else time = 0;
 }
 
 float scm_system::get_current_ground(const double *v) const
@@ -395,6 +381,37 @@ scm_file *scm_system::get_file(int index)
         return 0;
     else
         return pairs[index].file;
+}
+
+//------------------------------------------------------------------------------
+
+scm_scene *scm_system::find_scene(const std::string& name) const
+{
+    for (size_t i = 0; i < scenes.size(); i++)
+        if (scenes[i]->get_name() == name)
+            return scenes[i];
+
+    return 0;
+}
+
+std::string scm_system::get_scene0() const
+{
+    return scene0 ? scene0->get_name() : "";
+}
+
+std::string scm_system::get_scene1() const
+{
+    return scene1 ? scene1->get_name() : "";
+}
+
+void scm_system::set_scene0(const std::string& name)
+{
+    scene0 = find_scene(name);
+}
+
+void scm_system::set_scene1(const std::string& name)
+{
+    scene1 = find_scene(name);
 }
 
 //------------------------------------------------------------------------------

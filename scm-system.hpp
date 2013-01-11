@@ -127,7 +127,6 @@ public:
     scm_step    get_current_step()  const { return interpolate(time); }
     double      get_current_time()  const { return time;  }
     void        set_current_time(double);
-    void        set_current_scene(int);
 
     float       get_current_ground(const double *) const;
     float       get_minimum_ground()               const;
@@ -143,12 +142,19 @@ public:
     int     acquire_scm(const std::string&);
     int     release_scm(const std::string&);
 
+    scm_scene *find_scene(const std::string&) const;
     scm_cache  *get_cache(int);
     scm_file   *get_file (int);
 
     float       get_page_sample(int, const double *v);
     bool        get_page_status(int, long long);
     void        get_page_bounds(int, long long, float&, float&);
+
+    std::string get_scene0() const;
+    std::string get_scene1() const;
+
+    void        set_scene0(const std::string&);
+    void        set_scene1(const std::string&);
 
 private:
 
