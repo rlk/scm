@@ -39,12 +39,14 @@ public:
 
     // External Interface
 
+    GLuint             get_color() const { return color;      }
     const std::string& get_name () const { return name;       }
     const std::string& get_label() const { return label_file; }
     const std::string& get_vert () const { return  vert_file; }
     const std::string& get_frag () const { return  frag_file; }
 
-    void               set_name (const std::string &s) { name = s; }
+    void               set_color(GLuint c)             { color = c; }
+    void               set_name (const std::string &s) { name  = s; }
     void               set_label(const std::string &s);
     void               set_vert (const std::string &s);
     void               set_frag (const std::string &s);
@@ -88,6 +90,7 @@ private:
     scm_label  *label;
     scm_image_v images;
     glsl        render;
+    GLuint      color;
 };
 
 //------------------------------------------------------------------------------

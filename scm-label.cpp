@@ -25,11 +25,6 @@
 #include "scm-path.hpp"
 #include "scm-log.hpp"
 
-#define LABEL_R 0xFF
-#define LABEL_G 0x80
-#define LABEL_B 0x00
-#define LABEL_A 0xFF
-
 //------------------------------------------------------------------------------
 
 static double clamp(double k, double a, double b)
@@ -103,54 +98,50 @@ struct circle
     circle(matrix& M, const char *c)
     {
         const double s = 0.5;
+        GLubyte      a = 255;
 
-        GLfloat R = LABEL_R;
-        GLfloat G = LABEL_G;
-        GLfloat B = LABEL_B;
-        GLfloat A = LABEL_A;
-
-        if (c[0] == 'A' && c[1] == 'A') A *= 1.0;
-        if (c[0] == 'S' && c[1] == 'F') A *= 0.5;
+        if (c[0] == 'A' && c[1] == 'A') a /= 1;
+        if (c[0] == 'S' && c[1] == 'F') a /= 2;
 
         p[0].v[0] = M.M[0] * (-s) + M.M[4] * (-s) + M.M[12];
         p[0].v[1] = M.M[1] * (-s) + M.M[5] * (-s) + M.M[13];
         p[0].v[2] = M.M[2] * (-s) + M.M[6] * (-s) + M.M[14];
         p[0].t[0] = 0;
         p[0].t[1] = 0;
-        p[0].c[0] = R;
-        p[0].c[1] = G;
-        p[0].c[2] = B;
-        p[0].c[3] = A;
+        p[0].c[0] = 255;
+        p[0].c[1] = 255;
+        p[0].c[2] = 255;
+        p[0].c[3] = a;
 
         p[1].v[0] = M.M[0] * ( s) + M.M[4] * (-s) + M.M[12];
         p[1].v[1] = M.M[1] * ( s) + M.M[5] * (-s) + M.M[13];
         p[1].v[2] = M.M[2] * ( s) + M.M[6] * (-s) + M.M[14];
         p[1].t[0] = 0;
         p[1].t[1] = 1;
-        p[1].c[0] = R;
-        p[1].c[1] = G;
-        p[1].c[2] = B;
-        p[1].c[3] = A;
+        p[1].c[0] = 255;
+        p[1].c[1] = 255;
+        p[1].c[2] = 255;
+        p[1].c[3] = a;
 
         p[2].v[0] = M.M[0] * ( s) + M.M[4] * ( s) + M.M[12];
         p[2].v[1] = M.M[1] * ( s) + M.M[5] * ( s) + M.M[13];
         p[2].v[2] = M.M[2] * ( s) + M.M[6] * ( s) + M.M[14];
         p[2].t[0] = 1;
         p[2].t[1] = 1;
-        p[2].c[0] = R;
-        p[2].c[1] = G;
-        p[2].c[2] = B;
-        p[2].c[3] = A;
+        p[2].c[0] = 255;
+        p[2].c[1] = 255;
+        p[2].c[2] = 255;
+        p[2].c[3] = a;
 
         p[3].v[0] = M.M[0] * (-s) + M.M[4] * ( s) + M.M[12];
         p[3].v[1] = M.M[1] * (-s) + M.M[5] * ( s) + M.M[13];
         p[3].v[2] = M.M[2] * (-s) + M.M[6] * ( s) + M.M[14];
         p[3].t[0] = 1;
         p[3].t[1] = 0;
-        p[3].c[0] = R;
-        p[3].c[1] = G;
-        p[3].c[2] = B;
-        p[3].c[3] = A;
+        p[3].c[0] = 255;
+        p[3].c[1] = 255;
+        p[3].c[2] = 255;
+        p[3].c[3] = a;
     }
 };
 
@@ -173,10 +164,10 @@ struct sprite
         p.v[2] = M.M[14];
         p.t[0] = x;
         p.t[1] = y;
-        p.c[0] = LABEL_R;
-        p.c[1] = LABEL_G;
-        p.c[2] = LABEL_B;
-        p.c[3] = LABEL_A;
+        p.c[0] = 255;
+        p.c[1] = 255;
+        p.c[2] = 255;
+        p.c[3] = 255;
     }
 };
 
@@ -365,7 +356,7 @@ scm_label::~scm_label()
 
 //------------------------------------------------------------------------------
 
-void scm_label::draw()
+void scm_label::draw(GLubyte r, GLubyte g, GLubyte b, GLubyte a)
 {
     size_t sz = sizeof (point);
 
@@ -374,8 +365,10 @@ void scm_label::draw()
         // Ensure we're in clockwise mode regardless of sphere winding.
 
         glDisable(GL_DEPTH_TEST);
+        glEnable(GL_COLOR_MATERIAL);
         glEnable(GL_CULL_FACE);
         glFrontFace(GL_CCW);
+        glColor4ub(r, g, b, a);
 
         // Blend for antialiasing but preserve dest alpha for the blur shader.
 
@@ -421,7 +414,6 @@ void scm_label::draw()
         glUseProgram(0);
         glDisable(GL_LIGHTING);
         glEnable(GL_TEXTURE_2D);
-        glColor4ub(LABEL_R, LABEL_G, LABEL_B, LABEL_A);
 
         line_render(label_line);
     }

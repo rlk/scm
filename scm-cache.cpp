@@ -177,7 +177,7 @@ int scm_cache::get_slot(int t, long long i)
 //------------------------------------------------------------------------------
 
 // Handle incoming textures on the loads queue. t gives the current frame
-// count and b request that the loads queue be drained completely.
+// count.
 
 void scm_cache::update(int t, bool b)
 {

@@ -71,7 +71,7 @@ void scm_system::render_cache()
         i->second.cache->render(ii, nn);
 }
 
-void scm_system::update_cache(bool sync)
+void scm_system::update_cache()
 {
     for (active_cache_i i = caches.begin(); i != caches.end(); ++i)
         i->second.cache->update(frame, sync);

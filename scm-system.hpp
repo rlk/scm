@@ -107,7 +107,7 @@ public:
 
     void      flush_cache();
     void     render_cache();
-    void     update_cache(bool);
+    void     update_cache();
 
     void      flush_queue();
     void     append_queue(scm_step *);
@@ -131,6 +131,9 @@ public:
 
     float       get_current_ground(const double *) const;
     float       get_minimum_ground()               const;
+
+    bool        get_synchronous() const { return sync; }
+    void        set_synchronous(bool b) { sync = b;    }
 
     scm_sphere *get_sphere() const;
     scm_render *get_render() const;
@@ -166,6 +169,7 @@ private:
 
     int    serial;
     int    frame;
+    bool   sync;
     double time;
 
     scm_step interpolate(double) const;

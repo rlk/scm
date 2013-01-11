@@ -108,19 +108,22 @@ void scm_image::bind_page(GLuint program, int d, int t, long long i) const
 {
     if (cache)
     {
-        int u;
-        int l = cache->get_page(index, i, t, u);
+        // Get the page index and the time of its loading.
 
-        // Compute the age. Or don't.
-#if 0
-        double a = (t - u) / 60.0;
-#else
-        double a = 1.0;
-#endif
+        int u, l = cache->get_page(index, i, t, u);
 
-        if      (l ==  0) a = 0.0;
-        else if (a > 1.0) a = 1.0;
-        else if (a < 0.0) a = 0.0;
+        // Compute the page age.
+
+        double a = l ? 1.0 : 0.0;
+
+        if (l && sys->get_synchronous())
+        {
+            a = (t - u) / 60.0;
+            a = std::min(a, 1.0);
+            a = std::max(a, 0.0);
+        }
+
+        // Compute texture coordinate offsets and set the uniforms.
 
         const int s = cache->get_grid_size();
         const int n = cache->get_page_size();

@@ -85,7 +85,7 @@ public:
     scm_label(const std::string&, int);
    ~scm_label();
 
-    void draw();
+    void draw(GLubyte, GLubyte, GLubyte, GLubyte);
 
 private:
 

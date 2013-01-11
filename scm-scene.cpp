@@ -17,7 +17,7 @@
 
 //------------------------------------------------------------------------------
 
-scm_scene::scm_scene(scm_system *sys) : sys(sys), label(0)
+scm_scene::scm_scene(scm_system *sys) : sys(sys), label(0), color(0xFFBF00FF)
 {
     memset(&render, 0, sizeof (glsl));
 
@@ -135,7 +135,14 @@ void scm_scene::draw_label()
             label = new scm_label(label_file, 16);
 
         if (label)
-            label->draw();
+        {
+            GLubyte r = (color & 0xFF000000) >> 24;
+            GLubyte g = (color & 0x00FF0000) >> 16;
+            GLubyte b = (color & 0x0000FF00) >>  8;
+            GLubyte a = (color & 0x000000FF) >>  0;
+
+            label->draw(r, g, b, a);
+        }
     }
 }
 
