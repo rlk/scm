@@ -103,8 +103,7 @@ public:
     scm_system(int, int, int, int);
    ~scm_system();
 
-    void     render_back(const double *, int) const;
-    void     render_fore(const double *, int) const;
+    void     render_sphere(const double *, const double *, int) const;
 
     void      flush_cache();
     void     render_cache();

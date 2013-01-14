@@ -49,20 +49,11 @@ scm_system::~scm_system()
 
 //------------------------------------------------------------------------------
 
-void scm_system::render_back(const double *M, int channel) const
+void scm_system::render_sphere(const double *P,
+                               const double *M, int channel) const
 {
-    if (back0 && back1)
-        render->render(sphere, back0, back1, M, fade, channel, frame);
-}
-
-void scm_system::render_fore(const double *M, int channel) const
-{
-    glFrontFace(GL_CW);
-
-    if (fore0 && fore1)
-        render->render(sphere, fore0, fore1, M, fade, channel, frame);
-
-    glFrontFace(GL_CCW);
+    render->render(sphere, fore0, fore1,
+                           back0, back1, P, M, fade, channel, frame);
 }
 
 //------------------------------------------------------------------------------

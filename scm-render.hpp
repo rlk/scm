@@ -21,6 +21,7 @@
 
 class scm_sphere;
 class scm_scene;
+class scm_frame;
 
 //------------------------------------------------------------------------------
 
@@ -33,7 +34,11 @@ public:
 
     void render(scm_sphere *,
                 scm_scene  *,
-                scm_scene  *, const double *, double, int, int);
+                scm_scene  *,
+                scm_scene  *,
+                scm_scene  *,
+              const double *,
+              const double *, double, int, int);
 
     void set_size(int, int);
     void set_blur(int);
@@ -56,13 +61,8 @@ private:
     int    blur;
     bool   wire;
 
-    GLuint color0;
-    GLuint depth0;
-    GLuint framebuffer0;
-
-    GLuint color1;
-    GLuint depth1;
-    GLuint framebuffer1;
+    scm_frame *frame0;
+    scm_frame *frame1;
 
     double A[16];
     double B[16];

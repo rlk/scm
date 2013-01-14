@@ -18,12 +18,13 @@
 #include "scm-render.hpp"
 #include "scm-sphere.hpp"
 #include "scm-scene.hpp"
+#include "scm-frame.hpp"
 #include "scm-log.hpp"
 
 //------------------------------------------------------------------------------
 
 scm_render::scm_render(int w, int h) :
-    width(w), height(h), blur(16), wire(false)
+    width(w), height(h), blur(16), wire(false), frame0(0), frame1(0)
 {
     init_ogl();
     init_matrices();
@@ -51,68 +52,6 @@ static void init_uniforms(GLuint program, int w, int h)
         glUniform1i(glGetUniformLocation(program, "depth1"), 3);
     }
     glUseProgram(0);
-}
-
-// Initialize the storage and parameters of an off-screen color buffer.
-
-static void init_color(GLuint color, int w, int h)
-{
-    glBindTexture(GL_TEXTURE_RECTANGLE, color);
-
-    glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, w, h, 0,
-                 GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-}
-
-// Initialize the storage and parameters of an off-screen depth buffer.
-
-static void init_depth(GLuint depth, int w, int h)
-{
-    glBindTexture(GL_TEXTURE_RECTANGLE, depth);
-
-    glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT24, w, h, 0,
-                 GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
-
-    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-}
-
-// Generate and initialize a framebuffer object with color and depth buffers.
-
-static void init_fbo(GLuint& color,
-                     GLuint& depth,
-                     GLuint& framebuffer, int w, int h)
-{
-    GLint previous;
-
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previous);
-
-    glGenFramebuffers(1, &framebuffer);
-    glGenTextures    (1, &color);
-    glGenTextures    (1, &depth);
-
-    init_color(color, w, h);
-    init_depth(depth, w, h);
-
-    glBindTexture(GL_TEXTURE_RECTANGLE, 0);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                               GL_TEXTURE_RECTANGLE, color, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                               GL_TEXTURE_RECTANGLE, depth, 0);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            scm_log("* init_fbo incomplete");
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, previous);
 }
 
 //------------------------------------------------------------------------------
@@ -177,8 +116,8 @@ void scm_render::init_ogl()
 
     glUseProgram(0);
 
-    init_fbo(color0, depth0, framebuffer0, width, height);
-    init_fbo(color1, depth1, framebuffer1, width, height);
+    frame0 = new scm_frame(width, height);
+    frame1 = new scm_frame(width, height);
 
     scm_log("scm_render init_ogl %d %d", width, height);
 }
@@ -187,20 +126,14 @@ void scm_render::free_ogl()
 {
     scm_log("scm_render free_ogl %d %d", width, height);
 
+    delete frame0;
+    delete frame1;
+
+    frame0 = frame1 = 0;
+
     glsl_delete(&render_fade);
     glsl_delete(&render_blur);
     glsl_delete(&render_both);
-
-    if (color0)       glDeleteTextures    (1, &color0);
-    if (depth0)       glDeleteTextures    (1, &depth0);
-    if (framebuffer0) glDeleteFramebuffers(1, &framebuffer0);
-
-    if (color1)       glDeleteTextures    (1, &color1);
-    if (depth1)       glDeleteTextures    (1, &depth1);
-    if (framebuffer1) glDeleteFramebuffers(1, &framebuffer1);
-
-    color0 = depth0 = framebuffer0 = 0;
-    color1 = depth1 = framebuffer1 = 0;
 }
 
 //------------------------------------------------------------------------------
@@ -269,33 +202,36 @@ static void wire_off()
 //------------------------------------------------------------------------------
 
 void scm_render::render0(scm_sphere *sphere,
-                         scm_scene  *scene0,
+                         scm_scene  *fore0,
                          const double *M, int channel, int frame)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    sphere->draw(scene0, M, width, height, channel, frame);
-    scene0->draw_label();
+    sphere->draw(fore0, M, width, height, channel, frame);
+    fore0->draw_label();
 }
 
 void scm_render::render1(scm_sphere *sphere,
-                         scm_scene  *scene1,
+                         scm_scene  *fore1,
                          const double *M, int channel, int frame)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    sphere->draw(scene1, M, width, height, channel, frame);
-    scene1->draw_label();
+    sphere->draw(fore1, M, width, height, channel, frame);
+    fore1->draw_label();
 }
 
 void scm_render::render(scm_sphere *sphere,
-                        scm_scene  *scene0,
-                        scm_scene  *scene1,
-                        const double *M, double t, int channel, int frame)
+                        scm_scene  *fore0,
+                        scm_scene  *fore1,
+                        scm_scene  *back0,
+                        scm_scene  *back1,
+                      const double *P,
+                      const double *M, double t, int channel, int frame)
 {
-    const bool do_fade = !(scene0 == scene1 || t < 1.0 / 256.0);
+    const bool do_fade = !(fore0 == fore1 || t < 1.0 / 256.0);
     const bool do_blur = !(blur == 0 || is_same_transform(M, L[channel]));
 
     // Compose the transform taking current screen coordinates to previous.
@@ -321,8 +257,8 @@ void scm_render::render(scm_sphere *sphere,
     if (!do_fade && !do_blur)
     {
         if (wire) wire_on();
-        sphere->draw(scene0, M, width, height, channel, frame);
-        scene0->draw_label();
+        sphere->draw(fore0, M, width, height, channel, frame);
+        fore0->draw_label();
         if (wire) wire_off();
     }
     else
@@ -342,11 +278,11 @@ void scm_render::render(scm_sphere *sphere,
 
             if (do_fade)
             {
-                render0(sphere, scene0, M, channel, frame);
-                render1(sphere, scene1, M, channel, frame);
+                render0(sphere, fore0, M, channel, frame);
+                render1(sphere, fore1, M, channel, frame);
             }
             else
-                render0(sphere, scene0, M, channel, frame);
+                render0(sphere, fore0, M, channel, frame);
 
             if (wire) wire_off();
         }
