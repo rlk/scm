@@ -49,9 +49,13 @@ public:
 
 private:
 
+    bool check_fade(scm_scene *, scm_scene *, scm_scene *, scm_scene *, double);
+    bool check_blur(const double *, const double *, double, int, GLfloat *);
+
     void render0(scm_sphere *, scm_scene *, const double *, int, int);
     void render1(scm_sphere *, scm_scene *, const double *, int, int);
 
+    void init_uniforms(GLuint);
     void init_matrices();
     void init_ogl();
     void free_ogl();

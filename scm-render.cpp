@@ -42,7 +42,7 @@ scm_render::~scm_render()
 
 // Initialize the uniforms of the given GLSL program object.
 
-static void init_uniforms(GLuint program, int w, int h)
+void scm_render::init_uniforms(GLuint program);
 {
     glUseProgram(program);
     {
@@ -53,8 +53,6 @@ static void init_uniforms(GLuint program, int w, int h)
     }
     glUseProgram(0);
 }
-
-//------------------------------------------------------------------------------
 
 void scm_render::init_matrices()
 {
@@ -81,6 +79,8 @@ void scm_render::init_matrices()
     D[2] = 0.0; D[6] = 0.0; D[10] = 1.0; D[14] =  0.0;
     D[3] = 0.0; D[7] = 0.0; D[11] = 0.0; D[15] =  1.0;
 }
+
+//------------------------------------------------------------------------------
 
 #include <scm-render-fade-vert.h>
 #include <scm-render-fade-frag.h>
@@ -201,6 +201,46 @@ static void wire_off()
 
 //------------------------------------------------------------------------------
 
+// Determine whether fading is necessary.
+
+bool scm_render::check_fade(scm_scene *fore0, scm_scene *fore1,
+                            scm_scene *back0, scm_scene *back1, double t)
+{
+    if (fore0 != fore1) return true;
+    if (back0 != back1) return true;
+    if (t < 1.0 / 255)  return true;
+    return false
+}
+
+// Determine whether blurring is necessary and compute its transform.
+
+bool scm_render::check_blur(const double *P,
+                            const double *M, double t, int channel, GLfloat *U)
+{
+    const bool do_blur = !(blur == 0 || is_same_transform(M, L[channel]));
+
+    // Compose the transform taking current screen coordinates to previous.
+
+    double  I[16];
+    double  U[16];
+    GLfloat T[16];
+
+    minvert (I, M);
+
+    mcpy    (U, D);
+    mcompose(U, C);
+    mcompose(U, L[channel]);
+    mcompose(U, I);
+    mcompose(U, B);
+    mcompose(U, A);
+
+    mcpy(L[channel], M);
+
+    for (int i = 0; i < 16; i++)
+        T[i] = GLfloat(U[i]);
+
+}
+
 void scm_render::render0(scm_sphere *sphere,
                          scm_scene  *fore0,
                          const double *M, int channel, int frame)
@@ -233,26 +273,6 @@ void scm_render::render(scm_sphere *sphere,
 {
     const bool do_fade = !(fore0 == fore1 || t < 1.0 / 256.0);
     const bool do_blur = !(blur == 0 || is_same_transform(M, L[channel]));
-
-    // Compose the transform taking current screen coordinates to previous.
-
-    double  I[16];
-    double  U[16];
-    GLfloat T[16];
-
-    minvert (I, M);
-
-    mcpy    (U, D);
-    mcompose(U, C);
-    mcompose(U, L[channel]);
-    mcompose(U, I);
-    mcompose(U, B);
-    mcompose(U, A);
-
-    mcpy(L[channel], M);
-
-    for (int i = 0; i < 16; i++)
-        T[i] = GLfloat(U[i]);
 
     if (!do_fade && !do_blur)
     {
