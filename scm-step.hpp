@@ -34,8 +34,9 @@ public:
 
     // Basic accessors
 
-    const std::string& get_name()  const { return name;  }
-    const std::string& get_scene() const { return scene; }
+    const std::string& get_name()       const { return name;       }
+    const std::string& get_foreground() const { return foreground; }
+    const std::string& get_background() const { return background; }
 
     void   get_orientation(double *) const;
     void   get_position   (double *) const;
@@ -48,8 +49,9 @@ public:
 
     // Basic mutators
 
-    void   set_name (const std::string& s) { name = s;  }
-    void   set_scene(const std::string& s) { scene = s; }
+    void   set_name       (const std::string& s) { name       = s; }
+    void   set_foreground (const std::string& s) { foreground = s; }
+    void   set_background (const std::string& s) { background = s; }
 
     void   set_orientation(const double *);
     void   set_position   (const double *);
@@ -76,7 +78,8 @@ public:
 private:
 
     std::string name;
-    std::string scene;
+    std::string foreground;
+    std::string background;
 
     double orientation[4]; // View orientation
     double position[3];    // View point location

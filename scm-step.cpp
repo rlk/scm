@@ -41,15 +41,6 @@ static double hermite(double a, double b,
     return x0 * b + x1 * e + x2 * f + x3 * c;
 }
 
-#if 0
-static int roundint(double k)
-{
-    double f = floor(k);
-    double c =  ceil(k);
-
-    return (k - f < c - k) ? f : c;
-}
-#endif
 //------------------------------------------------------------------------------
 
 // Initialize a new SCM viewer state using default values.

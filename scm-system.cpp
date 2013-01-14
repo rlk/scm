@@ -25,13 +25,15 @@
 //------------------------------------------------------------------------------
 
 scm_system::scm_system(int w, int h, int d, int l) :
-    serial(1), frame(0), time(0)
+    serial(1), frame(0), fade(0)
 {
     mutex  = SDL_CreateMutex();
-    sphere = new scm_sphere(d, l);
     render = new scm_render(w, h);
-    scene0 = 0;
-    scene1 = 0;
+    sphere = new scm_sphere(d, l);
+    fore0 = 0;
+    fore1 = 0;
+    back0 = 0;
+    back1 = 0;
 }
 
 scm_system::~scm_system()
@@ -47,12 +49,20 @@ scm_system::~scm_system()
 
 //------------------------------------------------------------------------------
 
-void scm_system::render_sphere(const double *M, int channel) const
+void scm_system::render_back(const double *M, int channel) const
 {
-    const double t = time - floor(time);
+    if (back0 && back1)
+        render->render(sphere, back0, back1, M, fade, channel, frame);
+}
 
-    if (scene0 && scene1)
-        render->render(sphere, scene0, scene1, M, t, channel, frame);
+void scm_system::render_fore(const double *M, int channel) const
+{
+    glFrontFace(GL_CW);
+
+    if (fore0 && fore1)
+        render->render(sphere, fore0, fore1, M, fade, channel, frame);
+
+    glFrontFace(GL_CCW);
 }
 
 //------------------------------------------------------------------------------
@@ -119,7 +129,7 @@ void scm_system::render_queue()
             glBegin(GL_LINE_STRIP);
             {
                 for (size_t i = 0; i <= n * 64; i++)
-                    interpolate(double(i) / 64.0).draw();
+                    get_step_blend(double(i) / 64.0).draw();
             }
             glEnd();
 
@@ -156,8 +166,8 @@ int scm_system::add_scene(int i)
         scm_scene_i it = scenes.insert(scenes.begin() + std::max(i, 0), scene);
         j         = it - scenes.begin();
 
-        scene0 = scene;
-        scene1 = scene;
+        fore0 = scene;
+        fore1 = scene;
     }
     scm_log("scm_system add_scene %d = %d", i, j);
 
@@ -224,37 +234,69 @@ scm_step *scm_system::get_step(int i)
 
 //------------------------------------------------------------------------------
 
-void scm_system::set_current_time(double t)
+// Compute the interpolated values of the current step queue at the given time.
+// Extrapolate the first and last steps to produce a clean start and stop.
+
+scm_step scm_system::get_step_blend(double t) const
+{
+    int    i = int(floor(t));
+    double k = t - floor(t);
+
+    if (queue.size() == 0) return scm_step();
+    if (queue.size() == 1) return *queue[0];
+    if (t            == 0) return *queue[0];
+    if (k            == 0) return *queue[i];
+
+    int n = queue.size() - 2;
+    int m = queue.size() - 1;
+
+    scm_step a = (i > 0) ? *queue[i - 1] : scm_step(queue[0], queue[1], -1.0);
+    scm_step b =           *queue[i    ];
+    scm_step c =           *queue[i + 1];
+    scm_step d = (i < n) ? *queue[i + 2] : scm_step(queue[n], queue[m], +2.0);
+
+    return scm_step(&a, &b, &c, &d, k);
+}
+
+double scm_system::set_scene_blend(double t)
 {
     if (!queue.empty())
     {
-        time = t;
-        time = std::max(time, 0.0);
-        time = std::min(time, double(queue.size() - 1));
+        t = std::max(t, 0.0);
+        t = std::min(t, double(queue.size() - 1));
 
-        scm_step *step0 = queue[int(floor(time))];
-        scm_step *step1 = queue[int( ceil(time))];
+        scm_step *step0 = queue[int(floor(t))];
+        scm_step *step1 = queue[int( ceil(t))];
 
-        scene0 = find_scene(step0->get_scene());
-        scene1 = find_scene(step1->get_scene());
+        fore0 = find_scene(step0->get_foreground());
+        fore1 = find_scene(step1->get_foreground());
+        back0 = find_scene(step0->get_background());
+        back1 = find_scene(step1->get_background());
+
+        fade = t - floor(t);
+        return t;
     }
-    else time = 0;
+    else
+    {
+        fade = 0;
+        return 0;
+    }
 }
 
 float scm_system::get_current_ground(const double *v) const
 {
-    if (scene0 && scene1)
-        return std::max(scene0->get_current_ground(v),
-                        scene1->get_current_ground(v));
+    if (fore0 && fore1)
+        return std::max(fore0->get_current_ground(v),
+                        fore1->get_current_ground(v));
     else
         return 1.f;
 }
 
 float scm_system::get_minimum_ground() const
 {
-    if (scene0 && scene1)
-        return std::min(scene0->get_minimum_ground(),
-                        scene1->get_minimum_ground());
+    if (fore0 && fore1)
+        return std::min(fore0->get_minimum_ground(),
+                        fore1->get_minimum_ground());
     else
         return 1.f;
 }
@@ -363,6 +405,17 @@ int scm_system::release_scm(const std::string& name)
 
 //------------------------------------------------------------------------------
 
+// Return the scene with the given name.
+
+scm_scene *scm_system::find_scene(const std::string& name) const
+{
+    for (size_t i = 0; i < scenes.size(); i++)
+        if (scenes[i]->get_name() == name)
+            return scenes[i];
+
+    return 0;
+}
+
 // Return the cache associated with the given file index.
 
 scm_cache *scm_system::get_cache(int index)
@@ -381,37 +434,6 @@ scm_file *scm_system::get_file(int index)
         return 0;
     else
         return pairs[index].file;
-}
-
-//------------------------------------------------------------------------------
-
-scm_scene *scm_system::find_scene(const std::string& name) const
-{
-    for (size_t i = 0; i < scenes.size(); i++)
-        if (scenes[i]->get_name() == name)
-            return scenes[i];
-
-    return 0;
-}
-
-std::string scm_system::get_scene0() const
-{
-    return scene0 ? scene0->get_name() : "";
-}
-
-std::string scm_system::get_scene1() const
-{
-    return scene1 ? scene1->get_name() : "";
-}
-
-void scm_system::set_scene0(const std::string& name)
-{
-    scene0 = find_scene(name);
-}
-
-void scm_system::set_scene1(const std::string& name)
-{
-    scene1 = find_scene(name);
 }
 
 //------------------------------------------------------------------------------
@@ -441,32 +463,6 @@ bool scm_system::get_page_status(int f, long long i)
         return file->get_page_status(uint64(i));
     else
         return false;
-}
-
-//------------------------------------------------------------------------------
-
-// Compute the interpolated values of the current step queue at the given time.
-// Extrapolate the first and last steps to produce a clean start and stop.
-
-scm_step scm_system::interpolate(double t) const
-{
-    int    i = int(floor(t));
-    double k = t - floor(t);
-
-    if (queue.size() == 0) return scm_step();
-    if (queue.size() == 1) return *queue[0];
-    if (t            == 0) return *queue[0];
-    if (k            == 0) return *queue[i];
-
-    int n = queue.size() - 2;
-    int m = queue.size() - 1;
-
-    scm_step a = (i > 0) ? *queue[i - 1] : scm_step(queue[0], queue[1], -1.0);
-    scm_step b =           *queue[i    ];
-    scm_step c =           *queue[i + 1];
-    scm_step d = (i < n) ? *queue[i + 2] : scm_step(queue[n], queue[m], +2.0);
-
-    return scm_step(&a, &b, &c, &d, k);
 }
 
 //------------------------------------------------------------------------------

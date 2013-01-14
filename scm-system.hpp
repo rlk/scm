@@ -103,7 +103,8 @@ public:
     scm_system(int, int, int, int);
    ~scm_system();
 
-    void     render_sphere(const double *, int) const;
+    void     render_back(const double *, int) const;
+    void     render_fore(const double *, int) const;
 
     void      flush_cache();
     void     render_cache();
@@ -121,18 +122,17 @@ public:
     void        del_step(int);
     scm_step   *get_step(int);
 
-    int         get_scene_count()   const { return int(scenes.size()); }
-    int         get_step_count()    const { return int( steps.size()); }
+    int         get_scene_count()      const { return int(scenes.size()); }
+    double      set_scene_blend(double);
 
-    scm_step    get_current_step()  const { return interpolate(time); }
-    double      get_current_time()  const { return time;  }
-    void        set_current_time(double);
-
-    float       get_current_ground(const double *) const;
-    float       get_minimum_ground()               const;
+    int         get_step_count()       const { return int( steps.size()); }
+    scm_step    get_step_blend(double) const;
 
     bool        get_synchronous() const { return sync; }
     void        set_synchronous(bool b) { sync = b;    }
+
+    float       get_current_ground(const double *) const;
+    float       get_minimum_ground()               const;
 
     scm_sphere *get_sphere() const;
     scm_render *get_render() const;
@@ -150,12 +150,6 @@ public:
     bool        get_page_status(int, long long);
     void        get_page_bounds(int, long long, float&, float&);
 
-    std::string get_scene0() const;
-    std::string get_scene1() const;
-
-    void        set_scene0(const std::string&);
-    void        set_scene1(const std::string&);
-
 private:
 
     SDL_mutex     *mutex;
@@ -164,10 +158,12 @@ private:
     scm_step_v     queue;
     scm_scene_v    scenes;
 
-    scm_scene     *scene0;
-    scm_scene     *scene1;
-    scm_sphere    *sphere;
     scm_render    *render;
+    scm_sphere    *sphere;
+    scm_scene     *fore0;
+    scm_scene     *fore1;
+    scm_scene     *back0;
+    scm_scene     *back1;
 
     active_file_m  files;
     active_cache_m caches;
@@ -176,9 +172,7 @@ private:
     int    serial;
     int    frame;
     bool   sync;
-    double time;
-
-    scm_step interpolate(double) const;
+    double fade;
 };
 
 //------------------------------------------------------------------------------
