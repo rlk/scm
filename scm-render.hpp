@@ -35,10 +35,15 @@ public:
     void render(scm_sphere *,
                 scm_scene  *,
                 scm_scene  *,
+              const double *,
+              const double *, int, int);
+    void render(scm_sphere *,
+                scm_scene  *,
+                scm_scene  *,
                 scm_scene  *,
                 scm_scene  *,
               const double *,
-              const double *, double, int, int);
+              const double *, int, int, double);
 
     void set_size(int, int);
     void set_blur(int);
@@ -50,10 +55,7 @@ public:
 private:
 
     bool check_fade(scm_scene *, scm_scene *, scm_scene *, scm_scene *, double);
-    bool check_blur(const double *, const double *, double, int, GLfloat *);
-
-    void render0(scm_sphere *, scm_scene *, const double *, int, int);
-    void render1(scm_sphere *, scm_scene *, const double *, int, int);
+    bool check_blur(const double *, const double *, double *, GLfloat *);
 
     void init_uniforms(GLuint);
     void init_matrices();
@@ -72,7 +74,8 @@ private:
     double B[16];
     double C[16];
     double D[16];
-    double L[16][16];
+
+    double previous_T[16][16];
 
     glsl   render_fade;
     glsl   render_blur;

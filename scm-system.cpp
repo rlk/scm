@@ -53,7 +53,7 @@ void scm_system::render_sphere(const double *P,
                                const double *M, int channel) const
 {
     render->render(sphere, fore0, fore1,
-                           back0, back1, P, M, fade, channel, frame);
+                           back0, back1, P, M, channel, frame, fade);
 }
 
 //------------------------------------------------------------------------------
@@ -259,10 +259,12 @@ double scm_system::set_scene_blend(double t)
         scm_step *step0 = queue[int(floor(t))];
         scm_step *step1 = queue[int( ceil(t))];
 
-        fore0 = find_scene(step0->get_foreground());
-        fore1 = find_scene(step1->get_foreground());
-        back0 = find_scene(step0->get_background());
-        back1 = find_scene(step1->get_background());
+        scm_scene *tmp;
+
+        if ((tmp = find_scene(step0->get_foreground()))) fore0 = tmp;
+        if ((tmp = find_scene(step1->get_foreground()))) fore1 = tmp;
+        if ((tmp = find_scene(step0->get_background()))) back0 = tmp;
+        if ((tmp = find_scene(step1->get_background()))) back1 = tmp;
 
         fade = t - floor(t);
         return t;

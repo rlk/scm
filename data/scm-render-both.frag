@@ -35,6 +35,8 @@ void main()
         B1 += b1.a * vec4(b1.rgb, 1.0);
     }
 
-    gl_FragColor = vec4(mix(B0.rgb * c0.a / B0.a,
-    	                    B1.rgb * c1.a / B1.a, t), 1.0);
+//  gl_FragColor = vec4(mix(B0.rgb * c0.a / B0.a,
+//                          B1.rgb * c1.a / B1.a, t), 1.0);
+    gl_FragColor = vec4(mix(B0.rgb / B0.a,
+                            B1.rgb / B1.a, t), 1.0);
 }

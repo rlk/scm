@@ -30,7 +30,7 @@ scm_render::scm_render(int w, int h) :
     init_matrices();
 
     for (int i = 0; i < 16; i++)
-        midentity(L[i]);
+        midentity(previous_T[i]);
 }
 
 scm_render::~scm_render()
@@ -42,7 +42,7 @@ scm_render::~scm_render()
 
 // Initialize the uniforms of the given GLSL program object.
 
-void scm_render::init_uniforms(GLuint program);
+void scm_render::init_uniforms(GLuint program)
 {
     glUseProgram(program);
     {
@@ -98,9 +98,9 @@ void scm_render::init_ogl()
     glsl_source(&render_both, (const char *) scm_render_both_vert,
                               (const char *) scm_render_both_frag);
 
-    init_uniforms(render_fade.program, width, height);
-    init_uniforms(render_blur.program, width, height);
-    init_uniforms(render_both.program, width, height);
+    init_uniforms(render_fade.program);
+    init_uniforms(render_blur.program);
+    init_uniforms(render_both.program);
 
     glUseProgram(render_fade.program);
     uniform_fade_t = glsl_uniform(render_fade.program, "t");
@@ -138,17 +138,7 @@ void scm_render::free_ogl()
 
 //------------------------------------------------------------------------------
 
-static bool is_same_transform(const double *A, const double *B)
-{
-    return (A[ 0] == B[ 0] && A[ 1] == B[ 1]
-         && A[ 2] == B[ 2] && A[ 3] == A[ 3]
-         && A[ 4] == B[ 4] && A[ 5] == B[ 5]
-         && A[ 6] == B[ 6] && A[ 7] == A[ 7]
-         && A[ 8] == B[ 8] && A[ 9] == B[ 9]
-         && A[10] == B[10] && A[11] == A[11]
-         && A[12] == B[12] && A[13] == B[13]
-         && A[14] == B[14] && A[15] == A[15]);
-}
+// Draw a screen-filling rectangle.
 
 static void fillscreen()
 {
@@ -183,6 +173,8 @@ static void fillscreen()
     glPopAttrib();
 }
 
+// Set the OpenGL state for wireframe rendering.
+
 static void wire_on()
 {
     glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_POLYGON_BIT);
@@ -193,6 +185,8 @@ static void wire_on()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glLineWidth(1.0);
 }
+
+// Unset the OpenGL state for wireframe rendering.
 
 static void wire_off()
 {
@@ -209,58 +203,79 @@ bool scm_render::check_fade(scm_scene *fore0, scm_scene *fore1,
     if (fore0 != fore1) return true;
     if (back0 != back1) return true;
     if (t < 1.0 / 255)  return true;
-    return false
+    return false;
 }
 
 // Determine whether blurring is necessary and compute its transform.
 
 bool scm_render::check_blur(const double *P,
-                            const double *M, double t, int channel, GLfloat *U)
+                            const double *M,
+                                  double *S, GLfloat *U)
 {
-    const bool do_blur = !(blur == 0 || is_same_transform(M, L[channel]));
+    if (blur)
+    {
+        double T[16];
+        double I[16];
+        double N[16];
 
-    // Compose the transform taking current screen coordinates to previous.
+        mmultiply(T, P, M);
 
-    double  I[16];
-    double  U[16];
-    GLfloat T[16];
+        if (T[ 0] != S[ 0] || T[ 1] != S[ 1] ||
+            T[ 2] != S[ 2] || T[ 3] != S[ 3] ||
+            T[ 4] != S[ 4] || T[ 5] != S[ 5] ||
+            T[ 6] != S[ 6] || T[ 7] != S[ 7] ||
+            T[ 8] != S[ 8] || T[ 9] != S[ 9] ||
+            T[10] != S[10] || T[11] != S[11] ||
+            T[12] != S[12] || T[13] != S[13] ||
+            T[14] != S[14] || T[15] != S[15])
+        {
+            // Compose a transform taking current screen coords to previous.
 
-    minvert (I, M);
+            minvert (I, T);
+            mcpy    (N, D);
+            mcompose(N, C);
+            mcompose(N, S);
+            mcompose(N, I);
+            mcompose(N, B);
+            mcompose(N, A);
+            mcpy    (S, T);
 
-    mcpy    (U, D);
-    mcompose(U, C);
-    mcompose(U, L[channel]);
-    mcompose(U, I);
-    mcompose(U, B);
-    mcompose(U, A);
+            // Return this transform for use as an OpenGL uniform.
 
-    mcpy(L[channel], M);
+            for (int i = 0; i < 16; i++)
+                U[i] = GLfloat(N[i]);
 
-    for (int i = 0; i < 16; i++)
-        T[i] = GLfloat(U[i]);
-
+            return true;
+        }
+    }
+    return false;
 }
 
-void scm_render::render0(scm_sphere *sphere,
-                         scm_scene  *fore0,
-                         const double *M, int channel, int frame)
+void scm_render::render(scm_sphere *sphere,
+                        scm_scene  *fore,
+                        scm_scene  *back,
+                      const double *P,
+                      const double *M, int channel, int frame)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    double T[16];
 
-    sphere->draw(fore0, M, width, height, channel, frame);
-    fore0->draw_label();
-}
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixd(P);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixd(M);
 
-void scm_render::render1(scm_sphere *sphere,
-                         scm_scene  *fore1,
-                         const double *M, int channel, int frame)
-{
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    mmultiply(T, P, M);
 
-    sphere->draw(fore1, M, width, height, channel, frame);
-    fore1->draw_label();
+    if (wire) wire_on();
+
+    glFrontFace(GL_CW);
+
+    sphere->draw(fore, T, width, height, channel, frame);
+    fore->draw_label();
+
+    glFrontFace(GL_CCW);
+
+    if (wire) wire_off();
 }
 
 void scm_render::render(scm_sphere *sphere,
@@ -269,58 +284,55 @@ void scm_render::render(scm_sphere *sphere,
                         scm_scene  *back0,
                         scm_scene  *back1,
                       const double *P,
-                      const double *M, double t, int channel, int frame)
+                      const double *M, int channel, int frame, double t)
 {
-    const bool do_fade = !(fore0 == fore1 || t < 1.0 / 256.0);
-    const bool do_blur = !(blur == 0 || is_same_transform(M, L[channel]));
+    GLfloat T[16];
+
+    const bool do_fade = check_fade(fore0, fore1, back0, back1, t);
+    const bool do_blur = check_blur(P, M, previous_T[channel], T);
 
     if (!do_fade && !do_blur)
-    {
-        if (wire) wire_on();
-        sphere->draw(fore0, M, width, height, channel, frame);
-        fore0->draw_label();
-        if (wire) wire_off();
-    }
+        render(sphere, fore0, back0, P, M, channel, frame);
+
     else
     {
         GLint framebuffer;
 
         glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebuffer);
 
-        // Render the scene to the offscreen framebuffers.
+        // Render the scene(s) to the offscreen framebuffers.
 
         glPushAttrib(GL_VIEWPORT_BIT);
         {
             glViewport(0, 0, width, height);
             glClearColor(0.f, 0.f, 0.f, 0.f);
 
-            if (wire) wire_on();
+            frame0->bind_frame();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            render(sphere, fore0, back0, P, M, channel, frame);
 
             if (do_fade)
             {
-                render0(sphere, fore0, M, channel, frame);
-                render1(sphere, fore1, M, channel, frame);
+                frame1->bind_frame();
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                render(sphere, fore1, back1, P, M, channel, frame);
             }
-            else
-                render0(sphere, fore0, M, channel, frame);
-
-            if (wire) wire_off();
         }
         glPopAttrib();
 
         // Bind the resurting textures.
 
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_RECTANGLE, depth1);
+        frame1->bind_depth();
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_RECTANGLE, depth0);
+        frame0->bind_depth();
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_RECTANGLE, color1);
+        frame1->bind_color();
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_RECTANGLE, color0);
+        frame0->bind_color();
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-        // Bind the right shader and set the necessary uniforms.
+        // Bind the necessary shader and set its uniforms.
 
         if      (do_fade && do_blur)
         {
@@ -340,6 +352,8 @@ void scm_render::render(scm_sphere *sphere,
             glUniform1i       (uniform_blur_n,    blur);
             glUniformMatrix4fv(uniform_blur_T, 1, 0, T);
         }
+
+        // Render the blur / fade to the framebuffer.
 
         fillscreen();
         glUseProgram(0);
