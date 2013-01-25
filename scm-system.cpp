@@ -230,6 +230,9 @@ scm_step *scm_system::get_step(int i)
 
 scm_step scm_system::get_step_blend(double t) const
 {
+    t = std::max(t, 0.0);
+    t = std::min(t, double(queue.size() - 1));
+
     int    i = int(floor(t));
     double k = t - floor(t);
 
@@ -249,6 +252,9 @@ scm_step scm_system::get_step_blend(double t) const
     return scm_step(&a, &b, &c, &d, k);
 }
 
+// Set the scene caches and fade coefficient to give the rendering of the
+// current step queue at the given time.
+
 double scm_system::set_scene_blend(double t)
 {
     if (!queue.empty())
@@ -259,12 +265,10 @@ double scm_system::set_scene_blend(double t)
         scm_step *step0 = queue[int(floor(t))];
         scm_step *step1 = queue[int( ceil(t))];
 
-        scm_scene *tmp;
-
-        if ((tmp = find_scene(step0->get_foreground()))) fore0 = tmp;
-        if ((tmp = find_scene(step1->get_foreground()))) fore1 = tmp;
-        if ((tmp = find_scene(step0->get_background()))) back0 = tmp;
-        if ((tmp = find_scene(step1->get_background()))) back1 = tmp;
+        fore0 = find_scene(step0->get_foreground());
+        fore1 = find_scene(step1->get_foreground());
+        back0 = find_scene(step0->get_background());
+        back1 = find_scene(step1->get_background());
 
         fade = t - floor(t);
         return t;
@@ -276,6 +280,8 @@ double scm_system::set_scene_blend(double t)
     }
 }
 
+// Return the ground level of current scene at the given location.
+
 float scm_system::get_current_ground(const double *v) const
 {
     if (fore0 && fore1)
@@ -285,6 +291,8 @@ float scm_system::get_current_ground(const double *v) const
         return 1.f;
 }
 
+// Return the minimum ground level of the current scene.
+
 float scm_system::get_minimum_ground() const
 {
     if (fore0 && fore1)
@@ -292,16 +300,6 @@ float scm_system::get_minimum_ground() const
                         fore1->get_minimum_ground());
     else
         return 1.f;
-}
-
-scm_sphere *scm_system::get_sphere() const
-{
-    return sphere;
-}
-
-scm_render *scm_system::get_render() const
-{
-    return render;
 }
 
 //------------------------------------------------------------------------------

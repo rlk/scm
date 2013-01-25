@@ -200,9 +200,9 @@ static void wire_off()
 bool scm_render::check_fade(scm_scene *fore0, scm_scene *fore1,
                             scm_scene *back0, scm_scene *back1, double t)
 {
+    if (t < 1.0 / 255)  return false;
     if (fore0 != fore1) return true;
     if (back0 != back1) return true;
-    if (t < 1.0 / 255)  return true;
     return false;
 }
 
@@ -259,23 +259,64 @@ void scm_render::render(scm_sphere *sphere,
 {
     double T[16];
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadMatrixd(P);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixd(M);
+    if (wire)
+        wire_on();
 
-    mmultiply(T, P, M);
+    // Foreground
 
-    if (wire) wire_on();
+    if (fore)
+    {
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixd(P);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadMatrixd(M);
 
-    glFrontFace(GL_CW);
+        mmultiply(T, P, M);
 
-    sphere->draw(fore, T, width, height, channel, frame);
-    fore->draw_label();
+        glFrontFace(GL_CW);
 
-    glFrontFace(GL_CCW);
+        sphere->draw(fore, T, width, height, channel, frame);
+        fore->draw_label();
 
-    if (wire) wire_off();
+        glFrontFace(GL_CCW);
+    }
+
+    // Background
+
+    if (back)
+    {
+        const double n = 0.5;
+        const double f = 2.0;
+
+        double Q[16];
+        double N[16];
+
+        mcpy(N, M);
+        mcpy(Q, P);
+
+        N[12] = 0.0;
+        N[13] = 0.0;
+        N[14] = 0.0;
+        Q[10] = -(    f + n) / (f - n);
+        Q[14] = -(2 * f * n) / (f - n);
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixd(Q);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadMatrixd(N);
+
+        mmultiply(T, Q, N);
+
+        glDepthRange(0.999, 1.0);
+
+        sphere->draw(back, T, width, height, channel, frame);
+        back->draw_label();
+
+        glDepthRange(0.0, 1.0);
+    }
+
+    if (wire)
+        wire_off();
 }
 
 void scm_render::render(scm_sphere *sphere,

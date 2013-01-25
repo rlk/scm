@@ -133,8 +133,8 @@ public:
     float       get_current_ground(const double *) const;
     float       get_minimum_ground()               const;
 
-    scm_sphere *get_sphere() const;
-    scm_render *get_render() const;
+    scm_sphere *get_sphere() const { return sphere; }
+    scm_render *get_render() const { return render; }
 
     // Internal Interface
 
