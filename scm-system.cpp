@@ -89,6 +89,24 @@ void scm_system::flush_queue()
     queue.clear();
 }
 
+void scm_system::import_queue(const std::string& filename)
+{
+    if (FILE *fp = fopen(filename.c_str(), "r"))
+    {
+        double t[3];
+        double r[3];
+
+        queue.clear();
+
+        while (fscanf(fp, "%lf %lf %lf %lf %lf %lf\n",
+                                  t + 0, t + 1, t + 2,
+                                  r + 0, r + 1, r + 2) == 6)
+            queue.push_back(new scm_step(t, r));
+
+        fclose(fp);
+    }
+}
+
 // Append the given step to the current queue.
 
 void scm_system::append_queue(scm_step *s)
@@ -104,10 +122,13 @@ void scm_system::render_queue()
     {
         size_t n = queue.size() - 1;
 
-        glPushAttrib(GL_ENABLE_BIT);
+        glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
         {
+            glDepthMask(GL_FALSE);
+
             glDisable(GL_LIGHTING);
             glDisable(GL_TEXTURE_2D);
+            glEnable(GL_POINT_SMOOTH);
             glEnable(GL_DEPTH_CLAMP);
 
             glEnable(GL_BLEND);
@@ -115,17 +136,28 @@ void scm_system::render_queue()
 
             // Draw a line to indicate the path.
 
-            glColor4f(0.0f, 1.0f, 0.0, 0.5f);
-            glLineWidth(2.0);
-            glBegin(GL_LINE_STRIP);
+            glColor4f(1.0f, 1.0f, 0.0, 0.5f);
+            glPointSize(2.0);
+            glBegin(GL_POINTS);
             {
-                for (size_t i = 0; i <= n * 64; i++)
-                    get_step_blend(double(i) / 64.0).draw();
+                for (size_t i = 0; i <= n; i++)
+                    get_step_blend(double(i)).draw();
             }
             glEnd();
 
             // Draw the steps with colors to indicate first and last.
 
+            glPointSize(6.0);
+            glBegin(GL_POINTS);
+            {
+                glColor4f(0.0f, 1.0f, 0.0f, 0.8f);
+                queue[0]->draw();
+
+                glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
+                queue[n]->draw();
+            }
+            glEnd();
+#if 0
             glPointSize(8.0);
             glBegin(GL_POINTS);
             {
@@ -139,6 +171,7 @@ void scm_system::render_queue()
                 }
             }
             glEnd();
+#endif
         }
         glPopAttrib();
     }
@@ -265,11 +298,19 @@ double scm_system::set_scene_blend(double t)
         scm_step *step0 = queue[int(floor(t))];
         scm_step *step1 = queue[int( ceil(t))];
 
+#if 0
         fore0 = find_scene(step0->get_foreground());
         fore1 = find_scene(step1->get_foreground());
         back0 = find_scene(step0->get_background());
         back1 = find_scene(step1->get_background());
+#else
+        scm_scene *temp;
 
+        if ((temp = find_scene(step0->get_foreground()))) fore0 = temp;
+        if ((temp = find_scene(step1->get_foreground()))) fore1 = temp;
+        if ((temp = find_scene(step0->get_background()))) back0 = temp;
+        if ((temp = find_scene(step1->get_background()))) back1 = temp;
+#endif
         fade = t - floor(t);
         return t;
     }

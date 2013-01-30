@@ -29,6 +29,8 @@ public:
              const scm_step *,
              const scm_step *,
              const scm_step *, double);
+    scm_step(const double *,
+             const double *);
 
     void draw();
 

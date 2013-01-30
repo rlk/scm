@@ -110,6 +110,7 @@ public:
     void     update_cache();
 
     void      flush_queue();
+    void     import_queue(const std::string&);
     void     append_queue(scm_step *);
     void     render_queue();
 

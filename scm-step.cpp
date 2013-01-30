@@ -172,6 +172,32 @@ scm_step::scm_step(const scm_step *a,
     vnormalize(light,       light);
 }
 
+// Initialize a new SCM viewer step using the given position and orientation.
+
+scm_step::scm_step(const double *t, const double *r)
+{
+    // qeuler(orientation, r);
+    orientation[0] = 0.0;
+    orientation[1] = 0.0;
+    orientation[2] = 0.0;
+    orientation[3] = 1.0;
+
+    qnormalize(orientation, orientation);
+
+    light[0] = 0.0;
+    light[1] = 2.0;
+    light[2] = 1.0;
+
+    distance = vlen(t);
+    speed    = 1.0;
+    tension  = 0.0;
+    bias     = 0.0;
+    zoom     = 1.0;
+
+    vnormalize(light, light);
+    vnormalize(position, t);
+}
+
 //------------------------------------------------------------------------------
 
 void scm_step::draw()
