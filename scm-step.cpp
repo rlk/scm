@@ -176,13 +176,12 @@ scm_step::scm_step(const scm_step *a,
 
 scm_step::scm_step(const double *t, const double *r)
 {
-    // qeuler(orientation, r);
-    orientation[0] = 0.0;
-    orientation[1] = 0.0;
-    orientation[2] = 0.0;
-    orientation[3] = 1.0;
-
-    qnormalize(orientation, orientation);
+    qeuler(orientation, r);
+    // orientation[0] = 0.0;
+    // orientation[1] = 0.0;
+    // orientation[2] = 0.0;
+    // orientation[3] = 1.0;
+    // qnormalize(orientation, orientation);
 
     light[0] = 0.0;
     light[1] = 2.0;

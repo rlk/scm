@@ -101,8 +101,13 @@ void scm_system::import_queue(const std::string& filename)
         while (fscanf(fp, "%lf %lf %lf %lf %lf %lf\n",
                                   t + 0, t + 1, t + 2,
                                   r + 0, r + 1, r + 2) == 6)
-            queue.push_back(new scm_step(t, r));
+        {
+            r[0] *= M_PI / 180.0;
+            r[1] *= M_PI / 180.0;
+            r[2] *= M_PI / 180.0;
 
+            queue.push_back(new scm_step(t, r));
+        }
         fclose(fp);
     }
 }
