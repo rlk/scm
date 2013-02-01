@@ -10,6 +10,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 // more details.
 
+#include <sstream>
 #include <cassert>
 #include <cmath>
 #include "util3d/math3d.h"
@@ -89,26 +90,34 @@ void scm_system::flush_queue()
     queue.clear();
 }
 
-void scm_system::import_queue(const std::string& filename)
+void scm_system::import_queue(const std::string& data)
 {
-    if (FILE *fp = fopen(filename.c_str(), "r"))
+    std::stringstream file(data);
+    std::string       line;
+
+    queue.clear();
+
+    while (std::getline(file, line))
     {
-        double t[3];
-        double r[3];
+        std::stringstream in(line);
 
-        queue.clear();
+        double t[3] = { 0, 0, 0 };
+        double r[3] = { 0, 0, 0 };
+        double l[3] = { 0, 0, 0 };
 
-        while (fscanf(fp, "%lf %lf %lf %lf %lf %lf\n",
-                                  t + 0, t + 1, t + 2,
-                                  r + 0, r + 1, r + 2) == 6)
-        {
-            r[0] *= M_PI / 180.0;
-            r[1] *= M_PI / 180.0;
-            r[2] *= M_PI / 180.0;
+        if (in) in >> t[0] >> t[1] >> t[2];
+        if (in) in >> r[0] >> r[1] >> r[2];
+        if (in) in >> l[0] >> l[1] >> l[2];
 
-            queue.push_back(new scm_step(t, r));
-        }
-        fclose(fp);
+        r[0] = radians(r[0]);
+        r[1] = radians(r[1]);
+        r[2] = radians(r[2]);
+
+        l[0] = radians(l[0]);
+        l[1] = radians(l[1]);
+        l[2] = radians(l[2]);
+
+        queue.push_back(new scm_step(t, r, l));
     }
 }
 
