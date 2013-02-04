@@ -134,32 +134,30 @@ void scm_system::render_queue()
 {
     if (!queue.empty())
     {
-        size_t n = queue.size() - 1;
-
         glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
         {
-            glDepthMask(GL_FALSE);
+            size_t n = queue.size() - 1;
 
             glDisable(GL_LIGHTING);
             glDisable(GL_TEXTURE_2D);
             glEnable(GL_POINT_SMOOTH);
             glEnable(GL_DEPTH_CLAMP);
-
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glDepthMask(GL_FALSE);
 
-            // Draw a line to indicate the path.
+            // Draw a line of small points to indicate the path.
 
-            glColor4f(1.0f, 1.0f, 0.0, 0.5f);
             glPointSize(2.0);
             glBegin(GL_POINTS);
             {
+                glColor4f(1.0f, 1.0f, 0.0, 0.5f);
                 for (size_t i = 0; i <= n; i++)
                     get_step_blend(double(i)).draw();
             }
             glEnd();
 
-            // Draw the steps with colors to indicate first and last.
+            // Draw large points to indicate the first and last steps.
 
             glPointSize(6.0);
             glBegin(GL_POINTS);
@@ -171,21 +169,6 @@ void scm_system::render_queue()
                 queue[n]->draw();
             }
             glEnd();
-#if 0
-            glPointSize(8.0);
-            glBegin(GL_POINTS);
-            {
-                for (size_t i = 0; i <= n; ++i)
-                {
-                    if      (i == 0) glColor4f(0.0f, 1.0f, 0.0f, 0.8f);
-                    else if (i == n) glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
-                    else             glColor4f(1.0f, 0.5f, 0.0f, 0.6f);
-
-                    queue[i]->draw();
-                }
-            }
-            glEnd();
-#endif
         }
         glPopAttrib();
     }

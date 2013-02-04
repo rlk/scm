@@ -285,34 +285,55 @@ void scm_render::render(scm_sphere *sphere,
 
     if (back)
     {
-        const double n = 0.5;
-        const double f = 2.0;
-
-        double Q[16];
         double N[16];
+        double I[16];
 
-        mcpy(N, M);
-        mcpy(Q, P);
+        mcpy   (N, M);
+        minvert(I, P);
 
-        N[12] = 0.0;
-        N[13] = 0.0;
-        N[14] = 0.0;
-        Q[10] = -(    f + n) / (f - n);
-        Q[14] = -(2 * f * n) / (f - n);
+        double A[4], a[4] = { 0.0, 0.0, -1.0, 1.0 };
+        double B[4], b[4] = { 0.0, 0.0, +1.0, 1.0 };
+
+        wtransform(A, I, a);
+        wtransform(B, I, b);
+
+        vmul(A, A, 1.0 / A[3]);
+        vmul(B, B, 1.0 / B[3]);
+
+        double m = vlen(B);
+
+        N[ 0] *= m;
+        N[ 1] *= m;
+        N[ 2] *= m;
+        N[ 3] *= m;
+        N[ 4] *= m;
+        N[ 5] *= m;
+        N[ 6] *= m;
+        N[ 7] *= m;
+        N[ 8] *= m;
+        N[ 9] *= m;
+        N[10] *= m;
+        N[11] *= m;
+        N[12]  = 0;
+        N[13]  = 0;
+        N[14]  = 0;
 
         glMatrixMode(GL_PROJECTION);
-        glLoadMatrixd(Q);
+        glLoadMatrixd(P);
         glMatrixMode(GL_MODELVIEW);
         glLoadMatrixd(N);
 
-        mmultiply(T, Q, N);
+        mmultiply(T, P, N);
 
-        glDepthRange(0.999, 1.0);
+        glPushAttrib(GL_DEPTH_BUFFER_BIT);
+        {
+            glEnable(GL_DEPTH_CLAMP);
 
-        sphere->draw(back, T, width, height, channel, frame);
-        back->draw_label();
+            sphere->draw(back, T, width, height, channel, frame);
+            back->draw_label();
+        }
+        glPopAttrib();
 
-        glDepthRange(0.0, 1.0);
     }
 
     if (wire)
