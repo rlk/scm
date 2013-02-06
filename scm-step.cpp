@@ -177,10 +177,13 @@ scm_step::scm_step(const scm_step *a,
 
 scm_step::scm_step(const double *t, const double *r, const double *l)
 {
-    vnormalize(position, t);
+    double M[16];
 
     qeuler(orientation, r);
-    qeuler(light,       l);
+    meuler(M,           l);
+
+    vnormalize(light, M + 8);
+    vnormalize(position, t);
 
     distance = vlen(t);
     speed    = 1.0;

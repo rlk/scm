@@ -201,6 +201,11 @@ void scm_system::del_scene(int i)
 {
     scm_log("scm_system del_scene %d", i);
 
+    if (scenes[i] == fore0) fore0 = 0;
+    if (scenes[i] == back0) back0 = 0;
+    if (scenes[i] == fore1) fore1 = 0;
+    if (scenes[i] == back1) back1 = 0;
+
     delete scenes[i];
     scenes.erase(scenes.begin() + i);
 }
