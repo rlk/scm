@@ -10,6 +10,8 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 // more details.
 
+#include <cstring>
+
 #include "scm-scene.hpp"
 #include "scm-image.hpp"
 #include "scm-label.hpp"
@@ -53,7 +55,7 @@ void scm_scene::set_vert(const std::string &s)
     glsl_delete(&render);
 
     if (!vert_file.empty() && !frag_file.empty())
-        glsl_source(&render, vert_file.c_str(), frag_file.c_str());
+        glsl_source(&render, vert_file.c_str(), -1, frag_file.c_str(), -1);
 
     init_uniforms();
 }
@@ -65,7 +67,7 @@ void scm_scene::set_frag(const std::string &s)
     glsl_delete(&render);
 
     if (!vert_file.empty() && !frag_file.empty())
-        glsl_source(&render, vert_file.c_str(), frag_file.c_str());
+        glsl_source(&render, vert_file.c_str(), -1, frag_file.c_str(), -1);
 
     init_uniforms();
 }

@@ -235,9 +235,13 @@ scm_label::scm_label(const std::string& file, int size) :
     memset(&sprite_glsl, 0, sizeof (glsl));
 
     glsl_source(&circle_glsl, (const char *) scm_label_circle_vert,
-                              (const char *) scm_label_circle_frag);
+                                             scm_label_circle_vert_len,
+                              (const char *) scm_label_circle_frag,
+                                             scm_label_circle_frag_len);
     glsl_source(&sprite_glsl, (const char *) scm_label_sprite_vert,
-                              (const char *) scm_label_sprite_frag);
+                                             scm_label_sprite_vert_len,
+                              (const char *) scm_label_sprite_frag,
+                                             scm_label_sprite_frag_len);
 
     glUseProgram(sprite_glsl.program);
     glUniform1i(glGetUniformLocation(sprite_glsl.program, "icons"), 0);

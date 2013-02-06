@@ -92,11 +92,17 @@ void scm_render::init_matrices()
 void scm_render::init_ogl()
 {
     glsl_source(&render_fade, (const char *) scm_render_fade_vert,
-                              (const char *) scm_render_fade_frag);
+                                             scm_render_fade_vert_len,
+                              (const char *) scm_render_fade_frag,
+                                             scm_render_fade_frag_len);
     glsl_source(&render_blur, (const char *) scm_render_blur_vert,
-                              (const char *) scm_render_blur_frag);
+                                             scm_render_blur_vert_len,
+                              (const char *) scm_render_blur_frag,
+                                             scm_render_blur_frag_len);
     glsl_source(&render_both, (const char *) scm_render_both_vert,
-                              (const char *) scm_render_both_frag);
+                                             scm_render_both_vert_len,
+                              (const char *) scm_render_both_frag,
+                                             scm_render_both_frag_len);
 
     init_uniforms(render_fade.program);
     init_uniforms(render_blur.program);
