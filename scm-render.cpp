@@ -251,6 +251,9 @@ bool scm_render::check_blur(const double *P,
     return false;
 }
 
+// Render the foreground and background scenes. We render the foreground
+// first to allow the depth test to eliminate background texture cache traffic.
+
 void scm_render::render(scm_sphere *sphere,
                         scm_scene  *fore,
                         scm_scene  *back,
@@ -266,6 +269,8 @@ void scm_render::render(scm_sphere *sphere,
 
     if (fore)
     {
+        // Apply the transform.
+
         glMatrixMode(GL_PROJECTION);
         glLoadMatrixd(P);
         glMatrixMode(GL_MODELVIEW);
@@ -273,50 +278,52 @@ void scm_render::render(scm_sphere *sphere,
 
         mmultiply(T, P, M);
 
-        glFrontFace(GL_CW);
+        // Render the outside of the sphere.
 
-        sphere->draw(fore, T, width, height, channel, frame);
-        fore->draw_label();
-
-        glFrontFace(GL_CCW);
+        glPushAttrib(GL_POLYGON_BIT);
+        {
+            glFrontFace(GL_CW);
+            sphere->draw(fore, T, width, height, channel, frame);
+            fore->draw_label();
+        }
+        glPopAttrib();
     }
 
     // Background
 
     if (back)
     {
+        // Extract the far clipping plane distance from the projection.
+
+        double I[16], V[4], v[4] = { 0, 0, 1, 1 };
+
+        minvert   (I, P);
+        wtransform(V, I, v);
+
+        double f = vlen(V) / V[3];
+
+        // Center the sphere at the origin and scale it to the far plane.
+
         double N[16];
-        double I[16];
 
-        mcpy   (N, M);
-        minvert(I, P);
+        N[ 0] = M[ 0] * f;
+        N[ 1] = M[ 1] * f;
+        N[ 2] = M[ 2] * f;
+        N[ 3] = M[ 3] * f;
+        N[ 4] = M[ 4] * f;
+        N[ 5] = M[ 5] * f;
+        N[ 6] = M[ 6] * f;
+        N[ 7] = M[ 7] * f;
+        N[ 8] = M[ 8] * f;
+        N[ 9] = M[ 9] * f;
+        N[10] = M[10] * f;
+        N[11] = M[11] * f;
+        N[12] = 0;
+        N[13] = 0;
+        N[14] = 0;
+        N[15] = M[15];
 
-        double A[4], a[4] = { 0.0, 0.0, -1.0, 1.0 };
-        double B[4], b[4] = { 0.0, 0.0, +1.0, 1.0 };
-
-        wtransform(A, I, a);
-        wtransform(B, I, b);
-
-        vmul(A, A, 1.0 / A[3]);
-        vmul(B, B, 1.0 / B[3]);
-
-        double m = vlen(B);
-
-        N[ 0] *= m;
-        N[ 1] *= m;
-        N[ 2] *= m;
-        N[ 3] *= m;
-        N[ 4] *= m;
-        N[ 5] *= m;
-        N[ 6] *= m;
-        N[ 7] *= m;
-        N[ 8] *= m;
-        N[ 9] *= m;
-        N[10] *= m;
-        N[11] *= m;
-        N[12]  = 0;
-        N[13]  = 0;
-        N[14]  = 0;
+        // Apply the transform.
 
         glMatrixMode(GL_PROJECTION);
         glLoadMatrixd(P);
@@ -325,10 +332,12 @@ void scm_render::render(scm_sphere *sphere,
 
         mmultiply(T, P, N);
 
-        glPushAttrib(GL_DEPTH_BUFFER_BIT);
+        // Render the inside of the sphere.
+
+        glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_POLYGON_BIT);
         {
             glEnable(GL_DEPTH_CLAMP);
-
+            glFrontFace(GL_CCW);
             sphere->draw(back, T, width, height, channel, frame);
             back->draw_label();
         }
@@ -339,6 +348,8 @@ void scm_render::render(scm_sphere *sphere,
     if (wire)
         wire_off();
 }
+
+// Render, blur, and blend the given scenes.
 
 void scm_render::render(scm_sphere *sphere,
                         scm_scene  *fore0,
