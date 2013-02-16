@@ -301,29 +301,34 @@ void scm_render::render(scm_sphere *sphere,
     {
         // Extract the far clipping plane distance from the projection.
 
-        double I[16], V[4], v[4] = { 0, 0, 1, 1 };
+        double I[16];
+        double ne[4], nc[4] = { 0, 0, -1, 1 };
+        double fe[4], fc[4] = { 0, 0, +1, 1 };
 
         minvert   (I, P);
-        wtransform(V, I, v);
+        wtransform(ne, I, nc);
+        wtransform(fe, I, fc);
 
-        double f = vlen(V) / V[3];
+        double n = vlen(ne) / ne[3];
+        double f = vlen(fe) / fe[3];
+        double k = lerp(n, f, 0.95);
 
         // Center the sphere at the origin and scale it to the far plane.
 
         double N[16];
 
-        N[ 0] = M[ 0] * f;
-        N[ 1] = M[ 1] * f;
-        N[ 2] = M[ 2] * f;
-        N[ 3] = M[ 3] * f;
-        N[ 4] = M[ 4] * f;
-        N[ 5] = M[ 5] * f;
-        N[ 6] = M[ 6] * f;
-        N[ 7] = M[ 7] * f;
-        N[ 8] = M[ 8] * f;
-        N[ 9] = M[ 9] * f;
-        N[10] = M[10] * f;
-        N[11] = M[11] * f;
+        N[ 0] = M[ 0] * k;
+        N[ 1] = M[ 1] * k;
+        N[ 2] = M[ 2] * k;
+        N[ 3] = M[ 3] * k;
+        N[ 4] = M[ 4] * k;
+        N[ 5] = M[ 5] * k;
+        N[ 6] = M[ 6] * k;
+        N[ 7] = M[ 7] * k;
+        N[ 8] = M[ 8] * k;
+        N[ 9] = M[ 9] * k;
+        N[10] = M[10] * k;
+        N[11] = M[11] * k;
         N[12] = 0;
         N[13] = 0;
         N[14] = 0;
