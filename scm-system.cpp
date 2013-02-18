@@ -82,13 +82,17 @@ void scm_system::update_cache()
 
 //------------------------------------------------------------------------------
 
-// Flush the current step queue. The queue does NOT own the steps so it does not
-// delete them. They are owned by the step vector or by the caller.
+// Flush the current step queue and delete all steps.
 
 void scm_system::flush_queue()
 {
+    for (size_t i = 0; i < queue.size(); i++)
+        delete queue[i];
+
     queue.clear();
 }
+
+// Parse the given string as a series of camera states. Enqueue each.
 
 void scm_system::import_queue(const std::string& data)
 {
@@ -121,7 +125,7 @@ void scm_system::import_queue(const std::string& data)
     }
 }
 
-// Append the given step to the current queue.
+// Take ownership of the given step and append it to the current queue.
 
 void scm_system::append_queue(scm_step *s)
 {
@@ -187,8 +191,8 @@ int scm_system::add_scene(int i)
         scm_scene_i it = scenes.insert(scenes.begin() + std::max(i, 0), scene);
         j         = it - scenes.begin();
 
-        fore0 = scene;
-        fore1 = scene;
+        if (fore0 == 0) fore0 = scene;
+        if (fore1 == 0) fore1 = scene;
     }
     scm_log("scm_system add_scene %d = %d", i, j);
 
@@ -313,6 +317,7 @@ double scm_system::set_scene_blend(double t)
         if ((temp = find_scene(step0->get_background()))) back0 = temp;
         if ((temp = find_scene(step1->get_background()))) back1 = temp;
 #endif
+
         fade = t - floor(t);
         return t;
     }

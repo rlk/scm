@@ -224,6 +224,8 @@ bool scm_render::check_blur(const double *P,
         double I[16];
         double N[16];
 
+        // S is the previous transform. T is the current one. I is its inverse.
+
         mmultiply(T, P, M);
 
         if (T[ 0] != S[ 0] || T[ 1] != S[ 1] ||
@@ -311,7 +313,7 @@ void scm_render::render(scm_sphere *sphere,
 
         double n = vlen(ne) / ne[3];
         double f = vlen(fe) / fe[3];
-        double k = lerp(n, f, 0.95);
+        double k = lerp(n, f, 0.9);
 
         // Center the sphere at the origin and scale it to the far plane.
 
@@ -347,7 +349,6 @@ void scm_render::render(scm_sphere *sphere,
 
         glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_POLYGON_BIT);
         {
-            glEnable(GL_DEPTH_CLAMP);
             glFrontFace(GL_CCW);
             sphere->draw(back, T, width, height, channel, frame);
             back->draw_label();
