@@ -23,6 +23,7 @@ class scm_step
 public:
 
     scm_step();
+    scm_step(const scm_step *);
     scm_step(const scm_step *,
              const scm_step *, double);
     scm_step(const scm_step *,
@@ -77,6 +78,8 @@ public:
     void   transform_orientation(const double *);
     void   transform_position   (const double *);
     void   transform_light      (const double *);
+
+    friend double operator-(const scm_step&, const scm_step&);
 
 private:
 

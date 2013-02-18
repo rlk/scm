@@ -69,6 +69,24 @@ scm_step::scm_step()
     vnormalize(light, light);
 }
 
+// Initialize a new SCM viewer step as a copy of the given step.
+
+scm_step::scm_step(const scm_step *a)
+{
+    qcpy(orientation, a->orientation);
+    vcpy(position,    a->position);
+    vcpy(light,       a->light);
+
+    name       = a->name;
+    foreground = a->foreground;
+    background = a->background;
+    speed      = a->speed;
+    distance   = a->distance;
+    tension    = a->tension;
+    bias       = a->bias;
+    zoom       = a->zoom;
+}
+
 // Initialize a new SCM viewer step using linear interpolation of given steps.
 
 scm_step::scm_step(const scm_step *a, const scm_step *b, double t)
@@ -363,6 +381,23 @@ void scm_step::transform_light(const double *M)
 
     vtransform(v, M, light);
     vnormalize(light, v);
+}
+
+//------------------------------------------------------------------------------
+
+// The subtraction operator returns the linear distance between steps.
+
+double operator-(const scm_step& a, const scm_step& b)
+{
+    double u[3];
+    double v[3];
+    double w[3];
+
+    vmul(u, a.position, a.distance);
+    vmul(v, b.position, b.distance);
+    vsub(w, u, v);
+
+    return vlen(w);
 }
 
 //------------------------------------------------------------------------------
