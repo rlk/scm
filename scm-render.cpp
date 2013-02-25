@@ -24,7 +24,7 @@
 //------------------------------------------------------------------------------
 
 scm_render::scm_render(int w, int h) :
-    width(w), height(h), blur(16), wire(false), frame0(0), frame1(0)
+    width(w), height(h), blur(0), wire(false), frame0(0), frame1(0)
 {
     init_ogl();
     init_matrices();
@@ -273,30 +273,6 @@ void scm_render::render(scm_sphere *sphere,
     if (wire)
         wire_on();
 
-    // Foreground
-
-    if (fore)
-    {
-        // Apply the transform.
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadMatrixd(P);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixd(M);
-
-        mmultiply(T, P, M);
-
-        // Render the outside of the sphere.
-
-        glPushAttrib(GL_POLYGON_BIT);
-        {
-            glFrontFace(GL_CW);
-            sphere->draw(fore, T, width, height, channel, frame);
-            fore->draw_label();
-        }
-        glPopAttrib();
-    }
-
     // Background
 
     if (back)
@@ -313,7 +289,7 @@ void scm_render::render(scm_sphere *sphere,
 
         double n = vlen(ne) / ne[3];
         double f = vlen(fe) / fe[3];
-        double k = lerp(n, f, 0.9);
+        double k = lerp(n, f, 0.5);
 
         // Center the sphere at the origin and scale it to the far plane.
 
@@ -349,12 +325,36 @@ void scm_render::render(scm_sphere *sphere,
 
         glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_POLYGON_BIT);
         {
+            glDepthMask(GL_FALSE);
             glFrontFace(GL_CCW);
             sphere->draw(back, T, width, height, channel, frame);
             back->draw_label();
         }
         glPopAttrib();
+    }
 
+    // Foreground
+
+    if (fore)
+    {
+        // Apply the transform.
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixd(P);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadMatrixd(M);
+
+        mmultiply(T, P, M);
+
+        // Render the outside of the sphere.
+
+        glPushAttrib(GL_POLYGON_BIT);
+        {
+            glFrontFace(GL_CW);
+            sphere->draw(fore, T, width, height, channel, frame);
+            fore->draw_label();
+        }
+        glPopAttrib();
     }
 
     if (wire)
