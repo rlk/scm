@@ -156,8 +156,8 @@ void scm_system::render_queue()
             glBegin(GL_POINTS);
             {
                 glColor4f(1.0f, 1.0f, 0.0, 0.5f);
-                for (size_t i = 0; i <= n; i++)
-                    get_step_blend(double(i)).draw();
+                for (size_t i = 1; i < n; i++)
+                    queue[i]->draw();
             }
             glEnd();
 
@@ -266,7 +266,7 @@ scm_step *scm_system::get_step(int i)
 
 // Compute the interpolated values of the current step queue at the given time.
 // Extrapolate the first and last steps to produce a clean start and stop.
-
+#if 0
 scm_step scm_system::get_step_blend(double t) const
 {
     t = std::max(t, 0.0);
@@ -290,6 +290,17 @@ scm_step scm_system::get_step_blend(double t) const
 
     return scm_step(&a, &b, &c, &d, k);
 }
+#else
+scm_step scm_system::get_step_blend(double t) const
+{
+    t = std::max(t, 0.0);
+    t = std::min(t, double(queue.size() - 1));
+
+    int i = int(floor(t));
+
+    return queue[i];
+}
+#endif
 
 // Set the scene caches and fade coefficient to give the rendering of the
 // current step queue at the given time.

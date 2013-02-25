@@ -94,36 +94,34 @@ scm_step::scm_step(const scm_step *a, const scm_step *b, double t)
     assert(a);
     assert(b);
 
-    double B[4];
+    qslerp(orientation, a->orientation, b->orientation, t);
+    vslerp(position,    a->position,    b->position,    t);
+    vslerp(light,       a->light,       b->light,       t);
 
-    qsign(B, a->orientation, b->orientation);
-
-    orientation[0] = lerp(a->orientation[0], B[0], t);
-    orientation[1] = lerp(a->orientation[1], B[1], t);
-    orientation[2] = lerp(a->orientation[2], B[2], t);
-    orientation[3] = lerp(a->orientation[3], B[3], t);
-
-    position[0]    = lerp(a->position[0],    b->position[0],    t);
-    position[1]    = lerp(a->position[1],    b->position[1],    t);
-    position[2]    = lerp(a->position[2],    b->position[2],    t);
-
-    light[0]       = lerp(a->light[0],       b->light[0],       t);
-    light[1]       = lerp(a->light[1],       b->light[1],       t);
-    light[2]       = lerp(a->light[2],       b->light[2],       t);
-
-    speed          = lerp(a->speed,          b->speed,          t);
-    distance       = lerp(a->distance,       b->distance,       t);
-    tension        = lerp(a->tension,        b->tension,        t);
-    bias           = lerp(a->bias,           b->bias,           t);
-    zoom           = lerp(a->zoom,           b->zoom,           t);
+    speed        = lerp(a->speed,          b->speed,          t);
+    distance     = lerp(a->distance,       b->distance,       t);
+    tension      = lerp(a->tension,        b->tension,        t);
+    bias         = lerp(a->bias,           b->bias,           t);
+    zoom         = lerp(a->zoom,           b->zoom,           t);
 
     qnormalize(orientation, orientation);
     vnormalize(position,    position);
     vnormalize(light,       light);
 }
 
-// Initialize a new SCM viewer step using cubic interpolation of given steps.
+scm_step::scm_step(const scm_step *a,
+                   const scm_step *b,
+                   const scm_step *c,
+                   const scm_step *d, double t)
+{
+    assert(a);
+    assert(b);
+    assert(c);
+    assert(d);
+}
 
+// Initialize a new SCM viewer step using cubic interpolation of given steps.
+#if 0
 scm_step::scm_step(const scm_step *a,
                    const scm_step *b,
                    const scm_step *c,
@@ -189,7 +187,7 @@ scm_step::scm_step(const scm_step *a,
     vnormalize(position,    position);
     vnormalize(light,       light);
 }
-
+#endif
 // Initialize a new SCM viewer step using the given camera position, camera
 // orientation, and lightsource orientation.
 
