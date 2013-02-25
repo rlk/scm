@@ -26,7 +26,7 @@
 //------------------------------------------------------------------------------
 
 scm_system::scm_system(int w, int h, int d, int l) :
-    serial(1), frame(0), fade(0)
+    serial(1), frame(0), sync(false), fade(0)
 {
     mutex  = SDL_CreateMutex();
     render = new scm_render(w, h);
