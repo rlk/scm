@@ -267,7 +267,6 @@ uint64 scm_file::find_page(long long a, double& y, double& x) const
 {
     long long n = 1;
     long long l = 1;
-    uint64    i = a;
     uint64    j = 0;
     uint64    o = ov[a];
 
@@ -275,7 +274,6 @@ uint64 scm_file::find_page(long long a, double& y, double& x) const
                                              int(2 * n * x)))) < oc)
         if (ov[j])
         {
-            i = xv[j];
             o = ov[j];
             l = l + 1;
             n = n * 2;

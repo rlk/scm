@@ -20,7 +20,7 @@
 #include "scm-step.hpp"
 
 //------------------------------------------------------------------------------
-
+#if 0
 static double hermite(double a, double b,
                       double c, double d,
                       double t, double tension, double bias)
@@ -40,7 +40,7 @@ static double hermite(double a, double b,
 
     return x0 * b + x1 * e + x2 * f + x3 * c;
 }
-
+#endif
 //------------------------------------------------------------------------------
 
 // Initialize a new SCM viewer state using default values.
