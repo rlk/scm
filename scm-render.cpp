@@ -289,28 +289,19 @@ void scm_render::render(scm_sphere *sphere,
 
         double n = vlen(ne) / ne[3];
         double f = vlen(fe) / fe[3];
-        double k = lerp(n, f, 0.5);
+        double k = lerp(n, f, 0.8);
 
         // Center the sphere at the origin and scale it to the far plane.
 
         double N[16];
 
-        N[ 0] = M[ 0] * k;
-        N[ 1] = M[ 1] * k;
-        N[ 2] = M[ 2] * k;
-        N[ 3] = M[ 3] * k;
-        N[ 4] = M[ 4] * k;
-        N[ 5] = M[ 5] * k;
-        N[ 6] = M[ 6] * k;
-        N[ 7] = M[ 7] * k;
-        N[ 8] = M[ 8] * k;
-        N[ 9] = M[ 9] * k;
-        N[10] = M[10] * k;
-        N[11] = M[11] * k;
-        N[12] = 0;
-        N[13] = 0;
-        N[14] = 0;
-        N[15] = M[15];
+        midentity(N);
+        vnormalize(N + 0, M + 0);
+        vnormalize(N + 4, M + 4);
+        vnormalize(N + 8, M + 8);
+        vmul(N + 0, N + 0, k);
+        vmul(N + 4, N + 4, k);
+        vmul(N + 8, N + 8, k);
 
         // Apply the transform.
 
@@ -331,6 +322,8 @@ void scm_render::render(scm_sphere *sphere,
             back->draw_label();
         }
         glPopAttrib();
+
+        // glClear(GL_DEPTH_BUFFER_BIT);
     }
 
     // Foreground
