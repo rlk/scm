@@ -320,11 +320,9 @@ double scm_system::set_scene_blend(double t)
         fore1 = find_scene(step1->get_foreground());
         back0 = find_scene(step0->get_background());
         back1 = find_scene(step1->get_background());
-
-        printf("%p %p %p %p\n", fore0, fore1, back0, back1);
 #else
         scm_scene *temp;
-        
+
         if ((temp = find_scene(step0->get_foreground()))) fore0 = temp;
         if ((temp = find_scene(step1->get_foreground()))) fore1 = temp;
         if ((temp = find_scene(step0->get_background()))) back0 = temp;

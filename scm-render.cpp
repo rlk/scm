@@ -146,7 +146,7 @@ void scm_render::free_ogl()
 
 // Draw a screen-filling rectangle.
 
-static void fillscreen()
+static void fillscreen(int w, int h)
 {
     glPushAttrib(GL_POLYGON_BIT | GL_DEPTH_BUFFER_BIT);
     {
@@ -164,10 +164,10 @@ static void fillscreen()
 
         glBegin(GL_QUADS);
         {
-            glVertex2f(-1.0f, -1.0f);
-            glVertex2f(+1.0f, -1.0f);
-            glVertex2f(+1.0f, +1.0f);
-            glVertex2f(-1.0f, +1.0f);
+            glTexCoord2i(0, 0); glVertex2f(-1.0f, -1.0f);
+            glTexCoord2i(w, 0); glVertex2f(+1.0f, -1.0f);
+            glTexCoord2i(w, h); glVertex2f(+1.0f, +1.0f);
+            glTexCoord2i(0, h); glVertex2f(-1.0f, +1.0f);
         }
         glEnd();
 
@@ -387,9 +387,10 @@ void scm_render::render(scm_sphere *sphere,
 
         // Render the scene(s) to the offscreen framebuffers.
 
-        glPushAttrib(GL_VIEWPORT_BIT);
+        glPushAttrib(GL_VIEWPORT_BIT | GL_SCISSOR_BIT);
         {
             glViewport(0, 0, width, height);
+            glScissor (0, 0, width, height);
             glClearColor(0.f, 0.f, 0.f, 0.f);
 
             frame0->bind_frame();
@@ -440,7 +441,7 @@ void scm_render::render(scm_sphere *sphere,
 
         // Render the blur / fade to the framebuffer.
 
-        fillscreen();
+        fillscreen(width, height);
         glUseProgram(0);
     }
 }
