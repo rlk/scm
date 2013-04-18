@@ -315,14 +315,16 @@ double scm_system::set_scene_blend(double t)
         scm_step *step0 = queue[int(floor(t))];
         scm_step *step1 = queue[int( ceil(t))];
 
-#if 0
+#if 1
         fore0 = find_scene(step0->get_foreground());
         fore1 = find_scene(step1->get_foreground());
         back0 = find_scene(step0->get_background());
         back1 = find_scene(step1->get_background());
+
+        printf("%p %p %p %p\n", fore0, fore1, back0, back1);
 #else
         scm_scene *temp;
-
+        
         if ((temp = find_scene(step0->get_foreground()))) fore0 = temp;
         if ((temp = find_scene(step1->get_foreground()))) fore1 = temp;
         if ((temp = find_scene(step0->get_background()))) back0 = temp;
@@ -346,8 +348,11 @@ float scm_system::get_current_ground(const double *v) const
     if (fore0 && fore1)
         return std::max(fore0->get_current_ground(v),
                         fore1->get_current_ground(v));
-    else
-        return 1.f;
+    if (fore0)
+        return fore0->get_current_ground(v);
+    if (fore1)
+        return fore1->get_current_ground(v);
+    return 1.f;
 }
 
 // Return the minimum ground level of the current scene.
@@ -357,8 +362,11 @@ float scm_system::get_minimum_ground() const
     if (fore0 && fore1)
         return std::min(fore0->get_minimum_ground(),
                         fore1->get_minimum_ground());
-    else
-        return 1.f;
+    if (fore0)
+        return fore0->get_minimum_ground();
+    if (fore1)
+        return fore1->get_minimum_ground();
+    return 1.f;
 }
 
 //------------------------------------------------------------------------------

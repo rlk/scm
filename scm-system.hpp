@@ -137,6 +137,9 @@ public:
     scm_sphere *get_sphere() const { return sphere; }
     scm_render *get_render() const { return render; }
 
+    scm_scene  *get_fore() const { return fore0; }
+    scm_scene  *get_back() const { return back0; }
+
     // Internal Interface
 
     int     acquire_scm(const std::string&);
