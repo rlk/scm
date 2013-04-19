@@ -28,7 +28,7 @@ public:
     scm_sphere(int, int);
    ~scm_sphere();
 
-    void prep(scm_scene *, const double *, int, int, int);
+    void prep(scm_scene *, const double *, int, int, int, bool);
     void draw(scm_scene *, const double *, int, int, int, int);
 
     void set_detail(int);
@@ -64,11 +64,11 @@ private:
     bool     is_set (long long i) const { return (pages.find(i) != pages.end()); }
     void    set_page(long long i);
 
-    void    add_page(const double *, int, int, double, double, long long);
-    double view_page(const double *, int, int, double, double, long long);
+    void    add_page(const double *, int, int, double, double, long long, bool);
+    double view_page(const double *, int, int, double, double, long long, bool);
     void  debug_page(const double *,           double, double, long long);
 
-    bool   prep_page(scm_scene *, const double *, int, int, int, long long);
+    bool   prep_page(scm_scene *, const double *, int, int, int, long long, bool);
     void   draw_page(scm_scene *,                 int, int, int, long long);
 
     // OpenGL geometry state.

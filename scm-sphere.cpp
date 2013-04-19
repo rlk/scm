@@ -22,6 +22,7 @@
 
 #include "scm-sphere.hpp"
 #include "scm-index.hpp"
+#include "scm-log.hpp"
 
 //------------------------------------------------------------------------------
 
@@ -127,7 +128,7 @@ static inline double length(const double *a, const double *b, int w, int h)
 }
 
 double scm_sphere::view_page(const double *M, int vw, int vh,
-                             double r0, double r1, long long i)
+                             double r0, double r1, long long i, bool zoomb)
 {
     // Compute the corner vectors of the zoomed page.
 
@@ -135,7 +136,7 @@ double scm_sphere::view_page(const double *M, int vw, int vh,
 
     scm_page_corners(i, v);
 
-    if (zoomk != 1)
+    if (zoomb && zoomk != 1)
     {
         zoom(v + 0, v + 0);
         zoom(v + 3, v + 3);
@@ -275,11 +276,11 @@ void scm_sphere::add_page(const double *M,
                                    int width,
                                    int height,
                                 double r0,
-                                double r1, long long i)
+                                double r1, long long i, bool zoom)
 {
     if (!is_set(i))
     {
-        double k = view_page(M, width, height, r0, r1, i);
+        double k = view_page(M, width, height, r0, r1, i, zoom);
 
         if (k > 0)
         {
@@ -289,33 +290,33 @@ void scm_sphere::add_page(const double *M,
             {
                 long long p = scm_page_parent(i);
 
-                add_page(M, width, height, r0, r1, p);
+                add_page(M, width, height, r0, r1, p, zoom);
 
                 switch (scm_page_order(i))
                 {
                     case 0:
-                        add_page(M, width, height, r0, r1, scm_page_north(p));
-                        add_page(M, width, height, r0, r1, scm_page_south(i));
-                        add_page(M, width, height, r0, r1, scm_page_east (i));
-                        add_page(M, width, height, r0, r1, scm_page_west (p));
+                        add_page(M, width, height, r0, r1, scm_page_north(p), zoom);
+                        add_page(M, width, height, r0, r1, scm_page_south(i), zoom);
+                        add_page(M, width, height, r0, r1, scm_page_east (i), zoom);
+                        add_page(M, width, height, r0, r1, scm_page_west (p), zoom);
                         break;
                     case 1:
-                        add_page(M, width, height, r0, r1, scm_page_north(p));
-                        add_page(M, width, height, r0, r1, scm_page_south(i));
-                        add_page(M, width, height, r0, r1, scm_page_east (p));
-                        add_page(M, width, height, r0, r1, scm_page_west (i));
+                        add_page(M, width, height, r0, r1, scm_page_north(p), zoom);
+                        add_page(M, width, height, r0, r1, scm_page_south(i), zoom);
+                        add_page(M, width, height, r0, r1, scm_page_east (p), zoom);
+                        add_page(M, width, height, r0, r1, scm_page_west (i), zoom);
                         break;
                     case 2:
-                        add_page(M, width, height, r0, r1, scm_page_north(i));
-                        add_page(M, width, height, r0, r1, scm_page_south(p));
-                        add_page(M, width, height, r0, r1, scm_page_east (i));
-                        add_page(M, width, height, r0, r1, scm_page_west (p));
+                        add_page(M, width, height, r0, r1, scm_page_north(i), zoom);
+                        add_page(M, width, height, r0, r1, scm_page_south(p), zoom);
+                        add_page(M, width, height, r0, r1, scm_page_east (i), zoom);
+                        add_page(M, width, height, r0, r1, scm_page_west (p), zoom);
                         break;
                     case 3:
-                        add_page(M, width, height, r0, r1, scm_page_north(i));
-                        add_page(M, width, height, r0, r1, scm_page_south(p));
-                        add_page(M, width, height, r0, r1, scm_page_east (p));
-                        add_page(M, width, height, r0, r1, scm_page_west (i));
+                        add_page(M, width, height, r0, r1, scm_page_north(i), zoom);
+                        add_page(M, width, height, r0, r1, scm_page_south(p), zoom);
+                        add_page(M, width, height, r0, r1, scm_page_east (p), zoom);
+                        add_page(M, width, height, r0, r1, scm_page_west (i), zoom);
                         break;
                 }
             }
@@ -327,7 +328,7 @@ bool scm_sphere::prep_page(scm_scene *scene,
                        const double *M,
                                  int width,
                                  int height,
-                                 int channel, long long i)
+                                 int channel, long long i, bool zoom)
 {
     float t0;
     float t1;
@@ -343,7 +344,7 @@ bool scm_sphere::prep_page(scm_scene *scene,
 
         // Compute the on-screen pixel size of this page.
 
-        double k = view_page(M, width, height, r0, r1, i);
+        double k = view_page(M, width, height, r0, r1, i, zoom);
 
         // Subdivide if too large, otherwise mark for drawing.
 
@@ -356,15 +357,15 @@ bool scm_sphere::prep_page(scm_scene *scene,
                 long long i2 = scm_page_child(i, 2);
                 long long i3 = scm_page_child(i, 3);
 
-                bool b0 = prep_page(scene, M, width, height, channel, i0);
-                bool b1 = prep_page(scene, M, width, height, channel, i1);
-                bool b2 = prep_page(scene, M, width, height, channel, i2);
-                bool b3 = prep_page(scene, M, width, height, channel, i3);
+                bool b0 = prep_page(scene, M, width, height, channel, i0, zoom);
+                bool b1 = prep_page(scene, M, width, height, channel, i1, zoom);
+                bool b2 = prep_page(scene, M, width, height, channel, i2, zoom);
+                bool b3 = prep_page(scene, M, width, height, channel, i3, zoom);
 
                 if (b0 || b1 || b2 || b3)
                     return true;
             }
-            add_page(M, width, height, r0, r1, i);
+            add_page(M, width, height, r0, r1, i, zoom);
 
             return true;
         }
@@ -372,7 +373,8 @@ bool scm_sphere::prep_page(scm_scene *scene,
     return false;
 }
 
-void scm_sphere::draw_page(scm_scene *scene, int channel, int depth, int frame, long long i)
+void scm_sphere::draw_page(scm_scene *scene,
+                           int channel, int depth, int frame, long long i)
 {
     scene->bind_page(channel, depth, frame, i);
     {
@@ -433,16 +435,17 @@ void scm_sphere::draw_page(scm_scene *scene, int channel, int depth, int frame, 
 
 //------------------------------------------------------------------------------
 
-void scm_sphere::prep(scm_scene *scene, const double *M, int width, int height, int channel)
+void scm_sphere::prep(scm_scene *scene, const double *M,
+                      int width, int height, int channel, bool zoom)
 {
     pages.clear();
 
-    prep_page(scene, M, width, height, channel, 0);
-    prep_page(scene, M, width, height, channel, 1);
-    prep_page(scene, M, width, height, channel, 2);
-    prep_page(scene, M, width, height, channel, 3);
-    prep_page(scene, M, width, height, channel, 4);
-    prep_page(scene, M, width, height, channel, 5);
+    prep_page(scene, M, width, height, channel, 0, zoom);
+    prep_page(scene, M, width, height, channel, 1, zoom);
+    prep_page(scene, M, width, height, channel, 2, zoom);
+    prep_page(scene, M, width, height, channel, 3, zoom);
+    prep_page(scene, M, width, height, channel, 4, zoom);
+    prep_page(scene, M, width, height, channel, 5, zoom);
 }
 
 void scm_sphere::draw(scm_scene *scene, const double *M,
@@ -452,7 +455,7 @@ void scm_sphere::draw(scm_scene *scene, const double *M,
 
     // Perform the visibility pre-pass.
 
-    prep(scene, M, width, height, channel);
+    prep(scene, M, width, height, channel, scene->uzoomk >= 0);
 
     // Pre-cache all visible pages in breadth-first order.
 
