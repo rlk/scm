@@ -279,9 +279,10 @@ void scm_render::render(scm_sphere *sphere,
     {
         // Center the sphere at the origin and scale it to be big.
 
-        double N[16], k = 1000.0;
+        double N[16], Q[16], k = 1000.0;
 
         midentity (N);
+        mcpy(N, M);
         vnormalize(N + 0, M + 0);
         vnormalize(N + 4, M + 4);
         vnormalize(N + 8, M + 8);
@@ -289,14 +290,18 @@ void scm_render::render(scm_sphere *sphere,
         vmul      (N + 4, N + 4, k);
         vmul      (N + 8, N + 8, k);
 
+        mcpy(Q, P);
+        Q[10] = -1;
+        Q[14] = -2 * P[14] / (P[10] - 1);
+
         // Apply the transform.
 
         glMatrixMode(GL_PROJECTION);
-        glLoadMatrixd(P);
+        glLoadMatrixd(Q);
         glMatrixMode(GL_MODELVIEW);
         glLoadMatrixd(N);
 
-        mmultiply(T, P, N);
+        mmultiply(T, Q, N);
 
         // Render the inside of the sphere.
 
