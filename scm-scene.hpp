@@ -77,6 +77,8 @@ public:
     GLint   uA[16];
     GLint   uB[16];
     GLint   uM;
+    GLint   uzoomv;
+    GLint   uzoomk;
 
 private:
 

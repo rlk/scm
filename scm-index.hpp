@@ -127,6 +127,7 @@ long long scm_page_west (long long);
 long long scm_page_east (long long);
 
 void scm_page_corners(long long, double *);
+void scm_page_center (long long, double *);
 
 //------------------------------------------------------------------------------
 

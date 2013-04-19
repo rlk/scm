@@ -195,4 +195,18 @@ void scm_page_corners(long long i, double *v)
     scm_vector(a, (double) (r + 1) / n, (double) (c + 1) / n, v + 9);
 }
 
+// Calculate the center vector of page i. --------------------------------------
+
+void scm_page_center(long long i, double *v)
+{
+    long long l = scm_page_level(i);
+    long long a = scm_page_root(i);
+    long long r = scm_page_row(i);
+    long long c = scm_page_col(i);
+
+    long long n = 1LL << l;
+
+    scm_vector(a, (double) (r + 0.5) / n, (double) (c + 0.5) / n, v + 0);
+}
+
 //------------------------------------------------------------------------------

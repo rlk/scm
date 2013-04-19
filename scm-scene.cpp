@@ -123,7 +123,9 @@ void scm_scene::init_uniforms()
             uA[d] = glsl_uniform(render.program, "A[%d]", d);
             uB[d] = glsl_uniform(render.program, "B[%d]", d);
         }
-        uM = glsl_uniform(render.program, "M");
+        uM     = glsl_uniform(render.program, "M");
+        uzoomv = glsl_uniform(render.program, "zoomv");
+        uzoomk = glsl_uniform(render.program, "zoomk");
     }
 }
 

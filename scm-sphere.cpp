@@ -143,9 +143,18 @@ double scm_sphere::view_page(const double *M, int vw, int vh,
         zoom(v + 9, v + 9);
     }
 
-    // Compute the maximum extent due to bulge.
+    // If zooming has popped the page inside out, punt to infinite size.
 
     double u[3];
+
+    scm_page_center(i, u);
+
+    if (vdot(u, v + 0) < 0 ||
+        vdot(u, v + 3) < 0 ||
+        vdot(u, v + 6) < 0 ||
+        vdot(u, v + 9) < 0) return HUGE_VAL;
+
+    // Compute the maximum extent due to bulge.
 
     u[0] = v[0] + v[3] + v[6] + v[ 9];
     u[1] = v[1] + v[4] + v[7] + v[10];
@@ -471,12 +480,11 @@ void scm_sphere::draw(scm_scene *scene, const double *M,
             { -1.f,  0.f,  0.f,  0.f,  1.f,  0.f,  0.f,  0.f, -1.f },
         };
 
-#if 0
-        glUniform1f(u_zoomk, GLfloat(zoomk));
-        glUniform3f(u_zoomv, GLfloat(zoomv[0]),
-                             GLfloat(zoomv[1]),
-                             GLfloat(zoomv[2]));
-#endif
+        glUniform1f(scene->uzoomk, GLfloat(zoomk));
+        glUniform3f(scene->uzoomv, GLfloat(zoomv[0]),
+                                   GLfloat(zoomv[1]),
+                                   GLfloat(zoomv[2]));
+
         if (is_set(0))
         {
             glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[0]);
