@@ -277,31 +277,17 @@ void scm_render::render(scm_sphere *sphere,
 
     if (back)
     {
-        // Extract the far clipping plane distance from the projection.
+        // Center the sphere at the origin and scale it to be big.
 
-        double I[16];
-        double ne[4], nc[4] = { 0, 0, -1, 1 };
-        double fe[4], fc[4] = { 0, 0, +1, 1 };
+        double N[16], k = 1000.0;
 
-        minvert   (I, P);
-        wtransform(ne, I, nc);
-        wtransform(fe, I, fc);
-
-        double n = vlen(ne) / ne[3];
-        double f = vlen(fe) / fe[3];
-        double k = lerp(n, f, 0.8);
-
-        // Center the sphere at the origin and scale it to the far plane.
-
-        double N[16];
-
-        midentity(N);
+        midentity (N);
         vnormalize(N + 0, M + 0);
         vnormalize(N + 4, M + 4);
         vnormalize(N + 8, M + 8);
-        vmul(N + 0, N + 0, k);
-        vmul(N + 4, N + 4, k);
-        vmul(N + 8, N + 8, k);
+        vmul      (N + 0, N + 0, k);
+        vmul      (N + 4, N + 4, k);
+        vmul      (N + 8, N + 8, k);
 
         // Apply the transform.
 
