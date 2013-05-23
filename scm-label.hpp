@@ -110,6 +110,9 @@ private:
                  || (typ[0] == '@' && typ[1] == '*')
                  || (typ[0] == '@' && typ[1] == 'C'));
         }
+        bool latlon() const {
+            return ((typ[0] == '@' && typ[1] == '#'));
+        }
     };
 
     int  scan (FILE *, label&);
@@ -121,6 +124,7 @@ private:
 
     int    num_circles;
     int    num_sprites;
+    int    num_latlons;
     int    sprite_size;
 
     glsl   circle_glsl;
@@ -128,6 +132,7 @@ private:
 
     GLuint circle_vbo;
     GLuint sprite_vbo;
+    GLuint latlon_vbo;
     GLuint sprite_tex;
 
     std::vector<label> labels;

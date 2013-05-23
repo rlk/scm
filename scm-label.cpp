@@ -171,6 +171,41 @@ struct sprite
     }
 };
 
+struct latlon
+{
+    point p[360];
+
+    latlon(float lat, float lon, float rad)
+    {
+        float P = 0.0f;
+        float T = 0.0f;
+
+        for (int i = 0; i < 360; ++i)
+        {
+            if (lon)
+            {
+                P = radians(i);
+                T = radians(lon);
+            }
+            else
+            {
+                P = radians(lat);
+                T = radians(i);
+            }
+
+            p[i].v[0] = rad * sinf(T) * cosf(P);
+            p[i].v[1] = rad *           sinf(P);
+            p[i].v[2] = rad * cosf(T) * cosf(P);
+            p[i].t[0] =   0;
+            p[i].t[1] =   0;
+            p[i].c[0] = 127;
+            p[i].c[1] = 127;
+            p[i].c[2] = 127;
+            p[i].c[3] = 127;
+        }
+    }
+};
+
 //------------------------------------------------------------------------------
 
 int scm_label::scan(FILE *fp, label& L)
@@ -223,6 +258,7 @@ scm_label::scm_label(const std::string& file, int size) :
     label_line(0),
     num_circles(0),
     num_sprites(0),
+    num_latlons(0),
     sprite_size(size)
 {
     // Initialize the font.
@@ -256,6 +292,7 @@ scm_label::scm_label(const std::string& file, int size) :
     std::vector<matrix> matrix_v;
     std::vector<circle> circle_v;
     std::vector<sprite> sprite_v;
+    std::vector<latlon> latlon_v;
 
     for (int i = 0; i < int(labels.size()); ++i)
     {
@@ -295,6 +332,14 @@ scm_label::scm_label(const std::string& file, int size) :
             circle_v.push_back(C);
         }
 
+        // Create a line of latitude.
+
+        if (labels[i].latlon())
+        {
+            latlon L(labels[i].lat, labels[i].lon, labels[i].rad);
+            latlon_v.push_back(L);
+        }
+
         // Add the string and matrix to the list.
 
         double e = 0.001 * clamp(k, 0.0, 0.5) / k;
@@ -308,6 +353,7 @@ scm_label::scm_label(const std::string& file, int size) :
 
     num_circles = circle_v.size();
     num_sprites = sprite_v.size();
+    num_latlons = latlon_v.size();
 
     size_t sz = sizeof (point);
 
@@ -331,6 +377,13 @@ scm_label::scm_label(const std::string& file, int size) :
     glBufferData(GL_ARRAY_BUFFER, 1 * sz * sprite_v.size(),
                                           &sprite_v.front(), GL_STATIC_DRAW);
 
+    // Create a VBO for the latlons.
+
+    glGenBuffers(1,              &latlon_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, latlon_vbo);
+    glBufferData(GL_ARRAY_BUFFER, 360 * sz * latlon_v.size(),
+                                            &latlon_v.front(), GL_STATIC_DRAW);
+
     // Create a texture for the sprites.
 
     glGenTextures(1,             &sprite_tex);
@@ -348,6 +401,7 @@ scm_label::~scm_label()
 {
     scm_log("scm_label destructor");
 
+    glDeleteBuffers(1, &latlon_vbo);
     glDeleteBuffers(1, &sprite_vbo);
     glDeleteBuffers(1, &circle_vbo);
 
@@ -369,10 +423,12 @@ void scm_label::draw(GLubyte r, GLubyte g, GLubyte b, GLubyte a)
         // Ensure we're in clockwise mode regardless of sphere winding.
 
         glDisable(GL_DEPTH_TEST);
+        glEnable(GL_LINE_SMOOTH);
         glEnable(GL_COLOR_MATERIAL);
         glEnable(GL_CULL_FACE);
         glFrontFace(GL_CCW);
         glColor4ub(r, g, b, a);
+        glLineWidth(0.5);
 
         // Blend for antialiasing but preserve dest alpha for the blur shader.
 
@@ -383,7 +439,19 @@ void scm_label::draw(GLubyte r, GLubyte g, GLubyte b, GLubyte a)
         {
             glEnableClientState(GL_VERTEX_ARRAY);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
+
+            // Draw the latlons.
+
+            // glEnable(GL_CLIP_PLANE0);
+
+            glBindBuffer(GL_ARRAY_BUFFER, latlon_vbo);
+            glVertexPointer  (3, GL_FLOAT,         sz, (GLvoid *)  0);
+            glTexCoordPointer(2, GL_FLOAT,         sz, (GLvoid *) 12);
+            glColorPointer   (4, GL_UNSIGNED_BYTE, sz, (GLvoid *) 20);
+
+            glUseProgram(0);
+            for (int i = 0; i < num_latlons; i++)
+                glDrawArrays(GL_LINE_LOOP, i * 360, 360);
 
             // Draw the circles.
 
