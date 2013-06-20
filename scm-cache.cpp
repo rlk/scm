@@ -234,6 +234,7 @@ void scm_cache::render(int ii, int nn)
         glDisable(GL_LIGHTING);
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
 
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
