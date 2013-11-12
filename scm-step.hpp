@@ -74,6 +74,7 @@ public:
     void   get_forward    (double *) const;
 
     void   set_pitch(double);
+    void   set_matrix(const double *);
 
     void   transform_orientation(const double *);
     void   transform_position   (const double *);

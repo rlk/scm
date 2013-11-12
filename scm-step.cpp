@@ -352,6 +352,12 @@ void scm_step::set_pitch(double a)
     qnormalize(orientation, orientation);
 }
 
+void scm_step::set_matrix(const double *M)
+{
+    qmatrix(orientation, M);
+    vnormalize(position, M + 12);
+}
+
 //------------------------------------------------------------------------------
 
 void scm_step::transform_orientation(const double *M)
