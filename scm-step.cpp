@@ -343,8 +343,10 @@ void scm_step::set_pitch(double a)
 
 void scm_step::set_matrix(const double *M)
 {
+    const double *p = M + 12;
     qmatrix(orientation, M);
-    vnormalize(position, M + 12);
+    vnormalize(position, p);
+    distance = vlen(p);
 }
 
 //------------------------------------------------------------------------------
