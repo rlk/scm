@@ -20,7 +20,7 @@
 #include "scm-step.hpp"
 
 //------------------------------------------------------------------------------
-#if 0
+
 static double hermite(double a, double b,
                       double c, double d,
                       double t, double tension, double bias)
@@ -40,7 +40,7 @@ static double hermite(double a, double b,
 
     return x0 * b + x1 * e + x2 * f + x3 * c;
 }
-#endif
+
 //------------------------------------------------------------------------------
 
 // Initialize a new SCM viewer state using default values.
@@ -109,19 +109,8 @@ scm_step::scm_step(const scm_step *a, const scm_step *b, double t)
     vnormalize(light,       light);
 }
 
-scm_step::scm_step(const scm_step *a,
-                   const scm_step *b,
-                   const scm_step *c,
-                   const scm_step *d, double t)
-{
-    assert(a);
-    assert(b);
-    assert(c);
-    assert(d);
-}
-
 // Initialize a new SCM viewer step using cubic interpolation of given steps.
-#if 0
+
 scm_step::scm_step(const scm_step *a,
                    const scm_step *b,
                    const scm_step *c,
@@ -187,7 +176,7 @@ scm_step::scm_step(const scm_step *a,
     vnormalize(position,    position);
     vnormalize(light,       light);
 }
-#endif
+
 // Initialize a new SCM viewer step using the given camera position, camera
 // orientation, and lightsource orientation.
 
