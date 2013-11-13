@@ -125,6 +125,37 @@ void scm_system::import_queue(const std::string& data)
     }
 }
 
+void scm_system::export_queue(std::string& data)
+{
+    std::stringstream file;
+
+    for (size_t i = 0; i < queue.size(); ++i)
+    {
+        double d = queue[i]->get_distance();
+        double p[3];
+        double q[4];
+        double r[3];
+
+        queue[i]->get_position(p);
+        queue[i]->get_orientation(q);
+
+        p[0] *= d;
+        p[1] *= d;
+        p[2] *= d;
+
+        equaternion(r, q);
+
+        file << p[0] << " "
+             << p[1] << " "
+             << p[2] << " "
+             << r[0] << " "
+             << r[1] << " "
+             << r[2] << " "
+             << "0.0 0.0 0.0" << std::endl;
+    }
+    data = file.str();
+}
+
 // Take ownership of the given step and append it to the current queue.
 
 void scm_system::append_queue(scm_step *s)
