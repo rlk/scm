@@ -277,31 +277,30 @@ void scm_render::render(scm_sphere *sphere,
 
     if (back)
     {
-        // Center the sphere at the origin and scale it to be big.
+        // Center the sphere at the origin and scale it to the far plane.
 
-        double N[16], Q[16], k = 1000.0;
+        const double f = P[14] / (1 + P[10]);
 
-        midentity (N);
+        double N[16];
+
+        midentity(N);
         mcpy(N, M);
         vnormalize(N + 0, M + 0);
         vnormalize(N + 4, M + 4);
         vnormalize(N + 8, M + 8);
-        vmul      (N + 0, N + 0, k);
-        vmul      (N + 4, N + 4, k);
-        vmul      (N + 8, N + 8, k);
-
-        mcpy(Q, P);
-        Q[10] = -1;
-        Q[14] = -2 * P[14] / (P[10] - 1);
+        vmul      (N + 0, N + 0, f * 0.99);
+        vmul      (N + 4, N + 4, f * 0.99);
+        vmul      (N + 8, N + 8, f * 0.99);
+        N[12] = N[13] = N[14] = 0.0;
 
         // Apply the transform.
 
         glMatrixMode(GL_PROJECTION);
-        glLoadMatrixd(Q);
+        glLoadMatrixd(P);
         glMatrixMode(GL_MODELVIEW);
         glLoadMatrixd(N);
 
-        mmultiply(T, Q, N);
+        mmultiply(T, P, N);
 
         // Render the inside of the sphere.
 
@@ -313,8 +312,6 @@ void scm_render::render(scm_sphere *sphere,
             back->draw_label();
         }
         glPopAttrib();
-
-        // glClear(GL_DEPTH_BUFFER_BIT);
     }
 
     // Foreground
