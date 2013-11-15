@@ -121,7 +121,12 @@ void scm_system::import_queue(const std::string& data)
         l[1] = radians(l[1]);
         l[2] = radians(l[2]);
 
-        queue.push_back(new scm_step(t, r, l));
+        scm_step *S = new scm_step(t, r, l);
+
+        S->set_foreground(fore0->get_name());
+        S->set_background(back0->get_name());
+
+        append_queue(S);
     }
 }
 
@@ -148,9 +153,9 @@ void scm_system::export_queue(std::string& data)
         file << p[0] << " "
              << p[1] << " "
              << p[2] << " "
-             << r[0] << " "
-             << r[1] << " "
-             << r[2] << " "
+             << degrees(r[0]) << " "
+             << degrees(r[1]) << " "
+             << degrees(r[2]) << " "
              << "0.0 0.0 0.0" << std::endl;
     }
     data = file.str();

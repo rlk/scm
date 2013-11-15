@@ -24,7 +24,7 @@
 //------------------------------------------------------------------------------
 
 scm_render::scm_render(int w, int h) :
-    width(w), height(h), blur(0), wire(false), frame0(0), frame1(0)
+    width(w), height(h), blur(16), wire(false), frame0(0), frame1(0)
 {
     init_ogl();
     init_matrices();
