@@ -11,6 +11,7 @@
 // more details.
 
 #include <sstream>
+#include <iomanip>
 #include <cassert>
 #include <cmath>
 #include "util3d/math3d.h"
@@ -101,6 +102,8 @@ void scm_system::import_queue(const std::string& data)
 
     queue.clear();
 
+    int n = 0;
+
     while (std::getline(file, line))
     {
         std::stringstream in(line);
@@ -127,6 +130,8 @@ void scm_system::import_queue(const std::string& data)
         S->set_background(back0->get_name());
 
         append_queue(S);
+
+        n++;
     }
 }
 
@@ -150,7 +155,8 @@ void scm_system::export_queue(std::string& data)
 
         equaternion(r, q);
 
-        file << p[0] << " "
+        file << std::setprecision(std::numeric_limits<long double>::digits10)
+             << p[0] << " "
              << p[1] << " "
              << p[2] << " "
              << degrees(r[0]) << " "
