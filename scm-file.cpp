@@ -131,7 +131,7 @@ void scm_file::activate(scm_cache *cache)
     int loader(void *);
 
     for (int i = 0; i < 2; ++i)
-        threads.push_back(SDL_CreateThread(loader, this));
+        threads.push_back(SDL_CreateThread(loader, "scm-loader", this));
 }
 
 void scm_file::deactivate()
