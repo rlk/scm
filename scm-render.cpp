@@ -82,12 +82,12 @@ void scm_render::init_matrices()
 
 //------------------------------------------------------------------------------
 
-#include <scm-render-fade-vert.h>
-#include <scm-render-fade-frag.h>
-#include <scm-render-blur-vert.h>
-#include <scm-render-blur-frag.h>
-#include <scm-render-both-vert.h>
-#include <scm-render-both-frag.h>
+#include "scm-render-fade-vert.h"
+#include "scm-render-fade-frag.h"
+#include "scm-render-blur-vert.h"
+#include "scm-render-blur-frag.h"
+#include "scm-render-both-vert.h"
+#include "scm-render-both-frag.h"
 
 void scm_render::init_ogl()
 {
