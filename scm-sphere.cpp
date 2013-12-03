@@ -115,6 +115,14 @@ void scm_sphere::set_limit(int l)
 
 //------------------------------------------------------------------------------
 
+double determinant(const double *a, const double *b, const double *c)
+{
+    double t[3];
+
+    vcrs(t, b, c);
+    return vdot(a, t);
+}
+
 static inline double length(const double *a, const double *b, int w, int h)
 {
     if (a[3] <= 0 && b[3] <= 0) return 0;
@@ -146,16 +154,12 @@ double scm_sphere::view_page(const double *M, int vw, int vh,
 
     // If zooming has popped the page inside out, punt to infinite size.
 
-    double u[3];
-
-    scm_page_center(i, u);
-
-    if (vdot(u, v + 0) < 0 ||
-        vdot(u, v + 3) < 0 ||
-        vdot(u, v + 6) < 0 ||
-        vdot(u, v + 9) < 0) return HUGE_VAL;
+    if (determinant(v + 0, v + 6, v + 3) < 0 ||
+        determinant(v + 9, v + 3, v + 6) < 0) return HUGE_VAL;
 
     // Compute the maximum extent due to bulge.
+
+    double u[3];
 
     u[0] = v[0] + v[3] + v[6] + v[ 9];
     u[1] = v[1] + v[4] + v[7] + v[10];

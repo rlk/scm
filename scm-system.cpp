@@ -70,6 +70,9 @@ void scm_system::render_cache()
 {
     int ii = 0, nn = caches.size();
 
+    if (nn < 2)
+        nn = 2;
+
     for (active_cache_i i = caches.begin(); i != caches.end(); ++i, ++ii)
         i->second.cache->render(ii, nn);
 }
