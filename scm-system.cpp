@@ -129,8 +129,8 @@ void scm_system::import_queue(const std::string& data)
 
         scm_step *S = new scm_step(t, r, l);
 
-        S->set_foreground(fore0->get_name());
-        S->set_background(back0->get_name());
+        if (fore0) S->set_foreground(fore0->get_name());
+        if (back0) S->set_background(back0->get_name());
 
         append_queue(S);
 
