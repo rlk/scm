@@ -24,7 +24,7 @@
 //------------------------------------------------------------------------------
 
 scm_render::scm_render(int w, int h) :
-    width(w), height(h), blur(16), wire(false), frame0(0), frame1(0)
+    width(w), height(h), blur(0), wire(false), frame0(0), frame1(0)
 {
     init_ogl();
     init_matrices();
@@ -296,6 +296,7 @@ void scm_render::render(scm_sphere *sphere,
         // Apply the transform.
 
         glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
         glLoadMatrixd(P);
         glMatrixMode(GL_MODELVIEW);
         glLoadMatrixd(N);

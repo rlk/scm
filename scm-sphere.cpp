@@ -138,24 +138,40 @@ static inline double length(const double *a, const double *b, int w, int h)
 double scm_sphere::view_page(const double *M, int vw, int vh,
                              double r0, double r1, long long i, bool zoomb)
 {
-    // Compute the corner vectors of the zoomed page.
-
     double v[12];
 
     scm_page_corners(i, v);
 
     if (zoomb && zoomk != 1)
     {
+        // Zoom, if necessary.
+
         zoom(v + 0, v + 0);
         zoom(v + 3, v + 3);
         zoom(v + 6, v + 6);
         zoom(v + 9, v + 9);
+
+        // If zooming has stretched the page to obtuse, force a subdivision.
+
+        if (vdot(v + 0, v + 3) < 0 ||
+            vdot(v + 3, v + 9) < 0 ||
+            vdot(v + 9, v + 6) < 0 ||
+            vdot(v + 6, v + 0) < 0) return HUGE_VAL;
+
+        // If zooming has popped the page inside-out, force a subdivision.
+
+        if (determinant(v + 3, v + 0, v + 6) < 0 ||
+            determinant(v + 3, v + 0, v + 9) < 0 ||
+
+            determinant(v + 9, v + 3, v + 0) < 0 ||
+            determinant(v + 9, v + 3, v + 6) < 0 ||
+
+            determinant(v + 6, v + 9, v + 0) < 0 ||
+            determinant(v + 6, v + 9, v + 3) < 0 ||
+
+            determinant(v + 0, v + 6, v + 3) < 0 ||
+            determinant(v + 0, v + 6, v + 9) < 0) return HUGE_VAL;
     }
-
-    // If zooming has popped the page inside out, punt to infinite size.
-
-    if (determinant(v + 0, v + 6, v + 3) < 0 ||
-        determinant(v + 9, v + 3, v + 6) < 0) return HUGE_VAL;
 
     // Compute the maximum extent due to bulge.
 
@@ -199,7 +215,7 @@ double scm_sphere::view_page(const double *M, int vw, int vh,
         E[3] <= 0 && F[3] <= 0 && G[3] <= 0 && H[3] <= 0)
         return 0;
 
-    // Compute Z and trivially reject using the near and far clipping planes.
+    // Compute Z and reject using the near and far clipping planes.
 
     A[2] = M[ 2] * a[0] + M[ 6] * a[1] + M[10] * a[2] + M[14];
     B[2] = M[ 2] * b[0] + M[ 6] * b[1] + M[10] * b[2] + M[14];
@@ -217,7 +233,7 @@ double scm_sphere::view_page(const double *M, int vw, int vh,
         E[2] < -E[3] && F[2] < -F[3] && G[2] < -G[3] && H[2] < -H[3])
         return 0;
 
-    // Compute Y and trivially reject using the bottom and top clipping planes.
+    // Compute Y and reject using the bottom and top clipping planes.
 
     A[1] = M[ 1] * a[0] + M[ 5] * a[1] + M[ 9] * a[2] + M[13];
     B[1] = M[ 1] * b[0] + M[ 5] * b[1] + M[ 9] * b[2] + M[13];
@@ -235,7 +251,7 @@ double scm_sphere::view_page(const double *M, int vw, int vh,
         E[1] < -E[3] && F[1] < -F[3] && G[1] < -G[3] && H[1] < -H[3])
         return 0;
 
-    // Compute X and trivially reject using the left and right clipping planes.
+    // Compute X and reject using the left and right clipping planes.
 
     A[0] = M[ 0] * a[0] + M[ 4] * a[1] + M[ 8] * a[2] + M[12];
     B[0] = M[ 0] * b[0] + M[ 4] * b[1] + M[ 8] * b[2] + M[12];
@@ -254,15 +270,6 @@ double scm_sphere::view_page(const double *M, int vw, int vh,
         return 0;
 
     // Compute the length of the longest visible edge, in pixels.
-
-    // return std::max(std::max(std::max(length(A, B, vw, vh),
-    //                                   length(C, D, vw, vh)),
-    //                          std::max(length(A, C, vw, vh),
-    //                                   length(B, D, vw, vh))),
-    //                 std::max(std::max(length(E, F, vw, vh),
-    //                                   length(G, H, vw, vh)),
-    //                          std::max(length(E, G, vw, vh),
-    //                                   length(F, H, vw, vh))));
 
     return std::max(std::max(length(A, B, vw, vh),
                              length(C, D, vw, vh)),
@@ -329,10 +336,10 @@ void scm_sphere::add_page(const double *M,
 }
 
 bool scm_sphere::prep_page(scm_scene *scene,
-                       const double *M,
-                                 int width,
-                                 int height,
-                                 int channel, long long i, bool zoom)
+                        const double *M,
+                                  int width,
+                                  int height,
+                                  int channel, long long i, bool zoom)
 {
     float t0;
     float t1;
