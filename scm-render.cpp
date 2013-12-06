@@ -199,6 +199,20 @@ static void wire_off()
     glPopAttrib();
 }
 
+// Calculate the distance to the far clipping plane of the give projection.
+
+static double fardistance(const double *P)
+{
+    double c[4] = { 0.0, 0.0, 1.0, 1.0 };
+    double e[4] = { 0.0, 0.0, 0.0, 0.0 };
+    double I[16];
+
+    minvert   (I, P);
+    wtransform(e, I, c);
+
+    return vlen(e) / e[3];
+}
+
 //------------------------------------------------------------------------------
 
 // Determine whether fading is necessary.
@@ -279,24 +293,16 @@ void scm_render::render(scm_sphere *sphere,
     {
         // Center the sphere at the origin and scale it to the far plane.
 
-        const double f = P[14] / (1 + P[10]);
-
-        double N[16];
+        double N[16], k = fardistance(P) * 0.999;
 
         midentity(N);
-        mcpy(N, M);
-        vnormalize(N + 0, M + 0);
-        vnormalize(N + 4, M + 4);
-        vnormalize(N + 8, M + 8);
-        vmul      (N + 0, N + 0, f * 0.99);
-        vmul      (N + 4, N + 4, f * 0.99);
-        vmul      (N + 8, N + 8, f * 0.99);
-        N[12] = N[13] = N[14] = 0.0;
+        vmul(N + 0, M + 0, k / vlen(M + 0));
+        vmul(N + 4, M + 4, k / vlen(M + 4));
+        vmul(N + 8, M + 8, k / vlen(M + 8));
 
         // Apply the transform.
 
         glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
         glLoadMatrixd(P);
         glMatrixMode(GL_MODELVIEW);
         glLoadMatrixd(N);
