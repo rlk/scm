@@ -293,7 +293,7 @@ void scm_render::render(scm_sphere *sphere,
     {
         // Center the sphere at the origin and scale it to the far plane.
 
-        double N[16], k = fardistance(P) * 0.999;
+        double N[16], k = fardistance(P);
 
         midentity(N);
         vmul(N + 0, M + 0, k / vlen(M + 0));
@@ -311,8 +311,10 @@ void scm_render::render(scm_sphere *sphere,
 
         // Render the inside of the sphere.
 
-        glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_POLYGON_BIT);
+        glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_POLYGON_BIT);
         {
+            glEnable(GL_DEPTH_CLAMP);
+            glDepthFunc(GL_LEQUAL);
             glDepthMask(GL_FALSE);
             glFrontFace(GL_CCW);
             sphere->draw(back, T, width, height, channel, frame);
