@@ -13,6 +13,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cassert>
+#include <limits>
 #include <cmath>
 #include "util3d/math3d.h"
 
