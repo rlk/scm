@@ -69,11 +69,11 @@ template <typename T> bool scm_queue<T>::try_insert(T& d)
 {
     if (SDL_SemTryWait(free_slots) == 0)
     {
-        SDL_mutexP(data_mutex);
+        SDL_LockMutex(data_mutex);
         {
             S.insert(d);
         }
-        SDL_mutexV(data_mutex);
+        SDL_UnlockMutex(data_mutex);
         SDL_SemPost(full_slots);
         return true;
     }
@@ -84,12 +84,12 @@ template <typename T> bool scm_queue<T>::try_remove(T& d)
 {
     if (SDL_SemTryWait(full_slots) == 0)
     {
-        SDL_mutexP(data_mutex);
+        SDL_LockMutex(data_mutex);
         {
             d   = *(S.begin());
             S.erase(S.begin());
         }
-        SDL_mutexV(data_mutex);
+        SDL_UnlockMutex(data_mutex);
         SDL_SemPost(free_slots);
         return true;
     }
@@ -102,11 +102,11 @@ template <typename T> bool scm_queue<T>::try_remove(T& d)
 template <typename T> void scm_queue<T>::insert(T d)
 {
     SDL_SemWait(free_slots);
-    SDL_mutexP(data_mutex);
+    SDL_LockMutex(data_mutex);
     {
         S.insert(d);
     }
-    SDL_mutexV(data_mutex);
+    SDL_UnlockMutex(data_mutex);
     SDL_SemPost(full_slots);
 }
 
@@ -115,12 +115,12 @@ template <typename T> T scm_queue<T>::remove()
     T d;
 
     SDL_SemWait(full_slots);
-    SDL_mutexP(data_mutex);
+    SDL_LockMutex(data_mutex);
     {
         d   = *(S.begin());
         S.erase(S.begin());
     }
-    SDL_mutexV(data_mutex);
+    SDL_UnlockMutex(data_mutex);
     SDL_SemPost(free_slots);
 
     return d;
