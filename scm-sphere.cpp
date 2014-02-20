@@ -64,12 +64,9 @@ void scm_sphere::zoom(double *w, const double *v)
     {
         double b = scale(zoomk, acos(d) / M_PI) * M_PI;
 
-        double y[3];
         double x[3];
 
-        vcrs(y, v, zoomv);
-        vnormalize(y, y);
-        vcrs(x, zoomv, y);
+        vmad(x, v, zoomv, -d);
         vnormalize(x, x);
 
         vmul(w, zoomv, cos(b));
