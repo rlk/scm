@@ -39,9 +39,10 @@ public:
 
     void set_zoom(double x, double y, double z, double k)
     {
-        zoomv[0] = x;
-        zoomv[1] = y;
-        zoomv[2] = z;
+        double d = sqrt(x * x + y * y + z * z);
+        zoomv[0] = x / d;
+        zoomv[1] = y / d;
+        zoomv[2] = z / d;
         zoomk    = k;
     }
 
