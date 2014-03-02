@@ -102,7 +102,8 @@ private:
 
 //------------------------------------------------------------------------------
 
-bool scm_load_page(TIFF *T, uint64, int, int, int, int, void *);
+bool scm_load_page(const char *, long long,
+                         TIFF *, uint64, int, int, int, int, void *);
 
 //------------------------------------------------------------------------------
 

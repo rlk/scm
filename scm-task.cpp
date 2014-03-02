@@ -71,9 +71,9 @@ void scm_task::dump_page()
 // Load the page at offset o of TIFF T. Store it in pixel buffer p. On success,
 // mark the buffer as dirty.
 
-void scm_task::load_page(TIFF *T)
+bool scm_task::load_page(const char *name, TIFF *T)
 {
-    d = scm_load_page(T, o, n + 2, n + 2, c, b, p);
+    return (d = scm_load_page(name, i, T, o, n + 2, n + 2, c, b, p));
 }
 
 //------------------------------------------------------------------------------
