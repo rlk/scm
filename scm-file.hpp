@@ -32,35 +32,39 @@ typedef std::vector<SDL_Thread *>::iterator thread_i;
 
 //------------------------------------------------------------------------------
 
-struct scm_file
+class scm_file
 {
 public:
 
     scm_file(const std::string& name);
-   ~scm_file();
 
-    void   activate(scm_cache *);
-    void deactivate();
+    virtual ~scm_file();
 
-    bool        add_need(scm_task&);
+    void    activate(scm_cache *);
+    void  deactivate();
+    bool is_active() const { return active.get(); }
 
-    bool        get_page_status(uint64)                 const;
-    uint64      get_page_offset(uint64)                 const;
-    void        get_page_bounds(uint64, float&, float&) const;
-    float       get_page_sample(const double *);
+    bool           add_need(scm_task&);
 
-    uint32      get_w()      const { return w; }
-    uint32      get_h()      const { return h; }
-    uint16      get_c()      const { return c; }
-    uint16      get_b()      const { return b; }
+    virtual bool   get_page_status(uint64)                 const;
+    virtual uint64 get_page_offset(uint64)                 const;
+    virtual void   get_page_bounds(uint64, float&, float&) const;
+    virtual float  get_page_sample(const double *);
 
-    const char *get_path()   const { return path.c_str(); }
-    const char *get_name()   const { return name.c_str(); }
+    virtual uint32 get_w()    const { return w; }
+    virtual uint32 get_h()    const { return h; }
+    virtual uint16 get_c()    const { return c; }
+    virtual uint16 get_b()    const { return b; }
 
-    bool         is_valid()  const { return w && h && c && b && (w == h); }
-    bool         is_active() const { return active.get();                 }
+    const char    *get_path() const { return path.c_str(); }
+    const char    *get_name() const { return name.c_str(); }
 
-    uint64     find_page(long long, double&, double&) const;
+    uint64        find_page(long long, double&, double&) const;
+
+protected:
+
+    std::string path;
+    std::string name;
 
 private:
 
@@ -73,9 +77,6 @@ private:
     thread_v            threads;
 
     // Image parameters
-
-    std::string path;
-    std::string name;
 
     uint32   w;         // Page width
     uint32   h;         // Page height
@@ -94,8 +95,10 @@ private:
     void   *zv;         // Page maxima
     uint64  zc;
 
-    float  tofloat(const void *, uint64) const;
-    uint64 toindex(uint64)               const;
+    float  tofloat(const void *, uint64)        const;
+    void fromfloat(const void *, uint64, float) const;
+
+    uint64 toindex(uint64) const;
 
     friend int loader(void *);
 };

@@ -425,11 +425,9 @@ int scm_system::acquire_scm(const std::string& name)
         files[name].uses++;
     else
     {
-        // Otherwise load the file and confirm its validity.
+        // Otherwise load the file.
 
-        scm_file *file = new scm_file(name);
-
-        if (file->is_valid())
+        if (scm_file *file = new scm_file(name))
         {
             int index = serial++;
 
@@ -456,11 +454,6 @@ int scm_system::acquire_scm(const std::string& name)
             SDL_mutexV(mutex);
 
             file->activate(caches[cp].cache);
-        }
-        else
-        {
-            delete file;
-            return -1;
         }
     }
     return files[name].index;

@@ -31,7 +31,7 @@ scm_file::scm_file(const std::string& tiff) :
     active(true),
     sampler(0),
     name(tiff),
-    w(0), h(0), c(0), b(0),
+    w(256), h(256), c(1), b(8),
     xv(0), xc(0),
     ov(0), oc(0),
     av(0), ac(0),
@@ -92,6 +92,8 @@ scm_file::scm_file(const std::string& tiff) :
             TIFFClose(T);
         }
     }
+    else path = name;
+
     scm_log("scm_file constructor %s", path.c_str());
 }
 
@@ -158,27 +160,37 @@ bool scm_file::add_need(scm_task& task)
 
 //------------------------------------------------------------------------------
 
-// Determine whether page i is given by this file.
+// Determine whether page i is given by this file. If no catalog exists then
+// return true to indicate that data will be synthesized.
 
 bool scm_file::get_page_status(uint64 i) const
 {
-    if (toindex(i) < xc)
-        return true;
-    else
-        return false;
+    if (xc)
+    {
+        if (toindex(i) < xc)
+            return true;
+        else
+            return false;
+    }
+    return true;
 }
 
-// Seek page i in the page catalog and return its file offset.
+// Seek page i in the page catalog and return its file offset. Return zero
+// on failure. If this file is synthesizing data, return a non-zero value.
 
 uint64 scm_file::get_page_offset(uint64 i) const
 {
-    uint64 oj;
-
-    if ((oj = toindex(i)) < oc)
+    if (oc)
     {
-        return ov[oj];
+        uint64 oj;
+
+        if ((oj = toindex(i)) < oc)
+        {
+            return ov[oj];
+        }
+        return 0;
     }
-    return 0;
+    return (uint64) (-1);
 }
 
 // Determine the min and max values of page i. Seek it in the page catalog and
@@ -187,34 +199,46 @@ uint64 scm_file::get_page_offset(uint64 i) const
 
 void scm_file::get_page_bounds(uint64 i, float& r0, float& r1) const
 {
-    uint64 aj = (uint64) (-1);
-    uint64 zj = (uint64) (-1);
-
-    while (aj >= ac || zj >= zc)
+    if (ac && zc)
     {
-        uint64 j = toindex(i);
+        uint64 aj = (uint64) (-1);
+        uint64 zj = (uint64) (-1);
 
-        if (aj >= ac) aj = j;
-        if (zj >= zc) zj = j;
+        while (aj >= ac || zj >= zc)
+        {
+            uint64 j = toindex(i);
 
-        if (i < 6)
-            break;
-        else
-            i = scm_page_parent(i);
+            if (aj >= ac) aj = j;
+            if (zj >= zc) zj = j;
+
+            if (i < 6)
+                break;
+            else
+                i = scm_page_parent(i);
+        }
+
+        r0 = (aj < ac) ? tofloat(av, aj * c) : 1.f;
+        r1 = (zj < zc) ? tofloat(zv, zj * c) : 1.f;
     }
-
-    r0 = (aj < ac) ? tofloat(av, aj * c) : 1.f;
-    r1 = (zj < zc) ? tofloat(zv, zj * c) : 1.f;
+    else
+    {
+        r0 = 0.5f;
+        r1 = 0.5f;
+    }
 }
 
 // Sample this file along vector v using linear filtering.
 
 float scm_file::get_page_sample(const double *v)
 {
-    if (sampler == 0)
-        sampler = new scm_sample(this);
+    if (xc)
+    {
+        if (sampler == 0)
+            sampler = new scm_sample(this);
 
-    return sampler ? sampler->get(v) : 1.f;
+        return sampler ? sampler->get(v) : 1.f;
+    }
+    return 0.5f;
 }
 
 //------------------------------------------------------------------------------
@@ -252,10 +276,25 @@ uint64 scm_file::toindex(uint64 i) const
 
 float scm_file::tofloat(const void *v, uint64 i) const
 {
-    if      (b ==  8) return ((unsigned  char *) v)[i] / 255.f;
-    else if (b == 16) return ((unsigned short *) v)[i] / 65535.f;
-    else if (b == 32) return ((         float *) v)[i];
-    else return 0.f;
+    switch (b)
+    {
+    case  8: return ((unsigned  char *) v)[i] /   255.f;
+    case 16: return ((unsigned short *) v)[i] / 65535.f;
+    case 32: return ((         float *) v)[i];
+    default: return 0.f;
+    }
+}
+
+// Set sample i of the given buffer to a float.
+
+void scm_file::fromfloat(const void *v, uint64 i, float f) const
+{
+    switch (b)
+    {
+    case  8: ((unsigned  char *) v)[i] = (unsigned char)  (f *   255.f); break;
+    case 16: ((unsigned short *) v)[i] = (unsigned short) (f * 65535.f); break;
+    case 32: ((         float *) v)[i] = (         float) (f          ); break;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -391,16 +430,16 @@ static const uint8 bitfont[96][8] = {
 
 //------------------------------------------------------------------------------
 
-static void set_pixel(bool v, int x, int y, int w, int c, int b, void *p)
+static void set_pixel(float v, int x, int y, int w, int c, int b, void *p)
 {
     const int d = (y * w + x) * c;
 
     for (int k = 0; k < c; ++k)
         switch (b)
         {
-        case  8: ((uint8  *) p)[d + k] = v ?   255 : 0; break;
-        case 16: ((uint16 *) p)[d + k] = v ? 65535 : 0; break;
-        case 32: ((float  *) p)[d + k] = v ?     1 : 0; break;
+        case  8: ((uint8  *) p)[d + k] = (uint8 ) (v *   255); break;
+        case 16: ((uint16 *) p)[d + k] = (uint16) (v * 65535); break;
+        case 32: ((float  *) p)[d + k] = (float ) (v *     1); break;
         }
 }
 
@@ -409,12 +448,16 @@ static void set_text(const char *s, int x, int y,
 {
     while (s[0])
     {
-        for     (int i = 0; i < 8 && y + i < h; ++i)
-            for (int j = 0; j < 8 && x + j < w; ++j)
-                if (32 <= s[0] && s[0] <= 127)
+        for     (int i = 0; i < 8; ++i)
+            for (int j = 0; j < 8; ++j)
 
-                    set_pixel(bitfont[s[0] - 32][i] & (1 << (7 - j)),
-                              x + j, y + i, w, c, b, p);
+                if (32 <= s[0] && s[0] < 127 && 0 <= x + j && x + j < w
+                                             && 0 <= y + i && y + i < h)
+                {
+                    bool d = bitfont[s[0] - 32][i] & (1 << (7 - j));
+
+                    set_pixel(d ? 1.f : 0.f, x + j, y + i, w, c, b, p);
+                }
         s += 1;
         x += 8;
     }
@@ -430,10 +473,35 @@ void scm_page_text(const char *mesg,
 {
     char diag[256];
 
+    // Fill the image with black.
+
+    memset(p, 0, w * h * c * b / 8);
+
+    // Fill the borders with white.
+
+    for (int j = 0; j < h; ++j)
+    {
+        set_pixel(1.f,     0, j, w, c, b, p);
+        set_pixel(1.f,     1, j, w, c, b, p);
+        set_pixel(1.f, w - 1, j, w, c, b, p);
+        set_pixel(1.f, w - 2, j, w, c, b, p);
+        set_pixel(1.f, j,     0, w, c, b, p);
+        set_pixel(1.f, j,     1, w, c, b, p);
+        set_pixel(1.f, j, h - 1, w, c, b, p);
+        set_pixel(1.f, j, h - 2, w, c, b, p);
+    }
+
+    // Draw the text.
+
     snprintf(diag, 256, "%lld %d %d %d %d", i, w, h, c, b);
-    set_text(mesg, 2,  2, w, h, c, b, p);
-    set_text(name, 2, 10, w, h, c, b, p);
-    set_text(diag, 2, 18, w, h, c, b, p);
+
+    int msz = strlen(mesg);
+    int nsz = strlen(name);
+    int dsz = strlen(diag);
+
+    set_text(mesg, w / 2 - msz * 4, h / 2 - 14, w, h, c, b, p);
+    set_text(name, w / 2 - nsz * 4, h / 2 -  4, w, h, c, b, p);
+    set_text(diag, w / 2 - dsz * 4, h / 2 +  6, w, h, c, b, p);
 }
 
 // Load the page at offset o of TIFF T. Confirm the image parameters and return
@@ -490,9 +558,8 @@ int loader(void *data)
             }
             else break;
 
-        TIFFClose(tiff);
+        if (tiff) TIFFClose(tiff);
     }
     scm_log("loader thread end %s", file->path.c_str());
     return 0;
 }
-
