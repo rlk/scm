@@ -17,7 +17,9 @@
 
 void scm_log(const char *fmt, ...)
 {
+#ifndef WIN32
     flockfile(stderr);
+#endif
     {
         va_list  ap;
         va_start(ap, fmt);
@@ -25,7 +27,9 @@ void scm_log(const char *fmt, ...)
          fprintf(stderr, "\n");
         va_end  (ap);
     }
+#ifndef WIN32
     funlockfile(stderr);
+#endif
 }
 
 //------------------------------------------------------------------------------
