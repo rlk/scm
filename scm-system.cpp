@@ -15,6 +15,7 @@
 #include <cassert>
 #include <limits>
 #include <cmath>
+#include <direct.h>
 #include "util3d/math3d.h"
 
 #include "scm-step.hpp"
@@ -30,6 +31,8 @@
 scm_system::scm_system(int w, int h, int d, int l) :
     serial(1), frame(0), sync(false), fade(0)
 {
+    scm_log("scm_system working directory is %s", getcwd(0, 0));
+
     mutex  = SDL_CreateMutex();
     render = new scm_render(w, h);
     sphere = new scm_sphere(d, l);
