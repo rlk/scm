@@ -27,10 +27,10 @@
 // and cache its meta-data.
 
 scm_file::scm_file(const std::string& tiff) :
+    name(tiff),
     needs(32),
     active(true),
     sampler(0),
-    name(tiff),
     w(256), h(256), c(1), b(8),
     xv(0), xc(0),
     ov(0), oc(0),
@@ -494,7 +494,7 @@ void scm_page_text(const char *mesg,
 
     // Draw the text.
 
-    snprintf(diag, 256, "%lld %d %d %d %d", i, w, h, c, b);
+    snprintf(diag, 256, "%d %d %d %d %d", int(i), w, h, c, b);
 
     int msz = strlen(mesg);
     int nsz = strlen(name);
