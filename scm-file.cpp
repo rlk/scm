@@ -456,7 +456,8 @@ static void set_text(const char *s, int x, int y,
                 {
                     bool d = bitfont[s[0] - 32][i] & (1 << (7 - j));
 
-                    set_pixel(d ? 1.f : 0.f, x + j, y + i, w, c, b, p);
+                    set_pixel(d ? 1.f : 0.f, x + j,     y + i, w, c, b, p);
+                    set_pixel(d ? 1.f : 0.f, x + j, h - y - i, w, c, b, p);
                 }
         s += 1;
         x += 8;
@@ -499,9 +500,9 @@ void scm_page_text(const char *mesg,
     int nsz = strlen(name);
     int dsz = strlen(diag);
 
-    set_text(mesg, w / 2 - msz * 4, h / 2 - 14, w, h, c, b, p);
-    set_text(name, w / 2 - nsz * 4, h / 2 -  4, w, h, c, b, p);
-    set_text(diag, w / 2 - dsz * 4, h / 2 +  6, w, h, c, b, p);
+    set_text(mesg, w / 2 - msz * 4, h / 3 - 14, w, h, c, b, p);
+    set_text(name, w / 2 - nsz * 4, h / 3 -  4, w, h, c, b, p);
+    set_text(diag, w / 2 - dsz * 4, h / 3 +  6, w, h, c, b, p);
 }
 
 // Load the page at offset o of TIFF T. Confirm the image parameters and return
