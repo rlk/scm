@@ -1,2 +1,5 @@
 *.o
 *.d
+Debug/
+SCM.sdf
+SCM.v11.suo
