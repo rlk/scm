@@ -12,7 +12,10 @@
 
 #include <cstdlib>
 #include <GL/glew.h>
-#include <tiffio.h>
+
+/* Modified by Kevin */
+#include <TIFF/tiffio.h>
+/*********************/
 
 #include "scm-task.hpp"
 #include "scm-file.hpp"

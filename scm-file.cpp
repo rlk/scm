@@ -14,6 +14,10 @@
 #include <cstring>
 #include <cmath>
 
+/* Added by Kevin */
+#define snprintf _snprintf_s
+/******************/
+
 #include "util3d/math3d.h"
 #include "scm-index.hpp"
 #include "scm-cache.hpp"

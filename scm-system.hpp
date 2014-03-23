@@ -16,8 +16,10 @@
 #include <map>
 #include <set>
 
-#include <SDL.h>
-#include <SDL_thread.h>
+/* Modified by Kevin */
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_thread.h>
+/*********************/
 
 #include "scm-file.hpp"
 #include "scm-step.hpp"
