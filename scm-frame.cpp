@@ -13,6 +13,8 @@
 #include "scm-frame.hpp"
 #include "scm-log.hpp"
 
+#include <stdlib.h>
+
 //------------------------------------------------------------------------------
 
 scm_frame::scm_frame(GLsizei w, GLsizei h) : width(w), height(h)
