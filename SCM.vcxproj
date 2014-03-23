@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="scm-cache.cpp" />
+    <ClCompile Include="scm-file.cpp" />
+    <ClCompile Include="scm-frame.cpp" />
+    <ClCompile Include="scm-image.cpp" />
+    <ClCompile Include="scm-index.cpp" />
+    <ClCompile Include="scm-label.cpp" />
+    <ClCompile Include="scm-log.cpp" />
+    <ClCompile Include="scm-path.cpp" />
+    <ClCompile Include="scm-render.cpp" />
+    <ClCompile Include="scm-sample.cpp" />
+    <ClCompile Include="scm-scene.cpp" />
+    <ClCompile Include="scm-set.cpp" />
+    <ClCompile Include="scm-sphere.cpp" />
+    <ClCompile Include="scm-step.cpp" />
+    <ClCompile Include="scm-system.cpp" />
+    <ClCompile Include="scm-task.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="scm-cache.hpp" />
+    <ClInclude Include="scm-fifo.hpp" />
+    <ClInclude Include="scm-file.hpp" />
+    <ClInclude Include="scm-frame.hpp" />
+    <ClInclude Include="scm-guard.hpp" />
+    <ClInclude Include="scm-image.hpp" />
+    <ClInclude Include="scm-index.hpp" />
+    <ClInclude Include="scm-item.hpp" />
+    <ClInclude Include="scm-label-circle-frag.h" />
+    <ClInclude Include="scm-label-circle-vert.h" />
+    <ClInclude Include="scm-label-font.h" />
+    <ClInclude Include="scm-label-icons.h" />
+    <ClInclude Include="scm-label-sprite-frag.h" />
+    <ClInclude Include="scm-label-sprite-vert.h" />
+    <ClInclude Include="scm-label.hpp" />
+    <ClInclude Include="scm-log.hpp" />
+    <ClInclude Include="scm-path.hpp" />
+    <ClInclude Include="scm-queue.hpp" />
+    <ClInclude Include="scm-render-blur-frag.h" />
+    <ClInclude Include="scm-render-blur-vert.h" />
+    <ClInclude Include="scm-render-both-frag.h" />
+    <ClInclude Include="scm-render-both-vert.h" />
+    <ClInclude Include="scm-render-fade-frag.h" />
+    <ClInclude Include="scm-render-fade-vert.h" />
+    <ClInclude Include="scm-render.hpp" />
+    <ClInclude Include="scm-sample.hpp" />
+    <ClInclude Include="scm-scene.hpp" />
+    <ClInclude Include="scm-set.hpp" />
+    <ClInclude Include="scm-sphere.hpp" />
+    <ClInclude Include="scm-step.hpp" />
+    <ClInclude Include="scm-system.hpp" />
+    <ClInclude Include="scm-task.hpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0A90775A-78A3-4459-AC42-BE6C2257EEFF}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>SCM</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
