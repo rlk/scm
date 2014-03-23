@@ -14,7 +14,10 @@
 #define SCM_TASK_HPP
 
 #include <GL/glew.h>
-#include <tiffio.h>
+
+/* Modified by Kevin */
+#include <TIFF/tiffio.h>
+/*********************/
 
 #include "scm-item.hpp"
 

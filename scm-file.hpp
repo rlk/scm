@@ -16,9 +16,11 @@
 #include <string>
 #include <vector>
 
-#include <tiffio.h>
-#include <SDL.h>
-#include <SDL_thread.h>
+/* Modified by Kevin */
+#include <TIFF/tiffio.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_thread.h>
+/*********************/
 
 #include "scm-queue.hpp"
 #include "scm-guard.hpp"

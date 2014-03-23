@@ -15,7 +15,9 @@
 
 #include <string>
 
-#include <tiffio.h>
+/* Modified by Kevin */
+#include <TIFF/tiffio.h>
+/*********************/
 
 //------------------------------------------------------------------------------
 

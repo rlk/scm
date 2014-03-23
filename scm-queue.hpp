@@ -13,8 +13,10 @@
 #ifndef SCM_QUEUE_HPP
 #define SCM_QUEUE_HPP
 
-#include <SDL.h>
-#include <SDL_thread.h>
+/* Modified by Kevin */
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_thread.h>
+/*********************/
 
 #include <set>
 

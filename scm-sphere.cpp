@@ -17,6 +17,11 @@
 #include <cassert>
 #include <limits>
 
+/* Added by Kevin */
+#define _USE_MATH_DEFINES
+#include <math.h>
+/*********************/
+
 #include "util3d/math3d.h"
 #include "util3d/glsl.h"
 

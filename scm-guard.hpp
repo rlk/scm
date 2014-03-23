@@ -13,8 +13,10 @@
 #ifndef SCM_GUARD_HPP
 #define SCM_GUARD_HPP
 
-#include <SDL.h>
-#include <SDL_thread.h>
+/* Modified by Kevin */
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_thread.h>
+/*********************/
 
 //------------------------------------------------------------------------------
 
