@@ -17,6 +17,11 @@
 #include <cassert>
 #include <limits>
 
+#ifdef _WIN32
+#define _USE_MATH_DEFINES
+#include <math.h>
+#endif
+
 #include "util3d/math3d.h"
 #include "util3d/glsl.h"
 

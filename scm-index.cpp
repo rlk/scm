@@ -12,7 +12,14 @@
 
 #include <cmath>
 
+#ifdef _WIN32
+#define _USE_MATH_DEFINES
+#include <math.h>
+#endif
+
 #include "scm-index.hpp"
+
+
 
 // Transform between a face-local vector u and a world vector v. ---------------
 
