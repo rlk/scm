@@ -71,6 +71,7 @@ clean:
 	$(CC)  $(CFLAGS) $(CONF) -c $< -o $@
 
 #------------------------------------------------------------------------------
+# Embed shaders within C headers for direct inclusion.
 
 %-vert.h : %.vert
 	xxd -i $^ > $@
@@ -83,4 +84,3 @@ clean:
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
 endif
-
