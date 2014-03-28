@@ -65,10 +65,10 @@ void scm_image::init_uniforms(GLuint program)
 
     if (program && !name.empty())
     {
-        uS  = glsl_uniform(program, "%s.S",  name.c_str());
-        ur  = glsl_uniform(program, "%s.r",  name.c_str());
-        uk0 = glsl_uniform(program, "%s.k0", name.c_str());
-        uk1 = glsl_uniform(program, "%s.k1", name.c_str());
+        uS  = glsl_uniform(program, "%s_sampler", name.c_str());
+        ur  = glsl_uniform(program, "%s.r",       name.c_str());
+        uk0 = glsl_uniform(program, "%s.k0",      name.c_str());
+        uk1 = glsl_uniform(program, "%s.k1",      name.c_str());
 
         for (int d = 0; d < 16; d++)
         {
