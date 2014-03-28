@@ -15,7 +15,6 @@
 #include <cassert>
 #include <limits>
 #include <cmath>
-#include <direct.h>
 #include "util3d/math3d.h"
 
 #include "scm-step.hpp"
@@ -25,6 +24,12 @@
 #include "scm-render.hpp"
 #include "scm-system.hpp"
 #include "scm-log.hpp"
+
+#ifdef WIN32
+#include <direct.h>
+#else
+#include <unistd.h>
+#endif
 
 //------------------------------------------------------------------------------
 
