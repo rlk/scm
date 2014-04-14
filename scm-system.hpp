@@ -81,8 +81,10 @@ struct active_cache
 };
 
 /// A cache_param structure represents the format of the image data that a
-/// cache contains. n is size, c is channel count, and b is byte count. This
-/// allows an scm_system to ensure that similar images share their cache.
+/// cache contains.
+///
+/// n is size, c is channel count, and b is byte count. This lets an scm_system
+/// combine similar images in a single cache.
 
 struct cache_param
 {
@@ -107,7 +109,7 @@ typedef std::map<cache_param, active_cache>::iterator active_cache_i;
 
 //------------------------------------------------------------------------------
 
-/// An SCM system encapsulates all of the state of an SCM renderer. Its
+/// An scm_system encapsulates all of the state of an SCM renderer. Its
 /// interface is the primary API of the SCM rendering library.
 ///
 /// The SCM system maintains the list of scenes and steps currently held open

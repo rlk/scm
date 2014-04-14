@@ -36,18 +36,6 @@ typedef GLuint           GLindex;
 
 //------------------------------------------------------------------------------
 
-static inline void mid4(double *v, const double *a,
-                                   const double *b,
-                                   const double *c,
-                                   const double *d)
-{
-    v[0] = a[0] + b[0] + c[0] + d[0];
-    v[1] = a[1] + b[1] + c[1] + d[1];
-    v[2] = a[2] + b[2] + c[2] + d[2];
-
-    vnormalize(v, v);
-}
-
 static inline double scale(double k, double t)
 {
     if (k < 1.0)
@@ -77,8 +65,14 @@ void scm_sphere::zoom(double *w, const double *v)
 
 //------------------------------------------------------------------------------
 
-/// \param d  Detail with which sphere pages are drawn (in vertices)
-/// \param l  Limit at which sphere pages are subdivided (in pixels)
+/// Create a new spherical geometry rendering object. Initialize the necessary
+/// OpenGL vertex buffer object state.
+///
+/// @see scm_sphere::set_detail
+/// @see scm_sphere::set_limit
+///
+/// @param d  Detail with which sphere pages are drawn (in vertices)
+/// @param l  Limit at which sphere pages are subdivided (in pixels)
 ///
 scm_sphere::scm_sphere(int d, int l) : detail(d), limit(l)
 {
@@ -90,12 +84,20 @@ scm_sphere::scm_sphere(int d, int l) : detail(d), limit(l)
     zoomk    =  1;
 }
 
+/// Finalize all OpenGL state.
+
 scm_sphere::~scm_sphere()
 {
     free_arrays();
 }
 
 //------------------------------------------------------------------------------
+
+/// Set the geometric detail of the sphere. Each page will be rendered as a
+/// d-by-d grid. This detail is limited to the range 0 to 256, which ensures
+/// that the vertex index count is a 16-bit number. Changing the detail will
+/// trigger a regeneration of the sphere's vertex buffer object data, so it
+/// should *not* be done every frame.
 
 void scm_sphere::set_detail(int d)
 {
@@ -107,10 +109,128 @@ void scm_sphere::set_detail(int d)
     }
 }
 
+/// Set the subdivision limit in pixels. That is, if the on-screen size of a
+/// page exceeds l then it will be drawn as four sub-pages. The proper value
+/// for this parameter depends upon the format of the SCM data rendered.
+
 void scm_sphere::set_limit(int l)
 {
     if (0 < l)
         limit = l;
+}
+
+//------------------------------------------------------------------------------
+
+/// Prepare to render the sphere. Perform all visibility and subdivision
+/// calculations. Cache the results for use by a subsequent draw call.
+///
+/// @param scene   Scene giving the data to be rendered
+/// @param M       Model-view-projection matrix in OpenGL column-major order
+/// @param width   Width of the render target (in pixels)
+/// @param height  Height of the render target (in pixels)
+/// @param channel Channel index (e.g. 0 for left eye, 1 for right eye)
+/// @param zoom    Is zooming enabled?
+
+void scm_sphere::prep(scm_scene *scene, const double *M,
+                      int width, int height, int channel, bool zoom)
+{
+    pages.clear();
+
+    prep_page(scene, M, width, height, channel, 0, zoom);
+    prep_page(scene, M, width, height, channel, 1, zoom);
+    prep_page(scene, M, width, height, channel, 2, zoom);
+    prep_page(scene, M, width, height, channel, 3, zoom);
+    prep_page(scene, M, width, height, channel, 4, zoom);
+    prep_page(scene, M, width, height, channel, 5, zoom);
+}
+
+/// Render the sphere using cached visibility and subdivision state.
+///
+/// @param scene   Scene giving the data to be rendered
+/// @param M       Model-view-projection matrix in OpenGL column-major order
+/// @param width   Width of the render target (in pixels)
+/// @param height  Height of the render target (in pixels)
+/// @param channel Channel index (e.g. 0 for left eye, 1 for right eye)
+/// @param frame   Frame number (for cache line aging)
+
+void scm_sphere::draw(scm_scene *scene, const double *M,
+                     int width, int height, int channel, int frame)
+{
+    glEnable(GL_COLOR_MATERIAL);
+
+    // Perform the visibility pre-pass.
+
+    prep(scene, M, width, height, channel, scene->uzoomk >= 0);
+
+    // Pre-cache all visible pages in breadth-first order.
+
+    std::set<long long>::iterator i;
+
+    for (i = pages.begin(); i != pages.end(); ++i)
+        scene->touch_page(channel, frame, (*i));
+
+    // Bind the vertex buffer.
+
+    glBindBuffer(GL_ARRAY_BUFFER, vertices);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(2, GL_FLOAT, 0, 0);
+
+    // Configure the shaders and draw the six root pages.
+
+    scene->bind(channel);
+    {
+        static const GLfloat M[6][9] = {
+            {  0.f,  0.f,  1.f,  0.f,  1.f,  0.f, -1.f,  0.f,  0.f },
+            {  0.f,  0.f, -1.f,  0.f,  1.f,  0.f,  1.f,  0.f,  0.f },
+            {  1.f,  0.f,  0.f,  0.f,  0.f,  1.f,  0.f, -1.f,  0.f },
+            {  1.f,  0.f,  0.f,  0.f,  0.f, -1.f,  0.f,  1.f,  0.f },
+            {  1.f,  0.f,  0.f,  0.f,  1.f,  0.f,  0.f,  0.f,  1.f },
+            { -1.f,  0.f,  0.f,  0.f,  1.f,  0.f,  0.f,  0.f, -1.f },
+        };
+
+        glUniform1f(scene->uzoomk, GLfloat(zoomk));
+        glUniform3f(scene->uzoomv, GLfloat(zoomv[0]),
+                                   GLfloat(zoomv[1]),
+                                   GLfloat(zoomv[2]));
+
+        if (is_set(0))
+        {
+            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[0]);
+            draw_page(scene, channel, 0, frame, 0);
+        }
+        if (is_set(1))
+        {
+            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[1]);
+            draw_page(scene, channel, 0, frame, 1);
+        }
+        if (is_set(2))
+        {
+            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[2]);
+            draw_page(scene, channel, 0, frame, 2);
+        }
+        if (is_set(3))
+        {
+            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[3]);
+            draw_page(scene, channel, 0, frame, 3);
+        }
+        if (is_set(4))
+        {
+            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[4]);
+            draw_page(scene, channel, 0, frame, 4);
+        }
+        if (is_set(5))
+        {
+            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[5]);
+            draw_page(scene, channel, 0, frame, 5);
+        }
+    }
+    scene->unbind(channel);
+
+    // Revert the local GL state.
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER,         0);
+    glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 //------------------------------------------------------------------------------
@@ -442,101 +562,6 @@ void scm_sphere::draw_page(scm_scene *scene,
         }
     }
     scene->unbind_page(channel, depth);
-}
-
-//------------------------------------------------------------------------------
-
-void scm_sphere::prep(scm_scene *scene, const double *M,
-                      int width, int height, int channel, bool zoom)
-{
-    pages.clear();
-
-    prep_page(scene, M, width, height, channel, 0, zoom);
-    prep_page(scene, M, width, height, channel, 1, zoom);
-    prep_page(scene, M, width, height, channel, 2, zoom);
-    prep_page(scene, M, width, height, channel, 3, zoom);
-    prep_page(scene, M, width, height, channel, 4, zoom);
-    prep_page(scene, M, width, height, channel, 5, zoom);
-}
-
-void scm_sphere::draw(scm_scene *scene, const double *M,
-                     int width, int height, int channel, int frame)
-{
-    glEnable(GL_COLOR_MATERIAL);
-
-    // Perform the visibility pre-pass.
-
-    prep(scene, M, width, height, channel, scene->uzoomk >= 0);
-
-    // Pre-cache all visible pages in breadth-first order.
-
-    std::set<long long>::iterator i;
-
-    for (i = pages.begin(); i != pages.end(); ++i)
-        scene->touch_page(channel, frame, (*i));
-
-    // Bind the vertex buffer.
-
-    glBindBuffer(GL_ARRAY_BUFFER, vertices);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(2, GL_FLOAT, 0, 0);
-
-    // Configure the shaders and draw the six root pages.
-
-    scene->bind(channel);
-    {
-        static const GLfloat M[6][9] = {
-            {  0.f,  0.f,  1.f,  0.f,  1.f,  0.f, -1.f,  0.f,  0.f },
-            {  0.f,  0.f, -1.f,  0.f,  1.f,  0.f,  1.f,  0.f,  0.f },
-            {  1.f,  0.f,  0.f,  0.f,  0.f,  1.f,  0.f, -1.f,  0.f },
-            {  1.f,  0.f,  0.f,  0.f,  0.f, -1.f,  0.f,  1.f,  0.f },
-            {  1.f,  0.f,  0.f,  0.f,  1.f,  0.f,  0.f,  0.f,  1.f },
-            { -1.f,  0.f,  0.f,  0.f,  1.f,  0.f,  0.f,  0.f, -1.f },
-        };
-
-        glUniform1f(scene->uzoomk, GLfloat(zoomk));
-        glUniform3f(scene->uzoomv, GLfloat(zoomv[0]),
-                                   GLfloat(zoomv[1]),
-                                   GLfloat(zoomv[2]));
-
-        if (is_set(0))
-        {
-            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[0]);
-            draw_page(scene, channel, 0, frame, 0);
-        }
-        if (is_set(1))
-        {
-            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[1]);
-            draw_page(scene, channel, 0, frame, 1);
-        }
-        if (is_set(2))
-        {
-            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[2]);
-            draw_page(scene, channel, 0, frame, 2);
-        }
-        if (is_set(3))
-        {
-            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[3]);
-            draw_page(scene, channel, 0, frame, 3);
-        }
-        if (is_set(4))
-        {
-            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[4]);
-            draw_page(scene, channel, 0, frame, 4);
-        }
-        if (is_set(5))
-        {
-            glUniformMatrix3fv(scene->uM, 1, GL_TRUE, M[5]);
-            draw_page(scene, channel, 0, frame, 5);
-        }
-    }
-    scene->unbind(channel);
-
-    // Revert the local GL state.
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER,         0);
-    glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 //------------------------------------------------------------------------------

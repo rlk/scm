@@ -21,21 +21,28 @@
 
 //------------------------------------------------------------------------------
 
+/// An scm_sphere encapsulates the adaptive geometry of the 3D sphere.
+///
+/// The sphere performs all visibility testing and subdivision necessary to
+/// optimally render a given scene. Detail and limit parameters tune this
+/// processing. Zoom direction and degree are maintained for those applications
+/// that require it.
+
 class scm_sphere
 {
 public:
 
-    scm_sphere(int, int);
+    scm_sphere(int d, int l);
    ~scm_sphere();
 
-    void prep(scm_scene *, const double *, int, int, int, bool);
-    void draw(scm_scene *, const double *, int, int, int, int);
-
-    void set_detail(int);
-    void set_limit (int);
+    void set_detail(int d);
+    void set_limit (int l);
 
     int  get_detail() const { return detail; }
     int  get_limit () const { return limit;  }
+
+    void prep(scm_scene *, const double *, int, int, int, bool);
+    void draw(scm_scene *, const double *, int, int, int, int);
 
     void set_zoom(double x, double y, double z, double k)
     {
