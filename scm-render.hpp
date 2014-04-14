@@ -25,6 +25,17 @@ class scm_frame;
 
 //------------------------------------------------------------------------------
 
+/// An scm_render manages the generation of sphere images.
+///
+/// In the simplest case, this entails merely invoking the scm_sphere's render
+/// function to draw geometry to the screen. However, the render manager also
+/// supports motion blur and dissolve transitions. These features require the
+/// the sphere to be rendered first to an off-screen buffer with is then drawn
+/// to the screen as a single rectangle.
+///
+/// The render manager also maintains the wireframe debug option, which would
+/// otherwise conflict with more sophisticated capabilities.
+
 class scm_render
 {
 public:
@@ -32,11 +43,13 @@ public:
     scm_render(int, int);
    ~scm_render();
 
-    void render(scm_sphere *,
-                scm_scene  *,
-                scm_scene  *,
-              const double *,
-              const double *, int, int);
+    void set_size(int, int);
+    void set_blur(int);
+    void set_wire(bool);
+
+    int  get_blur() const { return blur; }
+    bool get_wire() const { return wire; }
+
     void render(scm_sphere *,
                 scm_scene  *,
                 scm_scene  *,
@@ -44,13 +57,11 @@ public:
                 scm_scene  *,
               const double *,
               const double *, int, int, double);
-
-    void set_size(int, int);
-    void set_blur(int);
-    void set_wire(bool);
-
-    int  get_blur() const { return blur; }
-    bool get_wire() const { return wire; }
+    void render(scm_sphere *,
+                scm_scene  *,
+                scm_scene  *,
+              const double *,
+              const double *, int, int);
 
 private:
 

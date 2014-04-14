@@ -25,8 +25,7 @@
 ///
 /// The sphere performs all visibility testing and subdivision necessary to
 /// optimally render a given scene. Detail and limit parameters tune this
-/// processing. Zoom direction and degree are maintained for those applications
-/// that require it.
+/// facility. Optional zoom direction and degree are maintained if needed.
 
 class scm_sphere
 {

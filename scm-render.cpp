@@ -40,6 +40,223 @@ scm_render::~scm_render()
 
 //------------------------------------------------------------------------------
 
+/// Set the size of the off-screen render targets. This entails the destruction
+/// and recreation of OpenGL framebuffer objects, so it should *not* be called
+/// every frame.
+
+void scm_render::set_size(int w, int h)
+{
+    free_ogl();
+    width  = w;
+    height = h;
+    init_ogl();
+    init_matrices();
+}
+
+/// Set the motion blur degree. Higher degrees incur greater rendering loads.
+/// 8 is an effective value. Set 0 to disable motion blur completely.
+
+void scm_render::set_blur(int b)
+{
+    blur = b;
+}
+
+/// Set the wireframe option.
+
+void scm_render::set_wire(bool w)
+{
+    wire = w;
+}
+
+//------------------------------------------------------------------------------
+
+/// Render the foreground and background with optional blur and dissolve.
+///
+/// @param sphere  Sphere geometry manager to perform the rendering
+/// @param fore0   Foreground scene at the beginning of a dissolve
+/// @param fore1   Foreground scene at the end of a dissolve
+/// @param back0   Background scene at the beginning of a dissolve
+/// @param back1   Background scene at the end of a dissolve
+/// @param P       Projection matrix in OpenGL column-major order
+/// @param M       Model-view matrix in OpenGL column-major order
+/// @param channel Channel index
+/// @param frame   Frame number
+/// @param t       Dissolve time between 0 and 1
+
+void scm_render::render(scm_sphere *sphere,
+                        scm_scene  *fore0,
+                        scm_scene  *fore1,
+                        scm_scene  *back0,
+                        scm_scene  *back1,
+                      const double *P,
+                      const double *M, int channel, int frame, double t)
+{
+    GLfloat T[16];
+
+    const bool do_fade = check_fade(fore0, fore1, back0, back1, t);
+    const bool do_blur = check_blur(P, M, previous_T[channel], T);
+
+    if (!do_fade && !do_blur)
+        render(sphere, fore0, back0, P, M, channel, frame);
+
+    else
+    {
+        GLint framebuffer;
+
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebuffer);
+
+        // Render the scene(s) to the offscreen framebuffers.
+
+        glPushAttrib(GL_VIEWPORT_BIT | GL_SCISSOR_BIT);
+        {
+            glViewport(0, 0, width, height);
+            glScissor (0, 0, width, height);
+            glClearColor(0.f, 0.f, 0.f, 0.f);
+
+            frame0->bind_frame();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            render(sphere, fore0, back0, P, M, channel, frame);
+
+            if (do_fade)
+            {
+                frame1->bind_frame();
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                render(sphere, fore1, back1, P, M, channel, frame);
+            }
+        }
+        glPopAttrib();
+
+        // Bind the resurting textures.
+
+        glActiveTexture(GL_TEXTURE3);
+        frame1->bind_depth();
+        glActiveTexture(GL_TEXTURE2);
+        frame0->bind_depth();
+        glActiveTexture(GL_TEXTURE1);
+        frame1->bind_color();
+        glActiveTexture(GL_TEXTURE0);
+        frame0->bind_color();
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+        // Bind the necessary shader and set its uniforms.
+
+        if      (do_fade && do_blur)
+        {
+            glUseProgram(render_both.program);
+            glUniform1f       (uniform_both_t,       t);
+            glUniform1i       (uniform_both_n,    blur);
+            glUniformMatrix4fv(uniform_both_T, 1, 0, T);
+        }
+        else if (do_fade && !do_blur)
+        {
+            glUseProgram(render_fade.program);
+            glUniform1f       (uniform_fade_t,       t);
+        }
+        else if (!do_fade && do_blur)
+        {
+            glUseProgram(render_blur.program);
+            glUniform1i       (uniform_blur_n,    blur);
+            glUniformMatrix4fv(uniform_blur_T, 1, 0, T);
+        }
+
+        // Render the blur / fade to the framebuffer.
+
+        fillscreen(width, height);
+        glUseProgram(0);
+    }
+}
+
+/// Render the foreground and background spheres without blur or dissolve.
+///
+/// This function is usually called by the previous function as needed to
+/// produce the desired effects. Calling it directly is a legitimate means
+/// of circumventing these options.
+///
+/// @param sphere  Sphere geometry manager to perform the rendering
+/// @param fore    Foreground scene
+/// @param back    Background scene
+/// @param P       Projection matrix in OpenGL column-major order
+/// @param M       Model-view matrix in OpenGL column-major order
+/// @param channel Channel index
+/// @param frame   Frame number
+
+void scm_render::render(scm_sphere *sphere,
+                        scm_scene  *fore,
+                        scm_scene  *back,
+                      const double *P,
+                      const double *M, int channel, int frame)
+{
+    double T[16];
+
+    if (wire)
+        wire_on();
+
+    // Background
+
+    if (back)
+    {
+        // Center the sphere at the origin and scale it to the far plane.
+
+        double N[16], k = fardistance(P);
+
+        midentity(N);
+        vmul(N + 0, M + 0, k / vlen(M + 0));
+        vmul(N + 4, M + 4, k / vlen(M + 4));
+        vmul(N + 8, M + 8, k / vlen(M + 8));
+
+        // Apply the transform.
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixd(P);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadMatrixd(N);
+
+        mmultiply(T, P, N);
+
+        // Render the inside of the sphere.
+
+        glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_POLYGON_BIT);
+        {
+            glEnable(GL_DEPTH_CLAMP);
+            glDepthFunc(GL_LEQUAL);
+            glDepthMask(GL_FALSE);
+            glFrontFace(GL_CCW);
+            sphere->draw(back, T, width, height, channel, frame);
+            back->draw_label();
+        }
+        glPopAttrib();
+    }
+
+    // Foreground
+
+    if (fore)
+    {
+        // Apply the transform.
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixd(P);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadMatrixd(M);
+
+        mmultiply(T, P, M);
+
+        // Render the outside of the sphere.
+
+        glPushAttrib(GL_POLYGON_BIT);
+        {
+            glFrontFace(GL_CW);
+            sphere->draw(fore, T, width, height, channel, frame);
+            fore->draw_label();
+        }
+        glPopAttrib();
+    }
+
+    if (wire)
+        wire_off();
+}
+
+//------------------------------------------------------------------------------
+
 /// Initialize the uniforms of the given GLSL program object.
 
 void scm_render::init_uniforms(GLuint program)
@@ -271,190 +488,6 @@ bool scm_render::check_blur(const double *P,
         }
     }
     return false;
-}
-
-/// Render the foreground and background scenes. We render the foreground
-/// first to allow the depth test to eliminate background texture cache traffic.
-
-void scm_render::render(scm_sphere *sphere,
-                        scm_scene  *fore,
-                        scm_scene  *back,
-                      const double *P,
-                      const double *M, int channel, int frame)
-{
-    double T[16];
-
-    if (wire)
-        wire_on();
-
-    // Background
-
-    if (back)
-    {
-        // Center the sphere at the origin and scale it to the far plane.
-
-        double N[16], k = fardistance(P);
-
-        midentity(N);
-        vmul(N + 0, M + 0, k / vlen(M + 0));
-        vmul(N + 4, M + 4, k / vlen(M + 4));
-        vmul(N + 8, M + 8, k / vlen(M + 8));
-
-        // Apply the transform.
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadMatrixd(P);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixd(N);
-
-        mmultiply(T, P, N);
-
-        // Render the inside of the sphere.
-
-        glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_POLYGON_BIT);
-        {
-            glEnable(GL_DEPTH_CLAMP);
-            glDepthFunc(GL_LEQUAL);
-            glDepthMask(GL_FALSE);
-            glFrontFace(GL_CCW);
-            sphere->draw(back, T, width, height, channel, frame);
-            back->draw_label();
-        }
-        glPopAttrib();
-    }
-
-    // Foreground
-
-    if (fore)
-    {
-        // Apply the transform.
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadMatrixd(P);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixd(M);
-
-        mmultiply(T, P, M);
-
-        // Render the outside of the sphere.
-
-        glPushAttrib(GL_POLYGON_BIT);
-        {
-            glFrontFace(GL_CW);
-            sphere->draw(fore, T, width, height, channel, frame);
-            fore->draw_label();
-        }
-        glPopAttrib();
-    }
-
-    if (wire)
-        wire_off();
-}
-
-/// Render, blur, and blend the given scenes.
-
-void scm_render::render(scm_sphere *sphere,
-                        scm_scene  *fore0,
-                        scm_scene  *fore1,
-                        scm_scene  *back0,
-                        scm_scene  *back1,
-                      const double *P,
-                      const double *M, int channel, int frame, double t)
-{
-    GLfloat T[16];
-
-    const bool do_fade = check_fade(fore0, fore1, back0, back1, t);
-    const bool do_blur = check_blur(P, M, previous_T[channel], T);
-
-    if (!do_fade && !do_blur)
-        render(sphere, fore0, back0, P, M, channel, frame);
-
-    else
-    {
-        GLint framebuffer;
-
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebuffer);
-
-        // Render the scene(s) to the offscreen framebuffers.
-
-        glPushAttrib(GL_VIEWPORT_BIT | GL_SCISSOR_BIT);
-        {
-            glViewport(0, 0, width, height);
-            glScissor (0, 0, width, height);
-            glClearColor(0.f, 0.f, 0.f, 0.f);
-
-            frame0->bind_frame();
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            render(sphere, fore0, back0, P, M, channel, frame);
-
-            if (do_fade)
-            {
-                frame1->bind_frame();
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                render(sphere, fore1, back1, P, M, channel, frame);
-            }
-        }
-        glPopAttrib();
-
-        // Bind the resurting textures.
-
-        glActiveTexture(GL_TEXTURE3);
-        frame1->bind_depth();
-        glActiveTexture(GL_TEXTURE2);
-        frame0->bind_depth();
-        glActiveTexture(GL_TEXTURE1);
-        frame1->bind_color();
-        glActiveTexture(GL_TEXTURE0);
-        frame0->bind_color();
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-        // Bind the necessary shader and set its uniforms.
-
-        if      (do_fade && do_blur)
-        {
-            glUseProgram(render_both.program);
-            glUniform1f       (uniform_both_t,       t);
-            glUniform1i       (uniform_both_n,    blur);
-            glUniformMatrix4fv(uniform_both_T, 1, 0, T);
-        }
-        else if (do_fade && !do_blur)
-        {
-            glUseProgram(render_fade.program);
-            glUniform1f       (uniform_fade_t,       t);
-        }
-        else if (!do_fade && do_blur)
-        {
-            glUseProgram(render_blur.program);
-            glUniform1i       (uniform_blur_n,    blur);
-            glUniformMatrix4fv(uniform_blur_T, 1, 0, T);
-        }
-
-        // Render the blur / fade to the framebuffer.
-
-        fillscreen(width, height);
-        glUseProgram(0);
-    }
-}
-
-//------------------------------------------------------------------------------
-
-void scm_render::set_size(int w, int h)
-{
-    free_ogl();
-    width  = w;
-    height = h;
-    init_ogl();
-    init_matrices();
-}
-
-void scm_render::set_blur(int b)
-{
-    blur = b;
-}
-
-void scm_render::set_wire(bool w)
-{
-    wire = w;
 }
 
 //------------------------------------------------------------------------------

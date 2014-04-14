@@ -83,8 +83,9 @@ struct active_cache
 /// A cache_param structure represents the format of the image data that a
 /// cache contains.
 ///
-/// n is size, c is channel count, and b is byte count. This lets an scm_system
-/// combine similar images in a single cache.
+/// n is size, c is channel count, and b is byte count. Partial ordering is
+/// defined, enabling log n search. This lets an scm_system combine similar
+/// images in a single cache.
 
 struct cache_param
 {

@@ -36,35 +36,6 @@ typedef GLuint           GLindex;
 
 //------------------------------------------------------------------------------
 
-static inline double scale(double k, double t)
-{
-    if (k < 1.0)
-        return std::min(t / k, 1.0 - (1.0 - t) * k);
-    else
-        return std::max(t / k, 1.0 - (1.0 - t) * k);
-}
-
-void scm_sphere::zoom(double *w, const double *v)
-{
-    double d = vdot(v, zoomv);
-
-    if (-1 < d && d < 1)
-    {
-        double b = scale(zoomk, acos(d) / M_PI) * M_PI;
-
-        double x[3];
-
-        vmad(x, v, zoomv, -d);
-        vnormalize(x, x);
-
-        vmul(w, zoomv, cos(b));
-        vmad(w, w,  x, sin(b));
-    }
-    else vcpy(w, v);
-}
-
-//------------------------------------------------------------------------------
-
 /// Create a new spherical geometry rendering object. Initialize the necessary
 /// OpenGL vertex buffer object state.
 ///
@@ -231,6 +202,35 @@ void scm_sphere::draw(scm_scene *scene, const double *M,
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER,         0);
     glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+//------------------------------------------------------------------------------
+
+static inline double scale(double k, double t)
+{
+    if (k < 1.0)
+        return std::min(t / k, 1.0 - (1.0 - t) * k);
+    else
+        return std::max(t / k, 1.0 - (1.0 - t) * k);
+}
+
+void scm_sphere::zoom(double *w, const double *v)
+{
+    double d = vdot(v, zoomv);
+
+    if (-1 < d && d < 1)
+    {
+        double b = scale(zoomk, acos(d) / M_PI) * M_PI;
+
+        double x[3];
+
+        vmad(x, v, zoomv, -d);
+        vnormalize(x, x);
+
+        vmul(w, zoomv, cos(b));
+        vmad(w, w,  x, sin(b));
+    }
+    else vcpy(w, v);
 }
 
 //------------------------------------------------------------------------------
