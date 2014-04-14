@@ -94,54 +94,84 @@ typedef std::map<cache_param, active_cache>::iterator active_cache_i;
 
 //------------------------------------------------------------------------------
 
+/// An SCM system encapsulates all of the state of an SCM renderer. Its
+/// interface is the primary API of the SCM rendering library.
+///
+/// The SCM system maintains the list of scenes and steps currently held open
+/// by an application, all of the image that these scenes and steps refer to,
+/// all of the caches that store the data of these images, the sphere manager
+/// used to render it, and the render handler that manages this rendering.
+/// A queue of steps enables the recording and playback of camera motion.
+
 class scm_system
 {
 public:
 
-    // External Interface
-
-    scm_system(int, int, int, int);
+    scm_system(int w, int h, int d, int l);
    ~scm_system();
 
     void     render_sphere(const double *, const double *, int) const;
 
-    void      flush_cache();
-    void     render_cache();
-    void     update_cache();
+    /// @name System queries
+    /// @{
 
-    void      flush_queue();
+    scm_sphere *get_sphere() const;
+    scm_render *get_render() const;
+    scm_scene  *get_fore()   const;
+    scm_scene  *get_back()   const;
+
+    /// @}
+    /// @name Scene collection handlers
+    /// @{
+
+    int         add_scene(int i);
+    void        del_scene(int i);
+    scm_scene  *get_scene(int i);
+
+    int         get_scene_count() const;
+    double      set_scene_blend(double);
+
+    /// @}
+    /// @name Step collection handlers
+    /// @{
+
+    int         add_step(int i);
+    void        del_step(int i);
+    scm_step   *get_step(int i);
+
+    int         get_step_count()       const;
+    scm_step    get_step_blend(double) const;
+
+    /// @}
+    /// @name Step queue handlers
+    /// @{
+
     void     import_queue(const std::string&);
     void     export_queue(      std::string&);
     void     append_queue(scm_step *);
-    void     render_queue();
+    void      flush_queue();
 
-    int         add_scene(int);
-    void        del_scene(int);
-    scm_scene  *get_scene(int);
+    /// @}
+    /// @name Cache handlers
+    /// @{
 
-    int         add_step(int);
-    void        del_step(int);
-    scm_step   *get_step(int);
+    void     update_cache();
+    void     render_cache();
+    void      flush_cache();
 
-    int         get_scene_count()      const { return int(scenes.size()); }
-    double      set_scene_blend(double);
+    void        set_synchronous(bool);
+    bool        get_synchronous() const;
 
-    int         get_step_count()       const { return int( steps.size()); }
-    scm_step    get_step_blend(double) const;
-
-    bool        get_synchronous() const { return sync; }
-    void        set_synchronous(bool b) { sync = b;    }
+    /// @}
+    /// @name Data queries
+    /// @{
 
     float       get_current_ground(const double *) const;
     float       get_minimum_ground()               const;
 
-    scm_sphere *get_sphere() const { return sphere; }
-    scm_render *get_render() const { return render; }
-
-    scm_scene  *get_fore() const { return fore0; }
-    scm_scene  *get_back() const { return back0; }
-
-    // Internal Interface
+    /// @}
+    /// @name Internal Interface
+    /// @{
 
     int     acquire_scm(const std::string&);
     int     release_scm(const std::string&);
@@ -150,9 +180,11 @@ public:
     scm_cache  *get_cache(int);
     scm_file   *get_file (int);
 
-    float       get_page_sample(int, const double *v);
-    bool        get_page_status(int, long long);
-    void        get_page_bounds(int, long long, float&, float&);
+    float       get_page_sample(int f, const double *v);
+    bool        get_page_status(int f, long long i);
+    void        get_page_bounds(int f, long long i, float& r0, float& r1);
+
+    /// @}
 
 private:
 
@@ -173,10 +205,10 @@ private:
     active_cache_m caches;
     active_pair_m  pairs;
 
-    int    serial;
-    int    frame;
-    bool   sync;
-    double fade;
+    int            serial;
+    int            frame;
+    bool           sync;
+    double         fade;
 };
 
 //------------------------------------------------------------------------------

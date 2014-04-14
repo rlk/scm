@@ -33,6 +33,17 @@
 
 //------------------------------------------------------------------------------
 
+/// Create a new empty SCM system. Instantiate a render handler and a sphere
+/// handler.
+///
+/// @see scm_render::scm_render
+/// @see scm_sphere::scm_sphere
+///
+/// @param w  Width of the off-screen render target (in pixels)
+/// @param h  Height of the off-screen render target (in pixels)
+/// @param d  Detail with which sphere pages are drawn (in vertices)
+/// @param l  Limit at which sphere pages are subdivided (in pixels)
+///
 scm_system::scm_system(int w, int h, int d, int l) :
     serial(1), frame(0), sync(false), fade(0)
 {
@@ -47,6 +58,8 @@ scm_system::scm_system(int w, int h, int d, int l) :
     back1 = 0;
 }
 
+/// Finalize all SCM system state.
+
 scm_system::~scm_system()
 {
     while (get_scene_count())
@@ -60,6 +73,19 @@ scm_system::~scm_system()
 
 //------------------------------------------------------------------------------
 
+/// Render the sphere. This is among the most significant entry points of the
+/// SCM API as it is the simplest function that accomplishes the goal. It should
+/// be called once per frame.
+///
+/// The request is forwarded directly to the render handler, augmented with the
+/// current foreground and background scenes and cross-fade parameters.
+///
+/// @see scm_render::render
+///
+/// @param P        Projection matrix in column-major OpenGL form
+/// @param M        Model-view matrix in column-major OpenGL form
+/// @param channel  Channel index (e.g. 0 for left eye, 1 for right eye)
+
 void scm_system::render_sphere(const double *P,
                                const double *M, int channel) const
 {
@@ -69,43 +95,203 @@ void scm_system::render_sphere(const double *P,
 
 //------------------------------------------------------------------------------
 
-void scm_system::flush_cache()
+/// Return a pointer to the sphere geometry handler.
+
+scm_sphere *scm_system::get_sphere() const
 {
-    for (active_cache_i i = caches.begin(); i != caches.end(); ++i)
-        i->second.cache->flush();
+    return sphere;
 }
 
-void scm_system::render_cache()
+/// Return a pointer to the render manager.
+
+scm_render *scm_system::get_render() const
 {
-    int ii = 0, nn = caches.size();
-
-    if (nn < 2)
-        nn = 2;
-
-    for (active_cache_i i = caches.begin(); i != caches.end(); ++i, ++ii)
-        i->second.cache->render(ii, nn);
+    return render;
 }
 
-void scm_system::update_cache()
+/// Return a pointer to the current foreground scene.
+
+scm_scene *scm_system::get_fore() const
 {
-    for (active_cache_i i = caches.begin(); i != caches.end(); ++i)
-        i->second.cache->update(frame, sync);
-    frame++;
+    return fore0;
+}
+
+/// Return a pointer to the current background scene.
+
+scm_scene *scm_system::get_back() const
+{
+    return back0;
 }
 
 //------------------------------------------------------------------------------
 
-// Flush the current step queue and delete all steps.
+/// Allocate and insert a new scene before index i. Return its index.
 
-void scm_system::flush_queue()
+int scm_system::add_scene(int i)
 {
-    for (size_t i = 0; i < queue.size(); i++)
-        delete queue[i];
+    int j = -1;
 
-    queue.clear();
+    if (scm_scene *scene = new scm_scene(this))
+    {
+        scm_scene_i it = scenes.insert(scenes.begin() + std::max(i, 0), scene);
+        j         = it - scenes.begin();
+
+        if (fore0 == 0) fore0 = scene;
+        if (fore1 == 0) fore1 = scene;
+    }
+    scm_log("scm_system add_scene %d = %d", i, j);
+
+    return j;
 }
 
-// Parse the given string as a series of camera states. Enqueue each.
+/// Delete the scene at index i.
+
+void scm_system::del_scene(int i)
+{
+    scm_log("scm_system del_scene %d", i);
+
+    if (scenes[i] == fore0) fore0 = 0;
+    if (scenes[i] == back0) back0 = 0;
+    if (scenes[i] == fore1) fore1 = 0;
+    if (scenes[i] == back1) back1 = 0;
+
+    delete scenes[i];
+    scenes.erase(scenes.begin() + i);
+}
+
+/// Return a pointer to the scene at index i, or 0 if i is out-of-range.
+
+scm_scene *scm_system::get_scene(int i)
+{
+    if (0 <= i && i < int(scenes.size()))
+        return scenes[i];
+    else
+        return 0;
+}
+
+/// Return the number of scenes in the collection.
+
+int scm_system::get_scene_count() const
+{
+    return int(scenes.size());
+}
+
+/// Set the scene caches and fade coefficient to produce a rendering of the
+/// current step queue at time t.
+
+double scm_system::set_scene_blend(double t)
+{
+    if (!queue.empty())
+    {
+        t = std::max(t, 0.0);
+        t = std::min(t, double(queue.size() - 1));
+
+        scm_step *step0 = queue[int(floor(t))];
+        scm_step *step1 = queue[int( ceil(t))];
+
+        fore0 = find_scene(step0->get_foreground());
+        fore1 = find_scene(step1->get_foreground());
+        back0 = find_scene(step0->get_background());
+        back1 = find_scene(step1->get_background());
+
+        fade = t - floor(t);
+        return t;
+    }
+    else
+    {
+        fade = 0;
+        return 0;
+    }
+}
+
+//------------------------------------------------------------------------------
+
+/// Allocate and insert a new step before index i. Return its index.
+
+int scm_system::add_step(int i)
+{
+    int j = -1;
+
+    if (scm_step *step = new scm_step())
+    {
+        scm_step_i it = steps.insert(steps.begin() + std::max(i, 0), step);
+        j        = it - steps.begin();
+    }
+    scm_log("scm_system add_step %d = %d", i, j);
+
+    return j;
+}
+
+/// Delete the step at index i.
+
+void scm_system::del_step(int i)
+{
+    scm_log("scm_system del_step %d", i);
+
+    delete steps[i];
+    steps.erase(steps.begin() + i);
+}
+
+/// Return a pointer to the step at index i.
+
+scm_step *scm_system::get_step(int i)
+{
+    if (0 <= i && i < int(steps.size()))
+        return steps[i];
+    else
+        return 0;
+}
+
+/// Return the number of steps in the collection.
+
+int scm_system::get_step_count() const
+{
+    return int( steps.size());
+}
+
+/// Compute the interpolated values of the current step queue at the given time.
+/// Extrapolate the first and last steps to produce a clean start and stop.
+
+#if 0
+scm_step scm_system::get_step_blend(double t) const
+{
+    t = std::max(t, 0.0);
+    t = std::min(t, double(queue.size() - 1));
+
+    int    i = int(floor(t));
+    double k = t - floor(t);
+
+    if (queue.size() == 0) return scm_step();
+    if (queue.size() == 1) return *queue[0];
+    if (t            == 0) return *queue[0];
+    if (k            == 0) return *queue[i];
+
+    int n = queue.size() - 2;
+    int m = queue.size() - 1;
+
+    scm_step a = (i > 0) ? *queue[i - 1] : scm_step(queue[0], queue[1], -1.0);
+    scm_step b =           *queue[i    ];
+    scm_step c =           *queue[i + 1];
+    scm_step d = (i < n) ? *queue[i + 2] : scm_step(queue[n], queue[m], +2.0);
+
+    return scm_step(&a, &b, &c, &d, k);
+}
+#else
+scm_step scm_system::get_step_blend(double t) const
+{
+    t = std::max(t, 0.0);
+    t = std::min(t, double(queue.size() - 1));
+
+    int i = int(floor(t));
+
+    return queue[i];
+}
+#endif
+
+//------------------------------------------------------------------------------
+
+/// Parse the given string as a series of camera states. Enqueue each. This
+/// function ingests Maya MOV exports.
 
 void scm_system::import_queue(const std::string& data)
 {
@@ -147,6 +333,9 @@ void scm_system::import_queue(const std::string& data)
     }
 }
 
+/// Print all steps on the current queue to the given string using the same
+/// format expected by import_queue.
+
 void scm_system::export_queue(std::string& data)
 {
     std::stringstream file;
@@ -179,221 +368,83 @@ void scm_system::export_queue(std::string& data)
     data = file.str();
 }
 
-// Take ownership of the given step and append it to the current queue.
+/// Take ownership of the given step and append it to the current queue.
 
 void scm_system::append_queue(scm_step *s)
 {
     queue.push_back(s);
 }
 
-// Render the current queue as an interpolated path.
+/// Flush the current step queue, deleting all steps in it.
 
-void scm_system::render_queue()
+void scm_system::flush_queue()
 {
-    if (!queue.empty())
-    {
-        glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
-        {
-            size_t n = queue.size() - 1;
+    for (size_t i = 0; i < queue.size(); i++)
+        delete queue[i];
 
-            glDisable(GL_LIGHTING);
-            glDisable(GL_TEXTURE_2D);
-            glEnable(GL_POINT_SMOOTH);
-            glEnable(GL_DEPTH_CLAMP);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glDepthMask(GL_FALSE);
-
-            // Draw a line of small points to indicate the path.
-
-            glPointSize(2.0);
-            glBegin(GL_POINTS);
-            {
-                glColor4f(1.0f, 1.0f, 0.0, 0.5f);
-                for (size_t i = 1; i < n; i++)
-                    queue[i]->draw();
-            }
-            glEnd();
-
-            // Draw large points to indicate the first and last steps.
-
-            glPointSize(6.0);
-            glBegin(GL_POINTS);
-            {
-                glColor4f(0.0f, 1.0f, 0.0f, 0.8f);
-                queue[0]->draw();
-
-                glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
-                queue[n]->draw();
-            }
-            glEnd();
-        }
-        glPopAttrib();
-    }
+    queue.clear();
 }
 
 //------------------------------------------------------------------------------
 
-// Allocate and insert a new scene before i. Return its index.
+/// Update all image caches. This is among the most significant entry points of
+/// the SCM API as it handles image input. It ensures that any page requests
+/// being serviced in the background are properly transmitted to the OpenGL
+/// context. It should be called once per frame. @see scm_cache::update
 
-int scm_system::add_scene(int i)
+void scm_system::update_cache()
 {
-    int j = -1;
-
-    if (scm_scene *scene = new scm_scene(this))
-    {
-        scm_scene_i it = scenes.insert(scenes.begin() + std::max(i, 0), scene);
-        j         = it - scenes.begin();
-
-        if (fore0 == 0) fore0 = scene;
-        if (fore1 == 0) fore1 = scene;
-    }
-    scm_log("scm_system add_scene %d = %d", i, j);
-
-    return j;
+    for (active_cache_i i = caches.begin(); i != caches.end(); ++i)
+        i->second.cache->update(frame, sync);
+    frame++;
 }
 
-// Delete the scene at i.
+/// Render a 2D overlay of the contents of all caches. This can be a helpful
+/// visual debugging tool as well as an effective demonstration of the inner
+/// workings of the library. @see scm_cache::render
 
-void scm_system::del_scene(int i)
+void scm_system::render_cache()
 {
-    scm_log("scm_system del_scene %d", i);
+    int ii = 0, nn = caches.size();
 
-    if (scenes[i] == fore0) fore0 = 0;
-    if (scenes[i] == back0) back0 = 0;
-    if (scenes[i] == fore1) fore1 = 0;
-    if (scenes[i] == back1) back1 = 0;
+    if (nn < 2)
+        nn = 2;
 
-    delete scenes[i];
-    scenes.erase(scenes.begin() + i);
+    for (active_cache_i i = caches.begin(); i != caches.end(); ++i, ++ii)
+        i->second.cache->render(ii, nn);
 }
 
-// Return a pointer to the scene at i.
+/// Flush all image caches. All pages are ejected from all caches.
+/// @see scm_cache::flush
 
-scm_scene *scm_system::get_scene(int i)
+void scm_system::flush_cache()
 {
-    if (0 <= i && i < int(scenes.size()))
-        return scenes[i];
-    else
-        return 0;
+    for (active_cache_i i = caches.begin(); i != caches.end(); ++i)
+        i->second.cache->flush();
 }
 
-//------------------------------------------------------------------------------
+/// In synchronous mode, scm_cache::update will block until all background
+/// input handling is complete. This ensures perfect data each frame, but
+/// may delay frames. @see scm_cache::update
 
-// Allocate and insert a new step before i. Return its index.
-
-int scm_system::add_step(int i)
+void scm_system::set_synchronous(bool b)
 {
-    int j = -1;
-
-    if (scm_step *step = new scm_step())
-    {
-        scm_step_i it = steps.insert(steps.begin() + std::max(i, 0), step);
-        j        = it - steps.begin();
-    }
-    scm_log("scm_system add_step %d = %d", i, j);
-
-    return j;
+    sync = b;
 }
 
-// Delete the step at i.
+/// Return the synchronous flag.
 
-void scm_system::del_step(int i)
+bool scm_system::get_synchronous() const
 {
-    scm_log("scm_system del_step %d", i);
-
-    delete steps[i];
-    steps.erase(steps.begin() + i);
-}
-
-// Return a pointer to the step at i.
-
-scm_step *scm_system::get_step(int i)
-{
-    if (0 <= i && i < int(steps.size()))
-        return steps[i];
-    else
-        return 0;
+    return sync;
 }
 
 //------------------------------------------------------------------------------
 
-// Compute the interpolated values of the current step queue at the given time.
-// Extrapolate the first and last steps to produce a clean start and stop.
-#if 0
-scm_step scm_system::get_step_blend(double t) const
-{
-    t = std::max(t, 0.0);
-    t = std::min(t, double(queue.size() - 1));
-
-    int    i = int(floor(t));
-    double k = t - floor(t);
-
-    if (queue.size() == 0) return scm_step();
-    if (queue.size() == 1) return *queue[0];
-    if (t            == 0) return *queue[0];
-    if (k            == 0) return *queue[i];
-
-    int n = queue.size() - 2;
-    int m = queue.size() - 1;
-
-    scm_step a = (i > 0) ? *queue[i - 1] : scm_step(queue[0], queue[1], -1.0);
-    scm_step b =           *queue[i    ];
-    scm_step c =           *queue[i + 1];
-    scm_step d = (i < n) ? *queue[i + 2] : scm_step(queue[n], queue[m], +2.0);
-
-    return scm_step(&a, &b, &c, &d, k);
-}
-#else
-scm_step scm_system::get_step_blend(double t) const
-{
-    t = std::max(t, 0.0);
-    t = std::min(t, double(queue.size() - 1));
-
-    int i = int(floor(t));
-
-    return queue[i];
-}
-#endif
-
-// Set the scene caches and fade coefficient to give the rendering of the
-// current step queue at the given time.
-
-double scm_system::set_scene_blend(double t)
-{
-    if (!queue.empty())
-    {
-        t = std::max(t, 0.0);
-        t = std::min(t, double(queue.size() - 1));
-
-        scm_step *step0 = queue[int(floor(t))];
-        scm_step *step1 = queue[int( ceil(t))];
-
-#if 1
-        fore0 = find_scene(step0->get_foreground());
-        fore1 = find_scene(step1->get_foreground());
-        back0 = find_scene(step0->get_background());
-        back1 = find_scene(step1->get_background());
-#else
-        scm_scene *temp;
-
-        if ((temp = find_scene(step0->get_foreground()))) fore0 = temp;
-        if ((temp = find_scene(step1->get_foreground()))) fore1 = temp;
-        if ((temp = find_scene(step0->get_background()))) back0 = temp;
-        if ((temp = find_scene(step1->get_background()))) back1 = temp;
-#endif
-
-        fade = t - floor(t);
-        return t;
-    }
-    else
-    {
-        fade = 0;
-        return 0;
-    }
-}
-
-// Return the ground level of current scene at the given location.
+/// Return the ground level of current scene at the given location. O(log n).
+/// This may incur data access in the render thread.
+///
+/// @param v Vector from the center of the planet to the query position.
 
 float scm_system::get_current_ground(const double *v) const
 {
@@ -407,7 +458,8 @@ float scm_system::get_current_ground(const double *v) const
     return 1.f;
 }
 
-// Return the minimum ground level of the current scene.
+/// Return the minimum ground level of the current scene, e.g. the radius of
+/// the planet at the bottom of the deepest valley. O(1).
 
 float scm_system::get_minimum_ground() const
 {
@@ -422,6 +474,11 @@ float scm_system::get_minimum_ground() const
 }
 
 //------------------------------------------------------------------------------
+
+/// Internal: Load the named SCM file, if not already loaded. Add a new scm_file
+/// object to the collection and return its index. This always succeeds as an
+/// scm_file object produces fallback data in erroneous circumstances, such as
+/// an unfound SCM TIFF.
 
 int scm_system::acquire_scm(const std::string& name)
 {
@@ -467,6 +524,9 @@ int scm_system::acquire_scm(const std::string& name)
     return files[name].index;
 }
 
+/// Release the named SCM file. The file collection is reference-counted, and
+/// the scm_file object is only deleted when all acquisitions are released.
+
 int scm_system::release_scm(const std::string& name)
 {
     scm_log("release_scm %s", name.c_str());
@@ -508,7 +568,7 @@ int scm_system::release_scm(const std::string& name)
 
 //------------------------------------------------------------------------------
 
-// Return the scene with the given name.
+/// Return the scene with the given name.
 
 scm_scene *scm_system::find_scene(const std::string& name) const
 {
@@ -519,27 +579,33 @@ scm_scene *scm_system::find_scene(const std::string& name) const
     return 0;
 }
 
-// Return the cache associated with the given file index.
+/// Return the cache associated with the given file index.
 
-scm_cache *scm_system::get_cache(int index)
+scm_cache *scm_system::get_cache(int i)
 {
-    if (pairs.find(index) == pairs.end())
+    if (pairs.find(i) == pairs.end())
         return 0;
     else
-        return pairs[index].cache;
+        return pairs[i].cache;
 }
 
-// Return the file associated with the given file index.
+/// Return the file associated with the given file index.
 
-scm_file *scm_system::get_file(int index)
+scm_file *scm_system::get_file(int i)
 {
-    if (pairs.find(index) == pairs.end())
+    if (pairs.find(i) == pairs.end())
         return 0;
     else
-        return pairs[index].file;
+        return pairs[i].file;
 }
 
 //------------------------------------------------------------------------------
+
+/// Sample an SCM file at the given location. O(log n). This may incur data
+/// access in the render thread. @see scm_file::get_page_sample
+///
+/// @param f File index
+/// @param v Vector from the center of the planet to the query position.
 
 float scm_system::get_page_sample(int f, const double *v)
 {
@@ -548,6 +614,14 @@ float scm_system::get_page_sample(int f, const double *v)
     else
         return 1.f;
 }
+
+/// Determine the minimum and maximum values of an SCM file page. O(log n).
+/// @see scm_file::get_page_bounds
+///
+/// @param f  File index
+/// @param i  Page index
+/// @param r0 Minimum radius output
+/// @param r1 Maximum radius output
 
 void scm_system::get_page_bounds(int f, long long i, float& r0, float& r1)
 {
@@ -559,6 +633,12 @@ void scm_system::get_page_bounds(int f, long long i, float& r0, float& r1)
         r1 = 1.f;
     }
 }
+
+/// Return true if a page is present in the SCM file. O(log n).
+/// @see scm_file::get_page_status
+///
+/// @param f File index
+/// @param i Page index
 
 bool scm_system::get_page_status(int f, long long i)
 {

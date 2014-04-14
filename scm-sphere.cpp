@@ -77,6 +77,9 @@ void scm_sphere::zoom(double *w, const double *v)
 
 //------------------------------------------------------------------------------
 
+/// \param d  Detail with which sphere pages are drawn (in vertices)
+/// \param l  Limit at which sphere pages are subdivided (in pixels)
+///
 scm_sphere::scm_sphere(int d, int l) : detail(d), limit(l)
 {
     init_arrays(d);

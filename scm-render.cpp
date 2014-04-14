@@ -40,7 +40,7 @@ scm_render::~scm_render()
 
 //------------------------------------------------------------------------------
 
-// Initialize the uniforms of the given GLSL program object.
+/// Initialize the uniforms of the given GLSL program object.
 
 void scm_render::init_uniforms(GLuint program)
 {
@@ -144,7 +144,7 @@ void scm_render::free_ogl()
 
 //------------------------------------------------------------------------------
 
-// Draw a screen-filling rectangle.
+/// Draw a screen-filling rectangle.
 
 static void fillscreen(int w, int h)
 {
@@ -179,7 +179,7 @@ static void fillscreen(int w, int h)
     glPopAttrib();
 }
 
-// Set the OpenGL state for wireframe rendering.
+/// Set the OpenGL state for wireframe rendering.
 
 static void wire_on()
 {
@@ -192,14 +192,14 @@ static void wire_on()
     glLineWidth(1.0);
 }
 
-// Unset the OpenGL state for wireframe rendering.
+/// Unset the OpenGL state for wireframe rendering.
 
 static void wire_off()
 {
     glPopAttrib();
 }
 
-// Calculate the distance to the far clipping plane of the give projection.
+/// Calculate the distance to the far clipping plane of the give projection.
 
 static double fardistance(const double *P)
 {
@@ -215,7 +215,7 @@ static double fardistance(const double *P)
 
 //------------------------------------------------------------------------------
 
-// Determine whether fading is necessary.
+/// Determine whether fading is necessary.
 
 bool scm_render::check_fade(scm_scene *fore0, scm_scene *fore1,
                             scm_scene *back0, scm_scene *back1, double t)
@@ -226,7 +226,7 @@ bool scm_render::check_fade(scm_scene *fore0, scm_scene *fore1,
     return false;
 }
 
-// Determine whether blurring is necessary and compute its transform.
+/// Determine whether blurring is necessary and compute its transform.
 
 bool scm_render::check_blur(const double *P,
                             const double *M,
@@ -273,8 +273,8 @@ bool scm_render::check_blur(const double *P,
     return false;
 }
 
-// Render the foreground and background scenes. We render the foreground
-// first to allow the depth test to eliminate background texture cache traffic.
+/// Render the foreground and background scenes. We render the foreground
+/// first to allow the depth test to eliminate background texture cache traffic.
 
 void scm_render::render(scm_sphere *sphere,
                         scm_scene  *fore,
@@ -351,7 +351,7 @@ void scm_render::render(scm_sphere *sphere,
         wire_off();
 }
 
-// Render, blur, and blend the given scenes.
+/// Render, blur, and blend the given scenes.
 
 void scm_render::render(scm_sphere *sphere,
                         scm_scene  *fore0,
