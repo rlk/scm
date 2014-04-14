@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2012 Robert Kooima
+// Copyright (C) 2011-2014 Robert Kooima
 //
 // LIBSCM is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
@@ -37,6 +37,9 @@ typedef std::vector<scm_scene *>::iterator scm_scene_i;
 
 //------------------------------------------------------------------------------
 
+/// An active_pair structure allows an scm_system to associate an scm_file
+/// object with the scm_cache that caches its data.
+
 struct active_pair
 {
     active_pair()                          : file(0), cache(0) { }
@@ -49,6 +52,9 @@ struct active_pair
 typedef std::map<int, active_pair> active_pair_m;
 
 //------------------------------------------------------------------------------
+
+/// An active_file structure allows an scm_system to perform reference-counted
+/// management of open scm_file objects.
 
 struct active_file
 {
@@ -63,6 +69,9 @@ typedef std::map<std::string, active_file> active_file_m;
 
 //------------------------------------------------------------------------------
 
+/// An active_cache structure allows an scm_system to perform reference-counted
+/// management of functioning scm_cache objects.
+
 struct active_cache
 {
     active_cache() : cache(0), uses(0) { }
@@ -70,6 +79,10 @@ struct active_cache
     scm_cache *cache;
     int        uses;
 };
+
+/// A cache_param structure represents the format of the image data that a
+/// cache contains. n is size, c is channel count, and b is byte count. This
+/// allows an scm_system to ensure that similar images share their cache.
 
 struct cache_param
 {
