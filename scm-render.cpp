@@ -23,6 +23,14 @@
 
 //------------------------------------------------------------------------------
 
+/// Create a new render manager. Initialize the necessary OpenGL state
+/// framebuffer object state.
+///
+/// Motion blur is disabled (set to zero) by default.
+///
+/// @param w Width of the off-screen render targets (in pixels).
+/// @param h Height of the off-screen render targets (in pixels).
+
 scm_render::scm_render(int w, int h) :
     width(w), height(h), blur(0), wire(false), frame0(0), frame1(0)
 {
@@ -32,6 +40,8 @@ scm_render::scm_render(int w, int h) :
     for (int i = 0; i < 16; i++)
         midentity(previous_T[i]);
 }
+
+/// Finalize all OpenGL state.
 
 scm_render::~scm_render()
 {

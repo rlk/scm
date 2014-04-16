@@ -30,8 +30,8 @@ class scm_frame;
 /// In the simplest case, this entails merely invoking the scm_sphere's render
 /// function to draw geometry to the screen. However, the render manager also
 /// supports motion blur and dissolve transitions. These features require the
-/// the sphere to be rendered first to an off-screen buffer with is then drawn
-/// to the screen as a single rectangle.
+/// sphere to be rendered first to an off-screen buffer which is then drawn to
+/// the screen as a single rectangle with the appropriate shader enabled.
 ///
 /// The render manager also maintains the wireframe debug option, which would
 /// otherwise conflict with more sophisticated capabilities.

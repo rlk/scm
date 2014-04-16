@@ -39,9 +39,6 @@ typedef GLuint           GLindex;
 /// Create a new spherical geometry rendering object. Initialize the necessary
 /// OpenGL vertex buffer object state.
 ///
-/// @see scm_sphere::set_detail
-/// @see scm_sphere::set_limit
-///
 /// @param d  Detail with which sphere pages are drawn (in vertices)
 /// @param l  Limit at which sphere pages are subdivided (in pixels)
 ///
