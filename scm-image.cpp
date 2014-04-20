@@ -41,6 +41,25 @@ scm_image::~scm_image()
 
 //------------------------------------------------------------------------------
 
+/// Configure this image to read data from the named SCM file.
+///
+/// This method can have ripple effects throughout the SCM system...
+///
+/// 1. If this image was previously configured to read from a different SCM,
+/// then that SCM is released. This might trigger the destruction of an scm_file
+/// if its reference count goes to zero, and might also trigger the destruction
+/// of an scm_cache if the file count of that cache goes to zero. In the event
+/// of an scm_cache destruction, all of that cache's loader threads are asked
+/// to exit and waited upon. @see scm_system::release_scm
+///
+/// 2. The nemed SCM is aquired. If it is not already open, this will trigger
+/// the construction of a new scm_file object, and possibly the construction of
+/// an scm_cache. In the event of an scm_cache construction, loader threads for
+/// that cache are launched. @see scm_system::acquire_scm
+///
+/// So, while the scm_system makes every effort to minimize the effort of SCM
+/// data access, significant setup may be necessary, and it all starts here.
+
 void scm_image::set_scm(const std::string& s)
 {
     if (!scm.empty()) index = sys->release_scm(scm);
@@ -50,13 +69,47 @@ void scm_image::set_scm(const std::string& s)
     cache = (index < 0) ? 0 : sys->get_cache(index);
 }
 
+/// Set the name by which GLSL sampler uniforms may access this image.
+///
+/// The name "height" indicates that this image gives height map data, and that
+/// an subsequent ground-level queries may use this image.
+///
+/// @see scm_scene::get_minimum_ground
+/// @see scm_scene::get_current_ground
+
 void scm_image::set_name(const std::string& s)
 {
     name = s;
     height = (name == "height");
 }
 
+/// Set the channel index for this image.
+///
+/// In this case "channel" indicates left-eye (0), right-eye (1), etc. rather
+/// than red (0), green (1), or similar.
+
+void scm_image::set_channel(int c)
+{
+    channel = c;
+}
+
+/// Set the input value to be mapped onto 0 in the output.
+
+void scm_image::set_normal_min(float k)
+{
+    k0 = k;
+}
+
+/// Set the input value to be mapped onto 1 in the output.
+
+void scm_image::set_normal_max(float k)
+{
+    k1 = k;
+}
+
 //------------------------------------------------------------------------------
+
+/// Request and store GLSL uniform locations for this image's parameters.
 
 void scm_image::init_uniforms(GLuint program)
 {
@@ -78,6 +131,8 @@ void scm_image::init_uniforms(GLuint program)
     }
 }
 
+/// Set all GLSL uniform values for this image and bind the cache's texture.
+
 void scm_image::bind(GLuint unit, GLuint program) const
 {
     glUniform1i(uS,  unit);
@@ -96,6 +151,8 @@ void scm_image::bind(GLuint unit, GLuint program) const
     }
 }
 
+/// Unbind the cache's texture by binding the texture unit to zero.
+
 void scm_image::unbind(GLuint unit) const
 {
     glActiveTexture(GL_TEXTURE0 + unit);
@@ -103,6 +160,13 @@ void scm_image::unbind(GLuint unit) const
 }
 
 //------------------------------------------------------------------------------
+
+/// Set the GLSL uniforms necessary to map a page of texture data.
+///
+/// @param program GLSL program object
+/// @param d       SCM page depth.
+/// @param t       Current time
+/// @param i       SCM page index.
 
 void scm_image::bind_page(GLuint program, int d, int t, long long i) const
 {
@@ -134,11 +198,15 @@ void scm_image::bind_page(GLuint program, int d, int t, long long i) const
     }
 }
 
+/// Set the texture mapping uniforms to zero.
+
 void scm_image::unbind_page(GLuint program, int d) const
 {
     glUniform1f(ua[d], 0.f);
     glUniform2f(ub[d], 0.f, 0.f);
 }
+
+/// Set the last-used time of a page.
 
 void scm_image::touch_page(int t, long long i) const
 {
@@ -151,6 +219,9 @@ void scm_image::touch_page(int t, long long i) const
 
 //------------------------------------------------------------------------------
 
+/// Sample this image at the given location, returning a normalized result.
+/// @see scm_system::get_page_sample
+
 float scm_image::get_page_sample(const double *v) const
 {
     if (index < 0)
@@ -158,6 +229,9 @@ float scm_image::get_page_sample(const double *v) const
     else
         return sys->get_page_sample(index, v) * (k1 - k0) + k0;
 }
+
+/// Determine the minimum and maximum values of one page, returning a
+/// normalized result. @see scm_system::get_page_bounds
 
 void scm_image::get_page_bounds(long long i, float& r0, float& r1) const
 {
@@ -174,6 +248,9 @@ void scm_image::get_page_bounds(long long i, float& r0, float& r1) const
         r1 = k0 + (k1 - k0) * r1;
     }
 }
+
+/// Return true if a page is present in this image.
+/// @see scm_system::get_page_status
 
 bool scm_image::get_page_status(long long i) const
 {

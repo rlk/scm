@@ -25,11 +25,31 @@ class scm_cache;
 
 //------------------------------------------------------------------------------
 
+/// An scm_image represents an SCM data file in use by an scm_scene.
+///
+/// This object is largely responsible for mapping SCM data onto OpenGL state,
+/// including OpenGL textures and GLSL uniforms. Notably, this includes those
+/// parameters mapping texture coordinates onto a scm_cache texture atlas.
+
 class scm_image
 {
 public:
 
-    // External Interface
+    scm_image(scm_system *);
+   ~scm_image();
+
+    /// @name Configuration modifiers
+    /// @{
+
+    void               set_scm       (const std::string& s);
+    void               set_name      (const std::string& s);
+    void               set_channel   (int   c);
+    void               set_normal_min(float k);
+    void               set_normal_max(float k);
+
+    /// @}
+    /// @name Configuration queries
+    /// @{
 
     const std::string& get_scm()        const { return scm;     }
     const std::string& get_name()       const { return name;    }
@@ -37,19 +57,12 @@ public:
     float              get_normal_min() const { return k0;      }
     float              get_normal_max() const { return k1;      }
 
-    void               set_scm       (const std::string& s);
-    void               set_name      (const std::string& s);
-    void               set_channel   (int   c)              { channel = c; }
-    void               set_normal_min(float k)              { k0      = k; }
-    void               set_normal_max(float k)              { k1      = k; }
-
     bool is_channel(int c) const { return (channel == c || channel == -1); }
     bool is_height()       const { return (height);                        }
 
-    // Internal Interface
-
-    scm_image(scm_system *);
-   ~scm_image();
+    /// @}
+    /// @name Internal Interface
+    /// @{
 
     void   init_uniforms(GLuint);
 
@@ -63,6 +76,8 @@ public:
     float   get_page_sample(const double *)              const;
     void    get_page_bounds(long long, float &, float &) const;
     bool    get_page_status(long long)                   const;
+
+    /// @}
 
 private:
 

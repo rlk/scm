@@ -476,7 +476,8 @@ float scm_system::get_minimum_ground() const
 //------------------------------------------------------------------------------
 
 /// Internal: Load the named SCM file, if not already loaded. Add a new scm_file
-/// object to the collection and return its index. This always succeeds as an
+/// object to the collection and return its index. If necessary, create a new
+/// scm_cache object to manage this file's data. Acquire always succeeds as an
 /// scm_file object produces fallback data in erroneous circumstances, such as
 /// an unfound SCM TIFF.
 
@@ -526,6 +527,8 @@ int scm_system::acquire_scm(const std::string& name)
 
 /// Release the named SCM file. The file collection is reference-counted, and
 /// the scm_file object is only deleted when all acquisitions are released.
+/// If a deleted file is the only file handled by an scm_cache then delete that
+/// cache.
 
 int scm_system::release_scm(const std::string& name)
 {
