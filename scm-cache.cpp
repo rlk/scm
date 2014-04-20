@@ -23,15 +23,46 @@
 
 //------------------------------------------------------------------------------
 
-// Static cache configuration parameters and their defaults.
+/// The cache grid size. The texture atlas will have size N x N where
+/// N = grid_size * page_size. Too large a value may exceed the maximum texture
+/// size or available VRAM, resulting in peer performance. Too small a value may
+/// result in poor image quality and unnecessary data traffic.
 
 int scm_cache::cache_size      = 16;
+
+/// The number of loader threads servicing page load requests for each cache.
+
 int scm_cache::cache_threads   =  2;
+
+/// The maximum number of page load requests allowed at any moment. (Requests
+/// from the render thread to the loader threads.) If this limit is exceeded
+/// the render thread will abandon the request and repeat it later.
+
 int scm_cache::need_queue_size = 32;
+
+/// The maximum number of page load results allowed at any moment. (Results
+/// from the loader threads to the render thread.) If this limit is exceeded
+/// the loader thread will block on load queue.
+
 int scm_cache::load_queue_size =  8;
+
+/// The maximum number of page load results that may be uploaded to the atlas
+/// by the render thread each frame. A large value may impact frame rate. A
+/// small value may increase frame latency and/or block the loader threads.
+
 int scm_cache::loads_per_cycle =  2;
 
 //------------------------------------------------------------------------------
+
+/// Create a new page cache with a queue for making page requests
+///
+/// Initialize all OpenGL state including the texture atlas and a ring of
+/// pixel buffer objects for use in asynchronous upload of page data.
+///
+/// @param sys SCM system
+/// @param n   Page size in pixels
+/// @param c   Channels per pixel
+/// @param b   Bytes per channel
 
 scm_cache::scm_cache(scm_system *sys, int n, int c, int b) :
     sys(sys),
@@ -82,6 +113,8 @@ scm_cache::scm_cache(scm_system *sys, int n, int c, int b) :
     scm_log("scm_cache constructor %d %d %d", n, c, b);
 }
 
+/// Destroy a page cache and finalize all OpenGL state
+
 scm_cache::~scm_cache()
 {
     scm_log("scm_cache destructor %d %d %d", n, c, b);
@@ -103,6 +136,8 @@ scm_cache::~scm_cache()
     glDeleteTextures(1, &texture);
 }
 
+/// Add a page request to the load queue
+
 void scm_cache::add_load(scm_task& task)
 {
     loads.insert(task);
@@ -110,7 +145,23 @@ void scm_cache::add_load(scm_task& task)
 
 //------------------------------------------------------------------------------
 
-// Return the index for the requested page. Request the page if necessary.
+/// Return the OpenGL texture object representing the cache
+
+GLuint scm_cache::get_texture() const
+{
+    return texture;
+}
+
+/// Return the cache line of a loaded page
+///
+/// Cache lines are indexed from left to right and top to bottom. Request the
+/// page if necessary. Return 0 if the page is not available (line 0 is always
+/// transparent blank and will thus appear invisible).
+///
+/// @param f File index
+/// @param i Page index
+/// @param t Current time
+/// @param u Time at which the page was loaded.
 
 int scm_cache::get_page(int f, long long i, int t, int& u)
 {
@@ -166,8 +217,13 @@ int scm_cache::get_page(int f, long long i, int t, int& u)
     return 0;
 }
 
-// Find a slot for an incoming page. Either take the next unused slot or eject
-// a page to make room. Return 0 on failure.
+/// Find a slot for an incoming page
+///
+/// Either take the next unused slot or eject a page to make room. Return 0
+// on failure. @see scm_set::eject
+///
+/// @param t Current time
+/// @param i Page index
 
 int scm_cache::get_slot(int t, long long i)
 {
@@ -186,8 +242,14 @@ int scm_cache::get_slot(int t, long long i)
 
 //------------------------------------------------------------------------------
 
-// Handle incoming textures on the loads queue. t gives the current frame
-// count.
+/// Handle incoming textures on the loads queue, copying them to the atlas.
+///
+/// This should be called by the render thread every frame. If invoked with
+/// the synchronous flag, loop until all page requests in the load queue are
+/// handled.
+///
+/// @param t Current time
+/// @param b Synchronous?
 
 void scm_cache::update(int t, bool b)
 {
@@ -220,6 +282,13 @@ void scm_cache::update(int t, bool b)
         pbos.enq(task.u);
     }
 }
+
+/// Render a 2D overlay of the contents of all caches.
+///
+/// The parameters are used to format an optimal on-screen array of caches.
+///
+/// @param ii Cache index
+/// @param nn Cache count
 
 void scm_cache::render(int ii, int nn)
 {
@@ -268,6 +337,11 @@ void scm_cache::render(int ii, int nn)
     }
     glPopAttrib();
 }
+
+/// Eject all pages
+///
+/// All page requests in the load queue remain, so a flush is unlikely to
+/// be 100% effective unless performed directly after a synchronous update.
 
 void scm_cache::flush()
 {

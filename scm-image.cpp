@@ -198,7 +198,8 @@ void scm_image::bind_page(GLuint program, int d, int t, long long i) const
     }
 }
 
-/// Set the texture mapping uniforms to zero.
+/// Set the texture mapping uniforms to reference cache line zero (which is
+/// always blank).
 
 void scm_image::unbind_page(GLuint program, int d) const
 {

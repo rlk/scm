@@ -28,8 +28,8 @@ void scm_set::remove(scm_page page)
     m.erase(page);
 }
 
-// Search for the given page in this page set. If found, update the page entry
-// with the current time t to indicate recent use.
+/// Search for the given page in this page set. If found, update the page entry
+/// with the current time t to indicate recent use.
 
 scm_page scm_set::search(scm_page page, int t)
 {
@@ -46,10 +46,13 @@ scm_page scm_set::search(scm_page page, int t)
     return scm_page();
 }
 
-// Eject a page from this set to accommodate the addition of a new page.
-// t is the current cache time and i is the index of the incoming page.
-// The general polity is LRU, but with considerations for time and priority
-// that help mitigate thrashing.
+/// Eject a page from this set to accommodate the addition of a new page.
+///
+/// The general polity is LRU, but with considerations for time and priority
+/// that help mitigate thrashing.
+///
+/// @param t Current time
+/// @param i Page index
 
 scm_page scm_set::eject(int t, long long i)
 {
