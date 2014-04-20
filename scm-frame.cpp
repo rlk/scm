@@ -15,6 +15,11 @@
 
 //------------------------------------------------------------------------------
 
+/// Create a new OpenGL framebuffer object with color and depth textures
+///
+/// @param w width in pixels
+/// @param h height in pixels
+
 scm_frame::scm_frame(GLsizei w, GLsizei h) : width(w), height(h)
 {
     glGenFramebuffers(1, &frame);
@@ -26,6 +31,8 @@ scm_frame::scm_frame(GLsizei w, GLsizei h) : width(w), height(h)
     init_frame();
 }
 
+/// Delete the framebuffer object and its textures
+
 scm_frame::~scm_frame()
 {
     if (color) glDeleteTextures    (1, &color);
@@ -33,15 +40,21 @@ scm_frame::~scm_frame()
     if (frame) glDeleteFramebuffers(1, &frame);
 }
 
+/// Bind the framebuffer object as render target
+
 void scm_frame::bind_frame() const
 {
     glBindFramebuffer(GL_FRAMEBUFFER, frame);
 }
 
+/// Bind the color texture
+
 void scm_frame::bind_color() const
 {
     glBindTexture(GL_TEXTURE_RECTANGLE, color);
 }
+
+/// Bind the depth texture
 
 void scm_frame::bind_depth() const
 {
@@ -50,7 +63,7 @@ void scm_frame::bind_depth() const
 
 //------------------------------------------------------------------------------
 
-// Initialize the storage and parameters of an off-screen color buffer.
+/// Initialize the storage and parameters of a color buffer.
 
 void scm_frame::init_color()
 {
@@ -65,7 +78,7 @@ void scm_frame::init_color()
     glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
-// Initialize the storage and parameters of an off-screen depth buffer.
+/// Initialize the storage and parameters of a depth buffer.
 
 void scm_frame::init_depth()
 {
@@ -80,7 +93,8 @@ void scm_frame::init_depth()
     glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
-// Generate and initialize a framebuffer object with color and depth buffers.
+/// Generate and initialize a framebuffer object with color and depth buffers
+/// and confirm its status.
 
 void scm_frame::init_frame()
 {
