@@ -20,15 +20,24 @@
 
 //------------------------------------------------------------------------------
 
-// scm_queue implements a producer-consumer queue. A "needs" queue is used by
-// the render thread to delegate work to a set of loader threads. One "loads"
-// queue is used by the loader threads to returning their results.
+/// An scm_queue implements a templated producer-consumer priority queue.
+///
+/// Priority is given by the partial ordering on the templated type.
+///
+/// A "needs" queue is used by the render thread to delegate work to a set of
+/// loader threads. A "loads" queue is used by the loader threads to return
+/// their results to the render thread. In all cases, the loader threads perform
+/// blocking operations while the render thread uses non-blocking operations to
+/// ensure that frames are not dropped due to data latency.
+///
+/// @see scm_file
+/// @see scm_cache
 
 template <typename T> class scm_queue
 {
 public:
 
-    scm_queue(int);
+    scm_queue(int n);
    ~scm_queue();
 
     bool try_insert(T&);
@@ -48,12 +57,17 @@ private:
 
 //------------------------------------------------------------------------------
 
+/// Create a new queue with n slots. Initialize counting semaphores for full
+/// slots and empty slots, plus a mutex to protect the data.
+
 template <typename T> scm_queue<T>::scm_queue(int n)
 {
     full_slots = SDL_CreateSemaphore(0);
     free_slots = SDL_CreateSemaphore(n);
     data_mutex = SDL_CreateMutex();
 }
+
+/// Finalize a queue and release its mutex and semaphores.
 
 template <typename T> scm_queue<T>::~scm_queue()
 {
@@ -63,7 +77,8 @@ template <typename T> scm_queue<T>::~scm_queue()
 }
 
 //------------------------------------------------------------------------------
-// Non-blocking queue operations for use by the render thread.
+
+/// Non-blocking enqueue for use by the render thread.
 
 template <typename T> bool scm_queue<T>::try_insert(T& d)
 {
@@ -79,6 +94,8 @@ template <typename T> bool scm_queue<T>::try_insert(T& d)
     }
     return false;
 }
+
+/// Non-blocking dequeue for use by the render thread.
 
 template <typename T> bool scm_queue<T>::try_remove(T& d)
 {
@@ -97,7 +114,8 @@ template <typename T> bool scm_queue<T>::try_remove(T& d)
 }
 
 //------------------------------------------------------------------------------
-// Blocking queue operations for use by the loader threads.
+
+/// Blocking enqueue for use by the loader threads.
 
 template <typename T> void scm_queue<T>::insert(T d)
 {
@@ -109,6 +127,8 @@ template <typename T> void scm_queue<T>::insert(T d)
     SDL_UnlockMutex(data_mutex);
     SDL_SemPost(full_slots);
 }
+
+/// Blocking dequeue for use by the loader threads.
 
 template <typename T> T scm_queue<T>::remove()
 {

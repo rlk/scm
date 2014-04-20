@@ -25,7 +25,7 @@ class scm_frame;
 
 //------------------------------------------------------------------------------
 
-/// An scm_render manages the generation of sphere images.
+/// An scm_render manages the rendering of background and foreground spheres.
 ///
 /// In the simplest case, this entails merely invoking the scm_sphere's render
 /// function to draw geometry to the screen. However, the render manager also

@@ -26,13 +26,7 @@
 #include "scm-log.hpp"
 
 //------------------------------------------------------------------------------
-
-static double clamp(double k, double a, double b)
-{
-    if      (k < a) return a;
-    else if (k > b) return b;
-    else            return k;
-}
+/// @cond INTERNAL
 
 struct point
 {
@@ -205,6 +199,16 @@ struct latlon
         }
     }
 };
+
+/// @endcond
+//------------------------------------------------------------------------------
+
+static double clamp(double k, double a, double b)
+{
+    if      (k < a) return a;
+    else if (k > b) return b;
+    else            return k;
+}
 
 //------------------------------------------------------------------------------
 

@@ -32,6 +32,8 @@ typedef std::vector<SDL_Thread *>::iterator thread_i;
 
 //------------------------------------------------------------------------------
 
+/// An scm_file encapsulates an open SCM data file.
+
 class scm_file
 {
 public:

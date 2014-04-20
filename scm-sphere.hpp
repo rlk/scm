@@ -21,7 +21,7 @@
 
 //------------------------------------------------------------------------------
 
-/// An scm_sphere encapsulates the adaptive geometry of the 3D sphere.
+/// An scm_sphere generates the adaptive rendered geometry of the 3D sphere.
 ///
 /// The sphere performs all visibility testing and subdivision necessary to
 /// optimally render a given scene. Detail and limit parameters tune this

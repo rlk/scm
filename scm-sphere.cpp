@@ -62,7 +62,7 @@ scm_sphere::~scm_sphere()
 //------------------------------------------------------------------------------
 
 /// Set the geometric detail of the sphere. Each page will be rendered as a
-/// d-by-d grid. This detail is limited to the range 0 to 256, which ensures
+/// d-by-d grid. This value is limited to the range 0 to 256, which ensures
 /// that the vertex index count is a 16-bit number. Changing the detail will
 /// trigger a regeneration of the sphere's vertex buffer object data, so it
 /// should *not* be done every frame.

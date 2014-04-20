@@ -17,6 +17,8 @@
 
 //------------------------------------------------------------------------------
 
+/// An scm_fifo implements a simple first-in-first-out templated queue.
+
 template <typename T> class scm_fifo : public std::list <T>
 {
 public:

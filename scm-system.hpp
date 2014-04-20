@@ -36,9 +36,10 @@ typedef std::vector<scm_scene *>           scm_scene_v;
 typedef std::vector<scm_scene *>::iterator scm_scene_i;
 
 //------------------------------------------------------------------------------
+/// @cond INTERNAL
 
-/// An active_pair structure allows an scm_system to associate an scm_file
-/// object with the scm_cache that caches its data.
+/// An active_pair structure represents the association of an scm_file object
+/// with the scm_cache that chaches its data.
 
 struct active_pair
 {
@@ -51,10 +52,7 @@ struct active_pair
 
 typedef std::map<int, active_pair> active_pair_m;
 
-//------------------------------------------------------------------------------
-
-/// An active_file structure allows an scm_system to perform reference-counted
-/// management of open scm_file objects.
+/// An active_file structure represents a reference-counted scm_file object.
 
 struct active_file
 {
@@ -67,10 +65,7 @@ struct active_file
 
 typedef std::map<std::string, active_file> active_file_m;
 
-//------------------------------------------------------------------------------
-
-/// An active_cache structure allows an scm_system to perform reference-counted
-/// management of functioning scm_cache objects.
+/// An active_cache structure represents a reference-counted scm_cache object.
 
 struct active_cache
 {
@@ -82,19 +77,17 @@ struct active_cache
 
 /// A cache_param structure represents the format of the image data that a
 /// cache contains.
-///
-/// n is size, c is channel count, and b is byte count. Partial ordering is
-/// defined, enabling log n search. This lets an scm_system combine similar
-/// images in a single cache.
 
 struct cache_param
 {
     cache_param(scm_file *file) : n(int(file->get_w()) - 2),
                                   c(int(file->get_c())),
                                   b(int(file->get_b())) { }
-    int n;
-    int c;
-    int b;
+
+    int n;  // Page size
+    int c;  // Channels per pixel
+    int b;  // Bytes per channel
+
     bool operator<(const cache_param& that) const {
         if      (n < that.n) return true;
         else if (n > that.n) return false;
@@ -108,6 +101,7 @@ struct cache_param
 typedef std::map<cache_param, active_cache>           active_cache_m;
 typedef std::map<cache_param, active_cache>::iterator active_cache_i;
 
+/// @endcond
 //------------------------------------------------------------------------------
 
 /// An scm_system encapsulates all of the state of an SCM renderer. Its

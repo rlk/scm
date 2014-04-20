@@ -18,8 +18,8 @@
 
 //------------------------------------------------------------------------------
 
-// scm_guard is a simple wrapper tha enforces mutual exclusion on a single value
-// of its templated type.
+/// The scm_guard template enforces mutual exclusion on a single value of its
+/// templated type.
 
 template <typename T> class scm_guard
 {
