@@ -86,7 +86,7 @@ struct cache_param
 
     int n;  // Page size
     int c;  // Channels per pixel
-    int b;  // Bytes per channel
+    int b;  // Bits per channel
 
     bool operator<(const cache_param& that) const {
         if      (n < that.n) return true;

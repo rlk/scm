@@ -62,7 +62,7 @@ int scm_cache::loads_per_cycle =  2;
 /// @param sys SCM system
 /// @param n   Page size in pixels
 /// @param c   Channels per pixel
-/// @param b   Bytes per channel
+/// @param b   Bits per channel
 
 scm_cache::scm_cache(scm_system *sys, int n, int c, int b) :
     sys(sys),

@@ -24,12 +24,26 @@ scm_task::scm_task()
 {
 }
 
+/// Construct a load task
+///
+/// @param f File index
+/// @param i Page index
+
 scm_task::scm_task(int f, long long i)
     : scm_item(f, i), o(0), n(0), c(0), b(0), u(0), d(false)
 {
 }
 
-// Construct a load task. Map the PBO to provide a destination for the loader.
+/// Construct a load task. Map the PBO to provide a destination for the loader.
+///
+/// @param f File index
+/// @param i Page index
+/// @param o TIFF offset
+/// @param n Page size in pixels
+/// @param c Page channels per pixel
+/// @param b Page bits per channel
+/// @param u Pixel buffer object
+/// @param C Destination cache
 
 scm_task::scm_task(int f, long long i, uint64 o, int n, int c, int b, GLuint u, scm_cache *C)
     : scm_item(f, i), o(o), n(n), c(c), b(b), u(u), d(false), C(C)
@@ -43,7 +57,10 @@ scm_task::scm_task(int f, long long i, uint64 o, int n, int c, int b, GLuint u, 
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-// Upload the pixel buffer to the OpenGL texture object.
+/// Upload the pixel buffer to the OpenGL texture object.
+///
+/// @param x Location of upper-left pixel
+/// @param y Location of upper-left pixel
 
 void scm_task::make_page(int x, int y)
 {
@@ -57,7 +74,12 @@ void scm_task::make_page(int x, int y)
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-// A page was loaded but is no longer necessary. Discard the pixel buffer.
+/// Discard the pixel buffer
+///
+/// This used when a load task was created but its data should not be uploaded
+/// to VRAM. This may be because the task could not be added to the load queue,
+/// because the loader thread failed, or because the page was rejected for cache
+/// inertion due priority.
 
 void scm_task::dump_page()
 {
@@ -68,8 +90,13 @@ void scm_task::dump_page()
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-// Load the page at offset o of TIFF T. Store it in pixel buffer p. On success,
-// mark the buffer as dirty.
+/// Load a page. On success, mark the buffer as dirty.
+///
+/// This method is called by a loader thread and exists solely to marshal
+/// the entensive argument list of the global function scm_load_page.
+///
+/// @param name TIFF name (used for generating error pages)
+/// @param T    TIFF pointer
 
 bool scm_task::load_page(const char *name, TIFF *T)
 {
@@ -78,8 +105,10 @@ bool scm_task::load_page(const char *name, TIFF *T)
 
 //------------------------------------------------------------------------------
 
-// Select an OpenGL internal texture format for an image with c channels and
-// b bits per channel.
+/// Return an OpenGL internal texture format
+///
+/// @param c Channels per pixel
+/// @param b Bits per channel
 
 GLenum scm_internal_form(uint16 c, uint16 b)
 {
@@ -109,7 +138,7 @@ GLenum scm_internal_form(uint16 c, uint16 b)
         }
 }
 
-// Select an OpenGL external texture format for an image with c channels.
+/// Select an OpenGL external texture format for an image with c channels.
 
 GLenum scm_external_form(uint16 c, uint16 b)
 {
@@ -131,7 +160,7 @@ GLenum scm_external_form(uint16 c, uint16 b)
         }
 }
 
-// Select an OpenGL data type for an image with c channels of b bits.
+/// Select an OpenGL data type for an image with c channels of b bits.
 
 GLenum scm_external_type(uint16 c, uint16 b)
 {
@@ -141,7 +170,7 @@ GLenum scm_external_type(uint16 c, uint16 b)
     else              return GL_UNSIGNED_BYTE;
 }
 
-// Return the storage size for the OpenGL pixel with c channels of b bits.
+/// Return the storage size for the OpenGL pixel with c channels of b bits.
 
 GLsizei scm_pixel_size(uint16 c, uint16 b)
 {

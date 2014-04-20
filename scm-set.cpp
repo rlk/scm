@@ -18,10 +18,14 @@
 
 //------------------------------------------------------------------------------
 
+/// Add a page to this set, associated with the current time.
+
 void scm_set::insert(scm_page page, int t)
 {
     m[page] = t;
 }
+
+/// Remove a page from this set.
 
 void scm_set::remove(scm_page page)
 {

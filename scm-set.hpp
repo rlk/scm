@@ -19,6 +19,9 @@
 
 //------------------------------------------------------------------------------
 
+/// An scm_page structure represents an active image page, either currently in
+/// a cache or awaiting loading.
+
 struct scm_page : public scm_item
 {
     scm_page()                                 : scm_item(    ), l(-1), t(0) { }
@@ -26,11 +29,14 @@ struct scm_page : public scm_item
     scm_page(int f, long long i, int l)        : scm_item(f, i), l( l), t(0) { }
     scm_page(int f, long long i, int l, int t) : scm_item(f, i), l( l), t(t) { }
 
-    int l;
-    int t;
+    int l;  /// Cache line index
+    int t;  /// Cache add time
 };
 
 //------------------------------------------------------------------------------
+
+/// An scm_set represents an a set of active pages, either currently in
+/// a cache or awaiting loading, with associated insertion time.
 
 class scm_set
 {

@@ -106,6 +106,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
+/// @file
 
 bool scm_load_page(const char *, long long,
                          TIFF *, uint64, int, int, int, int, void *);

@@ -35,22 +35,23 @@ struct scm_task : public scm_item
     bool load_page(const char *, TIFF *);
     void dump_page();
 
-    uint64     o;          // SCM TIFF file offset of this page
-    int        n;
-    int        c;
-    int        b;
-    GLuint     u;          // Pixel unpack buffer object
-    bool       d;          // Pixel unpack buffer dirty flag
-    void      *p;          // Pixel unpack buffer map address
-    scm_cache *C;          // Destination cache
+    uint64     o;          /// SCM TIFF file offset of this page
+    int        n;          /// Page size
+    int        c;          /// Page channel per pixel
+    int        b;          /// Page bits per channel
+    GLuint     u;          /// Pixel unpack buffer object
+    bool       d;          /// Pixel unpack buffer dirty flag
+    void      *p;          /// Pixel unpack buffer map address
+    scm_cache *C;          /// Destination cache
 };
 
 //------------------------------------------------------------------------------
+/// @file
 
-GLuint  scm_internal_form(uint16, uint16);
-GLuint  scm_external_form(uint16, uint16);
-GLuint  scm_external_type(uint16, uint16);
-GLsizei scm_pixel_size   (uint16, uint16);
+GLuint  scm_internal_form(uint16 c, uint16 b);
+GLuint  scm_external_form(uint16 c, uint16 b);
+GLuint  scm_external_type(uint16 c, uint16 b);
+GLsizei scm_pixel_size   (uint16 c, uint16 b);
 
 //------------------------------------------------------------------------------
 

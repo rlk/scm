@@ -23,8 +23,9 @@
 
 //------------------------------------------------------------------------------
 
-// Construct a file table entry. Open the TIFF briefly to determine its format
-// and cache its meta-data.
+/// Construct a file table entry
+///
+/// Open the TIFF briefly to determine its format and cache its meta-data.
 
 scm_file::scm_file(const std::string& tiff) :
     name(tiff),
@@ -299,8 +300,8 @@ void scm_file::fromfloat(const void *v, uint64 i, float f) const
 
 //------------------------------------------------------------------------------
 
-// Seek the deepest page at this location (x, y) of root page a. Return the
-// file offset of this page and convert (x, y) to local coordinates there.
+/// Seek the deepest page at this location (x, y) of root page a. Return the
+/// file offset of this page and convert (x, y) to local coordinates there.
 
 uint64 scm_file::find_page(long long a, double& y, double& x) const
 {
@@ -466,7 +467,7 @@ static void set_text(const char *s, int x, int y,
 
 //------------------------------------------------------------------------------
 
-// Write a message with diagnostics to the given image buffer.
+/// Write a message with diagnostics to the given image buffer.
 
 void scm_page_text(const char *mesg,
                    const char *name,
@@ -505,8 +506,17 @@ void scm_page_text(const char *mesg,
     set_text(diag, w / 2 - dsz * 4, h / 3 +  6, w, h, c, b, p);
 }
 
-// Load the page at offset o of TIFF T. Confirm the image parameters and return
-// success.
+/// Load a page from a TIFF file
+///
+/// Confirm the image parameters and return success.
+/// @param name TIFF name
+/// @param i    Page index
+/// @param T    TIFF file
+/// @param o    TIFF offset
+/// @param n    Page size in pixels
+/// @param c    Page channels per pixel
+/// @param b    Page bits per channel
+/// @param p    Destination pixel buffer
 
 bool scm_load_page(const char *name, long long i,
                          TIFF *T, uint64 o, int w, int h, int c, int b, void *p)
@@ -539,6 +549,12 @@ bool scm_load_page(const char *name, long long i,
 
     return true;
 }
+
+/// Service page load requests
+///
+/// This function is the entry point for loader threads. The void data pointer
+/// gives an scm_file structure with pointers to a needs queue and a cache with
+/// a loads queue. An invalid file request represents an order to shut down.
 
 int loader(void *data)
 {

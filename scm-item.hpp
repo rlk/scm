@@ -15,13 +15,19 @@
 
 //------------------------------------------------------------------------------
 
+/// An scm_item refers to a specific page in a specific SCM file
+///
+/// An scm_item is valid if both the file and page indices are non-negative.
+/// A partial ordering is defined that enables O(log n) searching of objects
+/// derived from scm_item.
+
 struct scm_item
 {
     scm_item()                   : f(-1), i(-1) { }
     scm_item(int f, long long i) : f( f), i( i) { }
 
-    int       f;
-    long long i;
+    int       f;  /// File index
+    long long i;  /// Page index
 
     bool is_valid() const { return (f >= 0 && i >= 0); }
 
