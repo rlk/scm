@@ -44,7 +44,7 @@ public:
 
     void    activate(scm_cache *);
     void  deactivate();
-    bool is_active() const { return active.get(); }
+    bool is_active() const;
 
     bool           add_need(scm_task&);
 
@@ -80,22 +80,22 @@ private:
 
     // Image parameters
 
-    uint32   w;         // Page width
-    uint32   h;         // Page height
-    uint16   c;         // Sample count
-    uint16   b;         // Sample depth
+    uint32   w;         ///< Page width
+    uint32   h;         ///< Page height
+    uint16   c;         ///< Sample count
+    uint16   b;         ///< Sample depth
 
-    uint64 *xv;         // Page indices
-    uint64  xc;
+    uint64 *xv;         ///< Page indices
+    uint64  xc;         ///< Page indices count
 
-    uint64 *ov;         // Page offsets
-    uint64  oc;
+    uint64 *ov;         ///< Page offsets
+    uint64  oc;         ///< Page offsets count
 
-    void   *av;         // Page minima
-    uint64  ac;
+    void   *av;         ///< Page minima
+    uint64  ac;         ///< Page minima count
 
-    void   *zv;         // Page maxima
-    uint64  zc;
+    void   *zv;         ///< Page maxima
+    uint64  zc;         ///< Page maxima count
 
     float  tofloat(const void *, uint64)        const;
     void fromfloat(const void *, uint64, float) const;

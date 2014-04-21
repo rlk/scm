@@ -125,6 +125,8 @@ scm_file::~scm_file()
 
 //------------------------------------------------------------------------------
 
+/// Launch all loader threads for this file.
+
 void scm_file::activate(scm_cache *cache)
 {
     this->cache = cache;
@@ -136,6 +138,8 @@ void scm_file::activate(scm_cache *cache)
     for (int i = 0; i < 2; ++i)
         threads.push_back(SDL_CreateThread(loader, "scm-loader", this));
 }
+
+/// Command all loader threads to exit.
 
 void scm_file::deactivate()
 {
@@ -153,6 +157,15 @@ void scm_file::deactivate()
         needs.try_insert(junk);
     }
 }
+
+/// Return true if loader threads are active on this file.
+
+bool scm_file::is_active() const
+{
+    return active.get();
+}
+
+/// Insert a new loader task into the needs queue.
 
 bool scm_file::add_need(scm_task& task)
 {

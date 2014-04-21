@@ -42,13 +42,13 @@ class scm_set
 {
 public:
 
-    bool empty() const { return m.empty(); }
-
     scm_page search(scm_page, int);
     void     insert(scm_page, int);
     void     remove(scm_page);
 
     scm_page eject(int, long long);
+
+    bool empty() const;
 
 private:
 

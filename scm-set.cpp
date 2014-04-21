@@ -18,20 +18,6 @@
 
 //------------------------------------------------------------------------------
 
-/// Add a page to this set, associated with the current time.
-
-void scm_set::insert(scm_page page, int t)
-{
-    m[page] = t;
-}
-
-/// Remove a page from this set.
-
-void scm_set::remove(scm_page page)
-{
-    m.erase(page);
-}
-
 /// Search for the given page in this page set. If found, update the page entry
 /// with the current time t to indicate recent use.
 
@@ -48,6 +34,20 @@ scm_page scm_set::search(scm_page page, int t)
         return(p);
     }
     return scm_page();
+}
+
+/// Add a page to this set, associated with the current time.
+
+void scm_set::insert(scm_page page, int t)
+{
+    m[page] = t;
+}
+
+/// Remove a page from this set.
+
+void scm_set::remove(scm_page page)
+{
+    m.erase(page);
 }
 
 /// Eject a page from this set to accommodate the addition of a new page.
@@ -91,6 +91,13 @@ scm_page scm_set::eject(int t, long long i)
         return page;
     }
     return scm_page();
+}
+
+/// Return true if the set is empty.
+
+bool scm_set::empty() const
+{
+    return m.empty();
 }
 
 //------------------------------------------------------------------------------

@@ -43,14 +43,7 @@ public:
     void prep(scm_scene *, const double *, int, int, int, bool);
     void draw(scm_scene *, const double *, int, int, int, int);
 
-    void set_zoom(double x, double y, double z, double k)
-    {
-        double d = sqrt(x * x + y * y + z * z);
-        zoomv[0] = x / d;
-        zoomv[1] = y / d;
-        zoomv[2] = z / d;
-        zoomk    = k;
-    }
+    void set_zoom(double x, double y, double z, double k);
 
 private:
 

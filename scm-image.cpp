@@ -20,6 +20,8 @@
 
 //------------------------------------------------------------------------------
 
+/// Initialize a new empty image for use in the given SCM system.
+
 scm_image::scm_image(scm_system *sys) :
     sys(sys),
     channel(-1),
@@ -33,6 +35,8 @@ scm_image::scm_image(scm_system *sys) :
     index(-1)
 {
 }
+
+/// Finalize this image's SCM file.
 
 scm_image::~scm_image()
 {

@@ -201,6 +201,17 @@ void scm_sphere::draw(scm_scene *scene, const double *M,
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+/// Set the direction and magnitude of the zoom.
+
+void scm_sphere::set_zoom(double x, double y, double z, double k)
+{
+    double d = sqrt(x * x + y * y + z * z);
+    zoomv[0] = x / d;
+    zoomv[1] = y / d;
+    zoomv[2] = z / d;
+    zoomk    = k;
+}
+
 //------------------------------------------------------------------------------
 
 static inline double scale(double k, double t)

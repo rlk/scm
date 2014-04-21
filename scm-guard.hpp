@@ -28,15 +28,21 @@ template <typename T> class scm_guard
 
 public:
 
+    /// Create the mutex for this guard
+
     scm_guard(T d) : data(d)
     {
         data_mutex = SDL_CreateMutex();
     }
 
+    /// Destroy this guard's mutex
+
     ~scm_guard()
     {
         SDL_DestroyMutex(data_mutex);
     }
+
+    /// Atomically set the guarded value.
 
     void set(T d)
     {
@@ -44,6 +50,8 @@ public:
         data = d;
         SDL_mutexV(data_mutex);
     }
+
+    /// Atomically get the guarded value.
 
     T get() const
     {

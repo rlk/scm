@@ -23,9 +23,13 @@ template <typename T> class scm_fifo : public std::list <T>
 {
 public:
 
+	/// Enqueue a value.
+
     void enq(T p) {
         this->push_back(p);
     }
+
+    /// Dequeue and return a value.
 
     T deq() {
         T p = this->front();

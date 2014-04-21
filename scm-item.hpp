@@ -23,13 +23,22 @@
 
 struct scm_item
 {
-    scm_item()                   : f(-1), i(-1) { }
-    scm_item(int f, long long i) : f( f), i( i) { }
-
     int       f;  ///< File index
     long long i;  ///< Page index
 
+    /// Initialize an invalid SCM page reference.
+
+    scm_item()                   : f(-1), i(-1) { }
+
+    /// Initialize a valid SCM page reference.
+
+    scm_item(int f, long long i) : f( f), i( i) { }
+
+    /// Return true if this is a valid SCM page reference.
+
     bool is_valid() const { return (f >= 0 && i >= 0); }
+
+    /// Determine the order of two SCM page references.
 
     bool operator<(const scm_item& that) const {
         if     (i < that.i) return true;
