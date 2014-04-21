@@ -246,7 +246,7 @@ scm_step *scm_system::get_step(int i)
 
 int scm_system::get_step_count() const
 {
-    return int( steps.size());
+    return int(steps.size());
 }
 
 /// Compute the interpolated values of the current step queue at the given time.

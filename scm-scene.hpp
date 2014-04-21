@@ -30,6 +30,13 @@ typedef std::vector<scm_image *>::const_iterator scm_image_c;
 
 //------------------------------------------------------------------------------
 
+/// An scm_scene encapsulates the definition of a sphere and its parameters
+///
+/// This definition consists primarily of a set of scm_image objects plus the
+/// vertex and fragment shaders that reference and render them. In addition,
+/// an scm_label gives annotations and a name string allows a scene to be
+/// requested by name.
+
 class scm_scene
 {
 public:
@@ -37,7 +44,27 @@ public:
     scm_scene(scm_system *);
    ~scm_scene();
 
-    // External Interface
+    /// @name Image collection handlers
+    /// @{
+
+    int                add_image(int i);
+    void               del_image(int i);
+    scm_image         *get_image(int i);
+    int                get_image_count() const;
+
+    /// @}
+    /// @name Configuration
+    /// @{
+
+    void               set_color(GLuint c);
+    void               set_name (const std::string &s);
+    void               set_label(const std::string &s);
+    void               set_vert (const std::string &s);
+    void               set_frag (const std::string &s);
+
+    /// @}
+    /// @name Query
+    /// @{
 
     GLuint             get_color() const { return color;      }
     const std::string& get_name () const { return name;       }
@@ -45,18 +72,9 @@ public:
     const std::string& get_vert () const { return  vert_file; }
     const std::string& get_frag () const { return  frag_file; }
 
-    void               set_color(GLuint c)             { color = c; }
-    void               set_name (const std::string &s) { name  = s; }
-    void               set_label(const std::string &s);
-    void               set_vert (const std::string &s);
-    void               set_frag (const std::string &s);
-
-    int                add_image(int);
-    void               del_image(int);
-    scm_image         *get_image(int);
-    int                get_image_count() const { return int(images.size()); }
-
-    // Internal Interface
+    /// @}
+    /// @name Internal Interface
+    /// @{
 
     void   init_uniforms();
     void   draw_label();
@@ -74,11 +92,7 @@ public:
     void    get_page_bounds(int, long long, float&, float &) const;
     bool    get_page_status(int, long long)                  const;
 
-    GLint   uA[16];
-    GLint   uB[16];
-    GLint   uM;
-    GLint   uzoomv;
-    GLint   uzoomk;
+    /// @}
 
 private:
 
@@ -93,6 +107,16 @@ private:
     scm_image_v images;
     glsl        render;
     GLuint      color;
+
+    // Uniform locations must be visible to the scm_sphere.
+
+    friend class scm_sphere;
+
+    GLint uA[16];
+    GLint uB[16];
+    GLint uM;
+    GLint uzoomv;
+    GLint uzoomk;
 };
 
 //------------------------------------------------------------------------------

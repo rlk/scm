@@ -25,7 +25,7 @@
 
 /// An scm_label renders annotations on the sphere
 ///
-/// The label renderer reads data from a named CSV file giving a list of
+/// The label renderer reads data from a CSV file giving a list of
 /// surface features, each with the following elements:
 ///
 ///    Key       | Type

@@ -19,12 +19,16 @@
 
 //------------------------------------------------------------------------------
 
+/// Create a new SCM scene for use in the given SCM system.
+
 scm_scene::scm_scene(scm_system *sys) : sys(sys), label(0), color(0xFFBF00FF)
 {
     memset(&render, 0, sizeof (glsl));
 
     scm_log("scm_scene constructor");
 }
+
+/// Finalize all SCM scene state.
 
 scm_scene::~scm_scene()
 {
@@ -39,42 +43,7 @@ scm_scene::~scm_scene()
 
 //------------------------------------------------------------------------------
 
-void scm_scene::set_label(const std::string &s)
-{
-    if (label)
-        delete label;
-
-    label_file = s;
-    label      = 0;
-}
-
-void scm_scene::set_vert(const std::string &s)
-{
-    vert_file = s;
-
-    glsl_delete(&render);
-
-    if (!vert_file.empty() && !frag_file.empty())
-        glsl_source(&render, vert_file.c_str(), -1, frag_file.c_str(), -1);
-
-    init_uniforms();
-}
-
-void scm_scene::set_frag(const std::string &s)
-{
-    frag_file = s;
-
-    glsl_delete(&render);
-
-    if (!vert_file.empty() && !frag_file.empty())
-        glsl_source(&render, vert_file.c_str(), -1, frag_file.c_str(), -1);
-
-    init_uniforms();
-}
-
-//------------------------------------------------------------------------------
-
-// Allocate and insert a new image before i. Return its index.
+/// Allocate and insert a new image before index i. Return its index.
 
 int scm_scene::add_image(int i)
 {
@@ -90,7 +59,7 @@ int scm_scene::add_image(int i)
     return j;
 }
 
-// Delete the image at i.
+/// Delete the image at index i.
 
 void scm_scene::del_image(int i)
 {
@@ -100,16 +69,88 @@ void scm_scene::del_image(int i)
     images.erase(images.begin() + i);
 }
 
-// Return a pointer to the image at i.
+/// Return a pointer to the image at index i.
 
 scm_image *scm_scene::get_image(int i)
 {
     return images[i];
 }
 
+/// Return the number of images in the collection.
+
+int scm_scene::get_image_count() const
+{
+    return int(images.size());
+}
+
 //------------------------------------------------------------------------------
 
-// Initialize the uniform locations of all images for the current program.
+/// Set the label color
+///
+/// @param c Color in 32-bit RGBA form
+
+void scm_scene::set_color(GLuint c)
+{
+    color = c;
+}
+
+/// Set the scene name
+
+void scm_scene::set_name(const std::string &s)
+{
+    name = s;
+}
+
+/// Set the label text
+///
+/// The scm_label object itself is not instantiated until actually used.
+///
+/// @param s CSV string giving annotations
+
+void scm_scene::set_label(const std::string &s)
+{
+    if (label)
+        delete label;
+
+    label_file = s;
+    label      = 0;
+}
+
+/// Set the vertex shader and reinitialize the uniforms
+///
+/// @param s GLSL vertex shader source (*not* file name)
+
+void scm_scene::set_vert(const std::string &s)
+{
+    vert_file = s;
+
+    glsl_delete(&render);
+
+    if (!vert_file.empty() && !frag_file.empty())
+        glsl_source(&render, vert_file.c_str(), -1, frag_file.c_str(), -1);
+
+    init_uniforms();
+}
+
+/// Set the fragment shader and reinitialize the uniforms
+///
+/// @param s GLSL fragment shader source (*not* file name)
+
+void scm_scene::set_frag(const std::string &s)
+{
+    frag_file = s;
+
+    glsl_delete(&render);
+
+    if (!vert_file.empty() && !frag_file.empty())
+        glsl_source(&render, vert_file.c_str(), -1, frag_file.c_str(), -1);
+
+    init_uniforms();
+}
+
+//------------------------------------------------------------------------------
+
+/// Request and store the uniform locations for the current program.
 
 void scm_scene::init_uniforms()
 {
@@ -129,7 +170,7 @@ void scm_scene::init_uniforms()
     }
 }
 
-// Render the labels for this scene, if any.
+/// Render the labels for this scene, if any.
 
 void scm_scene::draw_label()
 {
@@ -150,7 +191,8 @@ void scm_scene::draw_label()
     }
 }
 
-// Bind the program and all image textures matching channel.
+/// Bind the program and all image textures matching the given channel.
+/// @see scm_image::bind
 
 void scm_scene::bind(int channel) const
 {
@@ -165,7 +207,8 @@ void scm_scene::bind(int channel) const
     glActiveTexture(GL_TEXTURE0);
 }
 
-// Unbind the program and all image textures matching channel.
+/// Unbind the program and all image textures matching the given channel.
+/// @see scm_image::unbind
 
 void scm_scene::unbind(int channel) const
 {
@@ -182,7 +225,7 @@ void scm_scene::unbind(int channel) const
 
 //------------------------------------------------------------------------------
 
-// For each image matching channel, bind page i.
+/// Bind a page in each image matching a channel. @see scm_image::bind_page
 
 void scm_scene::bind_page(int channel, int depth, int frame, long long i) const
 {
@@ -191,7 +234,7 @@ void scm_scene::bind_page(int channel, int depth, int frame, long long i) const
             images[j]->bind_page(render.program, depth, frame, i);
 }
 
-// For each image matching channel, unbind page i.
+/// Unbind a page in each image matching a channel. @see scm_image::unbind_page
 
 void scm_scene::unbind_page(int channel, int depth) const
 {
@@ -200,7 +243,7 @@ void scm_scene::unbind_page(int channel, int depth) const
             images[j]->unbind_page(render.program, depth);
 }
 
-// For each image maching channel, touch page i.
+/// Touch a page in each image matching a channel. @see scm_image::touch_page
 
 void scm_scene::touch_page(int channel, int frame, long long i) const
 {
@@ -211,7 +254,10 @@ void scm_scene::touch_page(int channel, int frame, long long i) const
 
 //------------------------------------------------------------------------------
 
-// Sample the ground image along vector v.
+/// Sample the height image at the given location.
+/// @see scm_system::get_current_ground
+///
+/// @param v Vector from the center of the planet to the query position.
 
 float scm_scene::get_current_ground(const double *v) const
 {
@@ -222,7 +268,8 @@ float scm_scene::get_current_ground(const double *v) const
     return 1.f;
 }
 
-// Return the smallest value in the ground image.
+/// Return the smallest value in the height image.
+/// @see scm_system::get_minimum_ground
 
 float scm_scene::get_minimum_ground() const
 {
@@ -233,7 +280,9 @@ float scm_scene::get_minimum_ground() const
     return 1.f;
 }
 
-// Return the range of page i of the height image.
+/// Determine the minimum and maximum values of one page of the height image
+/// @see scm_system::get_page_bounds
+/// @see scm_image::get_page_bounds
 
 void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) const
 {
@@ -248,7 +297,9 @@ void scm_scene::get_page_bounds(int channel, long long i, float& r0, float &r1) 
     r1 = 1.f;
 }
 
-// Return true if ANY one of the images has page i in cache.
+/// Return true if any one of the images has page i in cache.
+/// @see scm_system::get_page_status
+/// @see scm_image::get_page_status
 
 bool scm_scene::get_page_status(int channel, long long i) const
 {

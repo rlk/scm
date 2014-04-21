@@ -221,7 +221,7 @@ void scm_image::touch_page(int t, long long i) const
 //------------------------------------------------------------------------------
 
 /// Sample this image at the given location, returning a normalized result.
-/// @see scm_system::get_page_sample
+/// @see scm_scene::get_page_sample
 
 float scm_image::get_page_sample(const double *v) const
 {
@@ -232,7 +232,7 @@ float scm_image::get_page_sample(const double *v) const
 }
 
 /// Determine the minimum and maximum values of one page, returning a
-/// normalized result. @see scm_system::get_page_bounds
+/// normalized result. @see scm_scene::get_page_bounds
 
 void scm_image::get_page_bounds(long long i, float& r0, float& r1) const
 {
@@ -251,7 +251,7 @@ void scm_image::get_page_bounds(long long i, float& r0, float& r1) const
 }
 
 /// Return true if a page is present in this image.
-/// @see scm_system::get_page_status
+/// @see scm_scene::get_page_status
 
 bool scm_image::get_page_status(long long i) const
 {
