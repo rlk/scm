@@ -1,0 +1,41 @@
+
+/* Open up the margins. */
+
+div.contents {
+	margin-left:  4em;
+	margin-right: 4em;
+}
+
+/* Replace gradient images with flat colors. */
+
+.tabs, .tabs2, .tabs3 {
+	background-image: none;
+	background-color: #E2E8F2;
+}
+
+.tablist li {
+	background-image: none;
+	background-color: #E2E8F2;
+}
+
+.tablist a {
+	background-image: none;
+	background-color: #E2E8F2;
+}
+
+.tablist li.current {
+	background-image: none;
+}
+
+.tablist a:hover {
+	background-image: none;
+	background-color: #EBEFF6;
+}
+
+.memproto, dl.reflist dt {
+	background-image: none;
+}
+
+.memdoc, dl.reflist dd {
+	background-image: none;
+}
