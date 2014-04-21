@@ -15,7 +15,7 @@
 
 //------------------------------------------------------------------------------
 
-/// An scm_item refers to a specific page in a specific SCM file
+/// An scm_item is a reference to a specific page in a specific SCM file
 ///
 /// An scm_item is valid if both the file and page indices are non-negative.
 /// A partial ordering is defined that enables O(log n) searching of objects

@@ -17,8 +17,7 @@
 
 //------------------------------------------------------------------------------
 
-/// An scm_frame abstracts the OpenGL framebuffer object and permits it to be
-/// bound as render target or as source texture.
+/// An scm_frame abstracts the OpenGL framebuffer object.
 
 class scm_frame
 {

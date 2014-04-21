@@ -8,5 +8,3 @@ Here are a few YouTube videos of this renderer in action:
 - [Lunar rendering demonstration](http://www.youtube.com/watch?v=Km9_RMPdwR8)
 - [Stereoscopic panorama rendering with discussion](http://www.youtube.com/watch?v=5dTpLCXRCfA)
 - [Stereoscopic panoramic rendering in virtual reality](http://www.youtube.com/watch?v=0Gi2qZltdtc)
-
-Complete documentation is in preparation.

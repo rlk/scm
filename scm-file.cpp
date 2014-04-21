@@ -513,7 +513,8 @@ void scm_page_text(const char *mesg,
 /// @param i    Page index
 /// @param T    TIFF file
 /// @param o    TIFF offset
-/// @param n    Page size in pixels
+/// @param w    Page width
+/// @param h    Page height
 /// @param c    Page channels per pixel
 /// @param b    Page bits per channel
 /// @param p    Destination pixel buffer

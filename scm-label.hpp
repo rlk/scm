@@ -23,60 +23,31 @@
 
 //-----------------------------------------------------------------------------
 
-// IAU Type codes:
-//
-//     AL ... Albedo Feature
-//     AR ... Arcus
-//     CA ... Catena
-//     CB ... Cavus
-//     CH ... Chaos
-//     CM ... Chasma
-//     CO ... Collis
-//     CR ... Corona
-//     AA ... Crater
-//     DO ... Dorsum
-//     ER ... Eruptive center
-//     FA ... Facula
-//     FR ... Farrum
-//     FE ... Flexus
-//     FL ... Fluctus
-//     FM ... Flumen
-//     FO ... Fossa
-//     IN ... Insula
-//     LA ... Labes
-//     LB ... Labyrinthus
-//     LC ... Lacus
-//     LF ... Landing site name
-//     LG ... Large ringed feature
-//     LI ... Linea
-//     LN ... Lingula
-//     MA ... Macula
-//     ME ... Mare
-//     MN ... Mensa
-//     MO ... Mons
-//     OC ... Oceanus
-//     PA ... Palus
-//     PE ... Patera
-//     PL ... Planitia
-//     PM ... Planum
-//     PU ... Plume
-//     PR ... Promontorium
-//     RE ... Regio
-//     RI ... Rima
-//     RU ... Rupes
-//     SF ... Satellite Feature
-//     SC ... Scopulus
-//     SI ... Sinus
-//     SU ... Sulcus
-//     TA ... Terra
-//     TE ... Tessera
-//     TH ... Tholus
-//     UN ... Unda
-//     VA ... Vallis
-//     VS ... Vastitas
-//     VI ... Virga
-
-//-----------------------------------------------------------------------------
+/// An scm_label renders annotations on the sphere
+///
+/// The label renderer reads data from a named CSV file giving a list of
+/// surface features, each with the following elements:
+///
+///    Key       | Type
+///    --------- | --------
+///    Name      | a string
+///    Latitude  | in degrees
+///    Longitude | in degrees
+///    Diameter  | in meters
+///    Radius    | distance from the center of the globe, in meters
+///    Feature   | a two-letter code
+///
+/// The name string is rendered in text scaled to fit the given diameter.
+/// The currently-defined two-letter codes are:
+///
+///    Code  | Feature          | Representation
+///    ----  | ---------------- | --------------
+///    AA    | Crater           | Circle of given diameter
+///    SF    | Secondary Crater | Circle of given diameter with half opacity
+///    MO    | Mountain         | Triangle icon
+///    LF    | Landing Site     | Flag icon
+///    \@*   | Star             | Star icon
+///    \@C   | Circle           | Circle icon
 
 class scm_label
 {
@@ -85,7 +56,7 @@ public:
     scm_label(const std::string&, int);
    ~scm_label();
 
-    void draw(GLubyte, GLubyte, GLubyte, GLubyte);
+    void draw(GLubyte r, GLubyte g, GLubyte b, GLubyte a);
 
 private:
 

@@ -23,6 +23,15 @@
 
 //------------------------------------------------------------------------------
 
+static void fillscreen(int, int);
+
+static void wire_on();
+static void wire_off();
+
+static double fardistance(const double *);
+
+//------------------------------------------------------------------------------
+
 /// Create a new render manager. Initialize the necessary OpenGL state
 /// framebuffer object state.
 ///
@@ -371,6 +380,66 @@ void scm_render::free_ogl()
 
 //------------------------------------------------------------------------------
 
+/// Determine whether fading is necessary.
+
+bool scm_render::check_fade(scm_scene *fore0, scm_scene *fore1,
+                            scm_scene *back0, scm_scene *back1, double t)
+{
+    if (t < 1.0 / 255)  return false;
+    if (fore0 != fore1) return true;
+    if (back0 != back1) return true;
+    return false;
+}
+
+/// Determine whether blurring is necessary and compute its transform.
+
+bool scm_render::check_blur(const double *P,
+                            const double *M,
+                                  double *S, GLfloat *U)
+{
+    if (blur)
+    {
+        double T[16];
+        double I[16];
+        double N[16];
+
+        // S is the previous transform. T is the current one. I is its inverse.
+
+        mmultiply(T, P, M);
+
+        if (T[ 0] != S[ 0] || T[ 1] != S[ 1] ||
+            T[ 2] != S[ 2] || T[ 3] != S[ 3] ||
+            T[ 4] != S[ 4] || T[ 5] != S[ 5] ||
+            T[ 6] != S[ 6] || T[ 7] != S[ 7] ||
+            T[ 8] != S[ 8] || T[ 9] != S[ 9] ||
+            T[10] != S[10] || T[11] != S[11] ||
+            T[12] != S[12] || T[13] != S[13] ||
+            T[14] != S[14] || T[15] != S[15])
+        {
+            // Compose a transform taking current screen coords to previous.
+
+            minvert (I, T);
+            mcpy    (N, D);
+            mcompose(N, C);
+            mcompose(N, S);
+            mcompose(N, I);
+            mcompose(N, B);
+            mcompose(N, A);
+            mcpy    (S, T);
+
+            // Return this transform for use as an OpenGL uniform.
+
+            for (int i = 0; i < 16; i++)
+                U[i] = GLfloat(N[i]);
+
+            return true;
+        }
+    }
+    return false;
+}
+
+//------------------------------------------------------------------------------
+
 /// Draw a screen-filling rectangle.
 
 static void fillscreen(int w, int h)
@@ -438,66 +507,6 @@ static double fardistance(const double *P)
     wtransform(e, I, c);
 
     return vlen(e) / e[3];
-}
-
-//------------------------------------------------------------------------------
-
-/// Determine whether fading is necessary.
-
-bool scm_render::check_fade(scm_scene *fore0, scm_scene *fore1,
-                            scm_scene *back0, scm_scene *back1, double t)
-{
-    if (t < 1.0 / 255)  return false;
-    if (fore0 != fore1) return true;
-    if (back0 != back1) return true;
-    return false;
-}
-
-/// Determine whether blurring is necessary and compute its transform.
-
-bool scm_render::check_blur(const double *P,
-                            const double *M,
-                                  double *S, GLfloat *U)
-{
-    if (blur)
-    {
-        double T[16];
-        double I[16];
-        double N[16];
-
-        // S is the previous transform. T is the current one. I is its inverse.
-
-        mmultiply(T, P, M);
-
-        if (T[ 0] != S[ 0] || T[ 1] != S[ 1] ||
-            T[ 2] != S[ 2] || T[ 3] != S[ 3] ||
-            T[ 4] != S[ 4] || T[ 5] != S[ 5] ||
-            T[ 6] != S[ 6] || T[ 7] != S[ 7] ||
-            T[ 8] != S[ 8] || T[ 9] != S[ 9] ||
-            T[10] != S[10] || T[11] != S[11] ||
-            T[12] != S[12] || T[13] != S[13] ||
-            T[14] != S[14] || T[15] != S[15])
-        {
-            // Compose a transform taking current screen coords to previous.
-
-            minvert (I, T);
-            mcpy    (N, D);
-            mcompose(N, C);
-            mcompose(N, S);
-            mcompose(N, I);
-            mcompose(N, B);
-            mcompose(N, A);
-            mcpy    (S, T);
-
-            // Return this transform for use as an OpenGL uniform.
-
-            for (int i = 0; i < 16; i++)
-                U[i] = GLfloat(N[i]);
-
-            return true;
-        }
-    }
-    return false;
 }
 
 //------------------------------------------------------------------------------

@@ -22,6 +22,17 @@
 #include "scm-file.hpp"
 #include "scm-step.hpp"
 
+/** @mainpage Spherical Cube Map Library
+
+SCM is a C++ class library that provides a non-homogeneous data representation
+and rendering engine for the interactive display of spherical data sets at
+scales of hundreds of gigapixels and beyond. Applications include panoramic
+image display and planetary rendering. The SCM data representation enables out-
+of-core data access at real-time rates. The spherical geometry tessellator
+supports displacement mapping and enables the display of planetary terrain data
+of arbitrary resolution.
+*/
+
 //------------------------------------------------------------------------------
 
 class scm_scene;

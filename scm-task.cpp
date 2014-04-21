@@ -105,7 +105,7 @@ bool scm_task::load_page(const char *name, TIFF *T)
 
 //------------------------------------------------------------------------------
 
-/// Return an OpenGL internal texture format
+/// Select an OpenGL internal texture format
 ///
 /// @param c Channels per pixel
 /// @param b Bits per channel
@@ -138,7 +138,10 @@ GLenum scm_internal_form(uint16 c, uint16 b)
         }
 }
 
-/// Select an OpenGL external texture format for an image with c channels.
+/// Select an OpenGL external texture format
+///
+/// @param c Channels per pixel
+/// @param b Bits per channel
 
 GLenum scm_external_form(uint16 c, uint16 b)
 {
@@ -160,7 +163,10 @@ GLenum scm_external_form(uint16 c, uint16 b)
         }
 }
 
-/// Select an OpenGL data type for an image with c channels of b bits.
+/// Select an OpenGL data type
+///
+/// @param c Channels per pixel
+/// @param b Bits per channel
 
 GLenum scm_external_type(uint16 c, uint16 b)
 {
@@ -170,7 +176,10 @@ GLenum scm_external_type(uint16 c, uint16 b)
     else              return GL_UNSIGNED_BYTE;
 }
 
-/// Return the storage size for the OpenGL pixel with c channels of b bits.
+/// Return the storage size for an OpenGL pixel
+///
+/// @param c Channels per pixel
+/// @param b Bits per channel
 
 GLsizei scm_pixel_size(uint16 c, uint16 b)
 {

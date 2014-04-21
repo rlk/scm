@@ -43,7 +43,7 @@
 /// @param h  Height of the off-screen render target (in pixels)
 /// @param d  Detail with which sphere pages are drawn (in vertices)
 /// @param l  Limit at which sphere pages are subdivided (in pixels)
-///
+
 scm_system::scm_system(int w, int h, int d, int l) :
     serial(1), frame(0), sync(false), fade(0)
 {
@@ -475,11 +475,12 @@ float scm_system::get_minimum_ground() const
 
 //------------------------------------------------------------------------------
 
-/// Internal: Load the named SCM file, if not already loaded. Add a new scm_file
-/// object to the collection and return its index. If necessary, create a new
-/// scm_cache object to manage this file's data. Acquire always succeeds as an
-/// scm_file object produces fallback data in erroneous circumstances, such as
-/// an unfound SCM TIFF.
+/// Internal: Load the named SCM file, if not already loaded.
+///
+/// Add a new scm_file object to the collection and return its index. If needed,
+/// create a new scm_cache object to manage this file's data. This will always
+/// succeed as an scm_file object produces fallback data under error conditions,
+/// such as an unfound SCM TIFF.
 
 int scm_system::acquire_scm(const std::string& name)
 {
@@ -525,10 +526,11 @@ int scm_system::acquire_scm(const std::string& name)
     return files[name].index;
 }
 
-/// Release the named SCM file. The file collection is reference-counted, and
-/// the scm_file object is only deleted when all acquisitions are released.
-/// If a deleted file is the only file handled by an scm_cache then delete that
-/// cache.
+/// Release the named SCM file.
+///
+/// The file collection is reference-counted, and the scm_file object is only
+/// deleted when all acquisitions are released. If a deleted file is the only
+/// file handled by an scm_cache then delete that cache.
 
 int scm_system::release_scm(const std::string& name)
 {

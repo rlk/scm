@@ -25,6 +25,14 @@
 #include "scm-path.hpp"
 #include "scm-log.hpp"
 
+#include "scm-label-icons.h"
+#include "scm-label-font.h"
+
+#include "scm-label-circle-vert.h"
+#include "scm-label-circle-frag.h"
+#include "scm-label-sprite-vert.h"
+#include "scm-label-sprite-frag.h"
+
 //------------------------------------------------------------------------------
 /// @cond INTERNAL
 
@@ -148,7 +156,7 @@ struct sprite
         GLfloat x = 0.0;
         GLfloat y = 0.0;
 
-        if (c[0] == 'M' && c[1] == '0') x = 0.0;
+        if (c[0] == 'M' && c[1] == 'O') x = 0.0;
         if (c[0] == 'L' && c[1] == 'F') x = 1.0;
         if (c[0] == '@' && c[1] == '*') x = 2.0;
         if (c[0] == '@' && c[1] == 'C') x = 3.0;
@@ -200,9 +208,6 @@ struct latlon
     }
 };
 
-/// @endcond
-//------------------------------------------------------------------------------
-
 static double clamp(double k, double a, double b)
 {
     if      (k < a) return a;
@@ -210,53 +215,16 @@ static double clamp(double k, double a, double b)
     else            return k;
 }
 
+/// @endcond
 //------------------------------------------------------------------------------
 
-int scm_label::scan(FILE *fp, label& L)
-{
-    int n;
-
-    if (fscanf(fp, "\"%63[^\"]\",%f,%f,%f,%f,%c%c\n%n",
-        L.str, &L.lat, &L.lon, &L.dia, &L.rad, &L.typ[0], &L.typ[1], &n) > 5)
-        return n;
-
-    if (fscanf(fp,      "%63[^,],%f,%f,%f,%f,%c%c\n%n",
-        L.str, &L.lat, &L.lon, &L.dia, &L.rad, &L.typ[0], &L.typ[1], &n) > 5)
-        return n;
-
-    return 0;
-}
-
-// Parse the label definition file.
-
-void scm_label::parse(const std::string& file)
-{
-    std::string path = scm_path_search(file);
-
-    if (!path.empty())
-    {
-        FILE *fp;
-        label L;
-
-        if ((fp = fopen(path.c_str(), "r")))
-        {
-            while (scan(fp, L))
-                labels.push_back(L);
-
-            fclose(fp);
-        }
-    }
-}
-
-//------------------------------------------------------------------------------
-
-#include "scm-label-icons.h"
-#include "scm-label-font.h"
-
-#include "scm-label-circle-vert.h"
-#include "scm-label-circle-frag.h"
-#include "scm-label-sprite-vert.h"
-#include "scm-label-sprite-frag.h"
+/// Create a new label
+///
+/// Render all strings to a font atlas and initialize any OpenGL state needed
+/// to render all annotations.
+///
+/// @param file CSV data string
+/// @param size Icon size (in pixels)
 
 scm_label::scm_label(const std::string& file, int size) :
     label_line(0),
@@ -401,6 +369,8 @@ scm_label::scm_label(const std::string& file, int size) :
     scm_log("scm_label constructor %s", file.c_str());
 }
 
+/// Finalize all OpenGL state
+
 scm_label::~scm_label()
 {
     scm_log("scm_label destructor");
@@ -417,6 +387,13 @@ scm_label::~scm_label()
 }
 
 //------------------------------------------------------------------------------
+
+/// Draw all annotations using the given color and transparency
+///
+/// @param r Red
+/// @param g Green
+/// @param b Blue
+/// @param a Alpha
 
 void scm_label::draw(GLubyte r, GLubyte g, GLubyte b, GLubyte a)
 {
@@ -494,6 +471,46 @@ void scm_label::draw(GLubyte r, GLubyte g, GLubyte b, GLubyte a)
         line_render(label_line);
     }
     glPopAttrib();
+}
+
+//------------------------------------------------------------------------------
+
+/// Scan one record of the label definition
+
+int scm_label::scan(FILE *fp, label& L)
+{
+    int n;
+
+    if (fscanf(fp, "\"%63[^\"]\",%f,%f,%f,%f,%c%c\n%n",
+        L.str, &L.lat, &L.lon, &L.dia, &L.rad, &L.typ[0], &L.typ[1], &n) > 5)
+        return n;
+
+    if (fscanf(fp,      "%63[^,],%f,%f,%f,%f,%c%c\n%n",
+        L.str, &L.lat, &L.lon, &L.dia, &L.rad, &L.typ[0], &L.typ[1], &n) > 5)
+        return n;
+
+    return 0;
+}
+
+/// Parse the label definition
+
+void scm_label::parse(const std::string& file)
+{
+    std::string path = scm_path_search(file);
+
+    if (!path.empty())
+    {
+        FILE *fp;
+        label L;
+
+        if ((fp = fopen(path.c_str(), "r")))
+        {
+            while (scan(fp, L))
+                labels.push_back(L);
+
+            fclose(fp);
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
