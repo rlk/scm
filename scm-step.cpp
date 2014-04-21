@@ -43,7 +43,7 @@ static double hermite(double a, double b,
 
 //------------------------------------------------------------------------------
 
-// Initialize a new SCM viewer state using default values.
+/// Initialize a new SCM viewer state using default values.
 
 scm_step::scm_step()
 {
@@ -69,7 +69,7 @@ scm_step::scm_step()
     vnormalize(light, light);
 }
 
-// Initialize a new SCM viewer step as a copy of the given step.
+/// Initialize a new SCM viewer step as a copy of the given step.
 
 scm_step::scm_step(const scm_step *a)
 {
@@ -87,7 +87,7 @@ scm_step::scm_step(const scm_step *a)
     zoom       = a->zoom;
 }
 
-// Initialize a new SCM viewer step using linear interpolation of given steps.
+/// Initialize a new SCM viewer step using linear interpolation of given steps.
 
 scm_step::scm_step(const scm_step *a, const scm_step *b, double t)
 {
@@ -109,7 +109,7 @@ scm_step::scm_step(const scm_step *a, const scm_step *b, double t)
     vnormalize(light,       light);
 }
 
-// Initialize a new SCM viewer step using cubic interpolation of given steps.
+/// Initialize a new SCM viewer step using cubic interpolation of given steps.
 
 scm_step::scm_step(const scm_step *a,
                    const scm_step *b,
@@ -177,8 +177,12 @@ scm_step::scm_step(const scm_step *a,
     vnormalize(light,       light);
 }
 
-// Initialize a new SCM viewer step using the given camera position, camera
-// orientation, and lightsource orientation.
+/// Initialize a new SCM viewer step using the given camera configuration. position, camera
+/// orientation, and lightsource orientation.
+///
+/// @param t Camera position (3D vector)
+/// @param r Camera orientation (Euler angles)
+/// @param l Light direction (3D vector)
 
 scm_step::scm_step(const double *t, const double *r, const double *l)
 {
@@ -198,7 +202,7 @@ scm_step::scm_step(const double *t, const double *r, const double *l)
 }
 
 //------------------------------------------------------------------------------
-
+#if 0
 void scm_step::draw()
 {
     double v[3];
@@ -211,10 +215,112 @@ void scm_step::draw()
 
     glVertex3dv(v);
 }
+#endif
+//------------------------------------------------------------------------------
+
+/// Return the orientation quaternion.
+
+void scm_step::get_orientation(double *q) const
+{
+    qcpy(q, orientation);
+}
+
+/// Return the position vector.
+
+void scm_step::get_position(double *v) const
+{
+    vcpy(v, position);
+}
+
+/// Return the light direction vector.
+
+void scm_step::get_light(double *v) const
+{
+    vcpy(v, light);
+}
 
 //------------------------------------------------------------------------------
 
-// Return the view transformation matrix.
+/// Set the name of the step.
+
+void scm_step::set_name(const std::string& s)
+{
+    name = s;
+}
+
+/// Set the name of the foreground scene. @see scm_scene::set_name
+
+void scm_step::set_foreground(const std::string& s)
+{
+    foreground = s;
+}
+
+/// Set the name of the background scene. @see scm_scene::set_name
+
+void scm_step::set_background(const std::string& s)
+{
+    background = s;
+}
+
+/// Set the orientation quaternion.
+
+void scm_step::set_orientation(const double *q)
+{
+    qnormalize(orientation, q);
+}
+
+/// Set the position vector.
+
+void scm_step::set_position(const double *v)
+{
+    vnormalize(position, v);
+}
+
+/// Set the light direction vector.
+
+void scm_step::set_light(const double *v)
+{
+    vnormalize(light, v);
+}
+
+/// Set the distance of the camera from the center of the sphere.
+
+void scm_step::set_distance(double r)
+{
+    distance = r;
+}
+
+/// Set the speed of the Hermitian interpolation.
+
+void scm_step::set_speed(double s)
+{
+    speed = s;
+}
+
+/// Set the tension of the Hermitian interpolation.
+
+void scm_step::set_tension(double t)
+{
+    tension  = t;
+}
+
+/// Set the bias of the Hermitian interpolation.
+
+void scm_step::set_bias(double b)
+{
+    bias = b;
+}
+
+/// Set the camera zoom.
+
+void scm_step::set_zoom(double z)
+{
+    zoom = z;
+}
+
+//------------------------------------------------------------------------------
+
+/// Return the view transformation matrix.
 
 void scm_step::get_matrix(double *M) const
 {
@@ -234,24 +340,24 @@ void scm_step::get_matrix(double *M) const
     M[15] = 1.0;
 }
 
-// Return the Y axis of the matrix form of the orientation quaternion, thus
-// giving the view up vector.
+/// Return the Y axis of the matrix form of the orientation quaternion, thus
+/// giving the view up vector.
 
 void scm_step::get_up(double *v) const
 {
     vquaterniony(v, orientation);
 }
 
-// Return the X axis of the matrix form of the orientation quaternion, thus
-// giving the view right vector.
+/// Return the X axis of the matrix form of the orientation quaternion, thus
+/// giving the view right vector.
 
 void scm_step::get_right(double *v) const
 {
     vquaternionx(v, orientation);
 }
 
-// Return the negated Z axis of the matrix form of the orientation quaternion,
-// thus giving the view forward vector.
+/// Return the negated Z axis of the matrix form of the orientation quaternion,
+/// thus giving the view forward vector.
 
 void scm_step::get_forward(double *v) const
 {
@@ -261,51 +367,7 @@ void scm_step::get_forward(double *v) const
 
 //------------------------------------------------------------------------------
 
-// Return the orientation quaternion.
-
-void scm_step::get_orientation(double *q) const
-{
-    qcpy(q, orientation);
-}
-
-// Return the position vector.
-
-void scm_step::get_position(double *v) const
-{
-    vcpy(v, position);
-}
-
-// Return the light direction vector.
-
-void scm_step::get_light(double *v) const
-{
-    vcpy(v, light);
-}
-
-//------------------------------------------------------------------------------
-
-// Set the orientation quaternion.
-
-void scm_step::set_orientation(const double *q)
-{
-    qnormalize(orientation, q);
-}
-
-// Set the position vector.
-
-void scm_step::set_position(const double *v)
-{
-    vnormalize(position, v);
-}
-
-// Set the light direction vector.
-
-void scm_step::set_light(const double *v)
-{
-    vnormalize(light, v);
-}
-
-//------------------------------------------------------------------------------
+/// Reorient the view to the given pitch in radians
 
 void scm_step::set_pitch(double a)
 {
@@ -341,6 +403,8 @@ void scm_step::set_pitch(double a)
     qnormalize(orientation, orientation);
 }
 
+/// Set the camera position and orientation using the given view matrix
+
 void scm_step::set_matrix(const double *M)
 {
     const double *p = M + 12;
@@ -350,6 +414,10 @@ void scm_step::set_matrix(const double *M)
 }
 
 //------------------------------------------------------------------------------
+
+/// Transform the current camera orientation
+///
+/// @param M Transformation matrix in OpenGL column-major order.
 
 void scm_step::transform_orientation(const double *M)
 {
@@ -362,6 +430,10 @@ void scm_step::transform_orientation(const double *M)
     qnormalize(orientation, orientation);
 }
 
+/// Transform the current camera position
+///
+/// @param M Transformation matrix in OpenGL column-major order.
+
 void scm_step::transform_position(const double *M)
 {
     double v[3];
@@ -369,6 +441,10 @@ void scm_step::transform_position(const double *M)
     vtransform(v, M, position);
     vnormalize(position, v);
 }
+
+/// Transform the current light direction
+///
+/// @param M Transformation matrix in OpenGL column-major order.
 
 void scm_step::transform_light(const double *M)
 {
@@ -380,7 +456,7 @@ void scm_step::transform_light(const double *M)
 
 //------------------------------------------------------------------------------
 
-// The subtraction operator returns the linear distance between steps.
+/// Return the linear distance between two steps
 
 double operator-(const scm_step& a, const scm_step& b)
 {

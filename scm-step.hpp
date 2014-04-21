@@ -18,25 +18,57 @@
 
 //------------------------------------------------------------------------------
 
+/// An scm_step defines a view configuration
+///
+/// A view configuration consists of the name of an scm_scene to be applied to
+/// the foreground sphere, the name of an scm_scene to be applied to the back-
+/// ground sphere, and the position and orientation of the viewer.
+///
+/// This mechanism is intended to permit the creation of scripted paths among
+/// points of interest through a series of visualizations. As such, the scm_step
+/// object includes parameters that ture a Hermitian interpolation of view
+/// configurations, which is where the name "step" comes from.
+
 class scm_step
 {
 public:
 
+    /// @name Constructors
+    /// @{
+
     scm_step();
-    scm_step(const scm_step *);
-    scm_step(const scm_step *,
-             const scm_step *, double);
-    scm_step(const scm_step *,
-             const scm_step *,
-             const scm_step *,
-             const scm_step *, double);
-    scm_step(const double *,
-             const double *,
-             const double *);
+    scm_step(const scm_step *a);
+    scm_step(const scm_step *a,
+             const scm_step *b, double t);
+    scm_step(const scm_step *a,
+             const scm_step *b,
+             const scm_step *c,
+             const scm_step *d, double t);
+    scm_step(const double *t,
+             const double *r,
+             const double *l);
 
-    void draw();
+    /// @}
+    /// @name Basic mutators
+    /// @{
 
-    // Basic accessors
+    void   set_name       (const std::string& s);
+    void   set_foreground (const std::string& s);
+    void   set_background (const std::string& s);
+
+    void   set_orientation(const double *);
+    void   set_position   (const double *);
+    void   set_light      (const double *);
+
+    void   set_speed      (double s);
+    void   set_distance   (double r);
+    void   set_tension    (double t);
+    void   set_bias       (double b);
+    void   set_zoom       (double z);
+
+    /// @}
+    /// @name Basic accessors
+    /// @{
 
     const std::string& get_name()       const { return name;       }
     const std::string& get_foreground() const { return foreground; }
@@ -45,28 +77,16 @@ public:
     void   get_orientation(double *) const;
     void   get_position   (double *) const;
     void   get_light      (double *) const;
-    double get_speed      () const { return speed;    }
-    double get_distance   () const { return distance; }
-    double get_tension    () const { return tension;  }
-    double get_bias       () const { return bias;     }
-    double get_zoom       () const { return zoom;     }
 
-    // Basic mutators
+    double get_speed()    const { return speed;    }
+    double get_distance() const { return distance; }
+    double get_tension()  const { return tension;  }
+    double get_bias()     const { return bias;     }
+    double get_zoom()     const { return zoom;     }
 
-    void   set_name       (const std::string& s) { name       = s; }
-    void   set_foreground (const std::string& s) { foreground = s; }
-    void   set_background (const std::string& s) { background = s; }
-
-    void   set_orientation(const double *);
-    void   set_position   (const double *);
-    void   set_light      (const double *);
-    void   set_speed      (double s) { speed    = s; }
-    void   set_distance   (double r) { distance = r; }
-    void   set_tension    (double t) { tension  = t; }
-    void   set_bias       (double b) { bias     = b; }
-    void   set_zoom       (double z) { zoom     = z; }
-
-    // Derived methods
+    /// @}
+    /// @name Derived methods
+    /// @{
 
     void   get_matrix     (double *) const;
     void   get_up         (double *) const;
@@ -80,22 +100,24 @@ public:
     void   transform_position   (const double *);
     void   transform_light      (const double *);
 
+    /// @}
+
     friend double operator-(const scm_step&, const scm_step&);
 
 private:
 
-    std::string name;
-    std::string foreground;
-    std::string background;
+    std::string name;        /// Step name
+    std::string foreground;  /// Foreground scene name
+    std::string background;  /// Background scene name
 
-    double orientation[4]; // View orientation
-    double position[3];    // View point location
-    double light[3];       // Light location
-    double speed;          // Camera speed
-    double distance;       // View point distance
-    double tension;        // Hermite interpolation tension
-    double bias;           // Hermite interpolation bias
-    double zoom;           // Magnification
+    double orientation[4];   /// View orientation
+    double position[3];      /// View point location
+    double light[3];         /// Light location
+    double speed;            /// Camera speed
+    double distance;         /// View point distance
+    double tension;          /// Hermite interpolation tension
+    double bias;             /// Hermite interpolation bias
+    double zoom;             /// Magnification
 };
 
 typedef std::vector<scm_step *>                 scm_step_v;
