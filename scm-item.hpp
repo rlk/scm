@@ -26,8 +26,8 @@ struct scm_item
     scm_item()                   : f(-1), i(-1) { }
     scm_item(int f, long long i) : f( f), i( i) { }
 
-    int       f;  /// File index
-    long long i;  /// Page index
+    int       f;  ///< File index
+    long long i;  ///< Page index
 
     bool is_valid() const { return (f >= 0 && i >= 0); }
 

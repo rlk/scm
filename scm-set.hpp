@@ -29,8 +29,8 @@ struct scm_page : public scm_item
     scm_page(int f, long long i, int l)        : scm_item(f, i), l( l), t(0) { }
     scm_page(int f, long long i, int l, int t) : scm_item(f, i), l( l), t(t) { }
 
-    int l;  /// Cache line index
-    int t;  /// Cache add time
+    int l;  ///< Cache line index
+    int t;  ///< Cache add time
 };
 
 //------------------------------------------------------------------------------

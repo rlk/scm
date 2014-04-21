@@ -25,6 +25,12 @@ class scm_cache;
 
 //------------------------------------------------------------------------------
 
+/// An scm_task represents a page load task, as executed by a loader thread
+///
+/// It encapsulates all of the parameters of the page to be loaded and includes
+/// the OpenGL state necessary to perform an asynchronous upload of the loaded
+/// data.
+
 struct scm_task : public scm_item
 {
     scm_task();
@@ -35,14 +41,14 @@ struct scm_task : public scm_item
     bool load_page(const char *, TIFF *);
     void dump_page();
 
-    uint64     o;          /// SCM TIFF file offset of this page
-    int        n;          /// Page size
-    int        c;          /// Page channel per pixel
-    int        b;          /// Page bits per channel
-    GLuint     u;          /// Pixel unpack buffer object
-    bool       d;          /// Pixel unpack buffer dirty flag
-    void      *p;          /// Pixel unpack buffer map address
-    scm_cache *C;          /// Destination cache
+    uint64     o;          ///< SCM TIFF file offset of this page
+    int        n;          ///< Page size
+    int        c;          ///< Page channel per pixel
+    int        b;          ///< Page bits per channel
+    GLuint     u;          ///< Pixel unpack buffer object
+    bool       d;          ///< Pixel unpack buffer dirty flag
+    void      *p;          ///< Pixel unpack buffer map address
+    scm_cache *C;          ///< Destination cache
 };
 
 //------------------------------------------------------------------------------

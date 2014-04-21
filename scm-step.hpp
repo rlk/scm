@@ -106,18 +106,18 @@ public:
 
 private:
 
-    std::string name;        /// Step name
-    std::string foreground;  /// Foreground scene name
-    std::string background;  /// Background scene name
+    std::string name;        ///< Step name
+    std::string foreground;  ///< Foreground scene name
+    std::string background;  ///< Background scene name
 
-    double orientation[4];   /// View orientation
-    double position[3];      /// View point location
-    double light[3];         /// Light location
-    double speed;            /// Camera speed
-    double distance;         /// View point distance
-    double tension;          /// Hermite interpolation tension
-    double bias;             /// Hermite interpolation bias
-    double zoom;             /// Magnification
+    double orientation[4];   ///< View orientation
+    double position[3];      ///< View point location
+    double light[3];         ///< Light location
+    double speed;            ///< Camera speed
+    double distance;         ///< View point distance
+    double tension;          ///< Hermite interpolation tension
+    double bias;             ///< Hermite interpolation bias
+    double zoom;             ///< Magnification
 };
 
 typedef std::vector<scm_step *>                 scm_step_v;
