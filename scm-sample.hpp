@@ -23,6 +23,22 @@ class scm_file;
 
 //------------------------------------------------------------------------------
 
+/// An scm_sample samples an SCM TIFF file
+///
+/// This facility is used primarily to implement collision detection with the
+/// sphere. This is slightly inelegant. The mechanism of the SCM renderer is
+/// designed for optimal GPU performance. As such, SCM data is never touched
+/// by the render thread. Instead, data moves straight from the loader thread
+/// decompressors into the VRAM texture cache via asynchronous transfer.
+///
+/// Unfortunately, collision detection requires that the main CPU thread have
+/// knowledge of SCM height data. This object provides that knowledge. Sadly,
+/// data access incurs latency, and the main thread is also the render thread,
+/// so collision detection has the potential to delay the generation of the
+/// frame, running contrary to the spirit of the entire library.
+///
+/// It's a necessary evil.
+
 class scm_sample
 {
 public:

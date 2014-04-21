@@ -21,6 +21,11 @@
 
 //------------------------------------------------------------------------------
 
+/// Create a new SCM TIFF file sampler
+///
+/// The given scm_file object includes the path and parameters of the TIFF
+/// file. Open that TIFF and prepare to make cached access to it.
+
 scm_sample::scm_sample(scm_file *file) : file(file)
 {
     last_v[0] = 0;
@@ -43,6 +48,8 @@ scm_sample::scm_sample(scm_file *file) : file(file)
     }
 }
 
+// Release the TIFF
+
 scm_sample::~scm_sample()
 {
     scm_log("scm_sample destructor");
@@ -53,6 +60,11 @@ scm_sample::~scm_sample()
 }
 
 //------------------------------------------------------------------------------
+
+/// Decode the raw data in the current page cache, returning a pixel value.
+///
+/// @param y pixel row
+/// @param x pixel column
 
 float scm_sample::lookup(int y, int x) const
 {
@@ -67,6 +79,15 @@ float scm_sample::lookup(int y, int x) const
         default: return 1.f;
     }
 }
+
+/// Perform a sample along a vector
+///
+/// Seek the deepest page that contains the given vector and return a linearly-
+/// filtered sample of it. In the interest of performance, cache the page and
+/// cache the most recent result. In the interest of minimizing latency, read
+/// only a single scanline at a time.
+///
+/// @param v Vector from the center of the sphere to the sample point
 
 float scm_sample::get(const double *v)
 {
