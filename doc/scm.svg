@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 15.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1 Tiny//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd">
+<svg version="1.1" baseProfile="tiny" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
+	 y="0px" width="568px" height="240px" viewBox="0 0 568 240" overflow="inherit" xml:space="preserve">
+<g id="Layer_3">
+	<rect x="220" y="100" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<rect x="172" y="196" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<rect x="124" y="100" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<rect x="28" y="100" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<rect x="316" y="100" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+</g>
+<g id="Layer_2">
+	<rect x="216" y="96" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<rect x="168" y="192" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<rect x="408" y="192" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<rect x="120" y="96" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<rect x="24" y="96" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<rect x="312" y="96" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+</g>
+<g id="Layer_1">
+	<rect x="212" y="92" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<text transform="matrix(1 0 0 1 227.9893 114.2661)" font-family="'Helvetica'" font-size="12">scene</text>
+	<rect x="164" y="188" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<text transform="matrix(1 0 0 1 179.6582 210.2656)" font-family="'Helvetica'" font-size="12">image</text>
+	<rect x="404" y="188" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<text transform="matrix(1 0 0 1 420.6631 210.2656)" font-family="'Helvetica'" font-size="12">frame</text>
+	<rect x="116" y="92" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<text transform="matrix(1 0 0 1 140.3301 114.2661)" font-family="'Helvetica'" font-size="12">file</text>
+	<rect x="20" y="92" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<text transform="matrix(1 0 0 1 35.9893 114.2661)" font-family="'Helvetica'" font-size="12">cache</text>
+	<rect x="308" y="92" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<text transform="matrix(1 0 0 1 328.6592 114.2661)" font-family="'Helvetica'" font-size="12">step</text>
+	<rect x="68" y="4" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<text transform="matrix(1 0 0 1 80.998 26.2661)" font-family="'Helvetica'" font-size="12">system</text>
+	<rect x="404" y="92" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<text transform="matrix(1 0 0 1 418.6562 114.2661)" font-family="'Helvetica'" font-size="12">render</text>
+	<rect x="500" y="92" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<text transform="matrix(1 0 0 1 513.6543 114.2661)" font-family="'Helvetica'" font-size="12">sphere</text>
+	<rect x="260" y="188" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="64" height="40"/>
+	<text transform="matrix(1 0 0 1 279.3232 210.2656)" font-family="'Helvetica'" font-size="12">label</text>
+	<g>
+		<line x1="308" y1="107.5" x2="276" y2="107.5"/>
+		<g>
+			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="308" y1="107.5" x2="307.5" y2="107.5"/>
+			
+				<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="0.9841,0.9841" x1="306.516" y1="107.5" x2="281.422" y2="107.5"/>
+			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="280.93" y1="107.5" x2="280.43" y2="107.5"/>
+			<g>
+				<polygon points="281.42,106.109 276,107.561 281.42,109.014 				"/>
+			</g>
+		</g>
+	</g>
+	<g>
+		<line x1="115.334" y1="112" x2="84" y2="112"/>
+		<g>
+			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="115.334" y1="112" x2="114.834" y2="112"/>
+			
+				<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1.0362,1.0362" x1="113.798" y1="112" x2="89.448" y2="112"/>
+			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="88.93" y1="112" x2="88.43" y2="112"/>
+			<g>
+				<polygon points="89.42,110.608 84,112.06 89.42,113.514 				"/>
+			</g>
+		</g>
+	</g>
+	<g>
+		<line x1="308" y1="116.5" x2="276" y2="116.5"/>
+		<g>
+			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="308" y1="116.5" x2="307.5" y2="116.5"/>
+			
+				<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="0.9841,0.9841" x1="306.516" y1="116.5" x2="281.422" y2="116.5"/>
+			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="280.93" y1="116.5" x2="280.43" y2="116.5"/>
+			<g>
+				<polygon points="281.42,115.108 276,116.56 281.42,118.014 				"/>
+			</g>
+		</g>
+	</g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="532" y1="68" x2="52" y2="68"/>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="340" y1="68" x2="340" y2="87.57"/>
+		<g>
+			<polygon points="338.608,86.58 340.061,92 341.514,86.58 			"/>
+		</g>
+	</g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="244" y1="68" x2="244" y2="87.57"/>
+		<g>
+			<polygon points="242.608,86.58 244.06,92 245.514,86.58 			"/>
+		</g>
+	</g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="148" y1="68" x2="148" y2="87.57"/>
+		<g>
+			<polygon points="146.608,86.58 148.06,92 149.514,86.58 			"/>
+		</g>
+	</g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="52" y1="68" x2="52" y2="87.57"/>
+		<g>
+			<polygon points="50.608,86.58 52.06,92 53.514,86.58 			"/>
+		</g>
+	</g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="292" y1="164" x2="292" y2="183.57"/>
+		<g>
+			<polygon points="290.608,182.58 292.061,188 293.514,182.58 			"/>
+		</g>
+	</g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="196" y1="164" x2="196" y2="183.57"/>
+		<g>
+			<polygon points="194.608,182.58 196.06,188 197.514,182.58 			"/>
+		</g>
+	</g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="532" y1="68" x2="532" y2="87.57"/>
+		<g>
+			<polygon points="530.608,86.58 532.061,92 533.514,86.58 			"/>
+		</g>
+	</g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="436" y1="68" x2="436" y2="87.57"/>
+		<g>
+			<polygon points="434.608,86.58 436.061,92 437.514,86.58 			"/>
+		</g>
+	</g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="436" y1="132" x2="436" y2="183.57"/>
+		<g>
+			<polygon points="434.608,182.58 436.061,188 437.514,182.58 			"/>
+		</g>
+	</g>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="100" y1="44" x2="100" y2="68"/>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="244" y1="132" x2="244" y2="164"/>
+	<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="196" y1="164" x2="292" y2="164"/>
+	<g>
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="20" y1="112" x2="19.5" y2="112"/>
+		
+			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1,1" x1="18.5" y1="112" x2="5" y2="112"/>
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="4.5" y1="112" x2="4" y2="112"/>
+	</g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="4" y1="24" x2="4.5" y2="24"/>
+		
+			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="0.9927,0.9927" x1="5.493" y1="24" x2="62.574" y2="24"/>
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="63.07" y1="24" x2="63.57" y2="24"/>
+		<g>
+			<polygon points="62.58,25.392 68,23.94 62.58,22.486 			"/>
+		</g>
+	</g>
+	
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1,1" x1="164" y1="208" x2="4" y2="208"/>
+	
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1,1" x1="4" y1="24" x2="4" y2="208"/>
+</g>
+</svg>

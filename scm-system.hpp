@@ -31,6 +31,9 @@ image display and planetary rendering. The SCM data representation enables out-
 of-core data access at real-time rates. The spherical geometry tessellator
 supports displacement mapping and enables the display of planetary terrain data
 of arbitrary resolution.
+
+@image html scm.svg
+
 */
 
 //------------------------------------------------------------------------------
