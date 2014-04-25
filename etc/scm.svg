@@ -64,14 +64,15 @@
 		</g>
 	</g>
 	<g>
-		<line x1="308" y1="116.5" x2="276" y2="116.5"/>
+		<line x1="308" y1="116.5" x2="280" y2="116"/>
 		<g>
-			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="308" y1="116.5" x2="307.5" y2="116.5"/>
+			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="308" y1="116.5" x2="307.5" y2="116.491"/>
 			
-				<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="0.9841,0.9841" x1="306.516" y1="116.5" x2="281.422" y2="116.5"/>
-			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="280.93" y1="116.5" x2="280.43" y2="116.5"/>
+				<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="0.9815,0.9815" x1="306.519" y1="116.474" x2="285.42" y2="116.097"/>
+			
+				<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="284.929" y1="116.088" x2="284.429" y2="116.079"/>
 			<g>
-				<polygon points="281.42,115.108 276,116.56 281.42,118.014 				"/>
+				<polygon points="285.444,114.706 279.999,116.06 285.393,117.61 				"/>
 			</g>
 		</g>
 	</g>
@@ -136,21 +137,27 @@
 	<g>
 		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="20" y1="112" x2="19.5" y2="112"/>
 		
-			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1,1" x1="18.5" y1="112" x2="5" y2="112"/>
-		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="4.5" y1="112" x2="4" y2="112"/>
+			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1,1" x1="18.5" y1="112" x2="9" y2="112"/>
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="8.5" y1="112" x2="8" y2="112"/>
 	</g>
 	<g>
-		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="4" y1="24" x2="4.5" y2="24"/>
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="8" y1="24" x2="8.5" y2="24"/>
 		
-			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="0.9927,0.9927" x1="5.493" y1="24" x2="62.574" y2="24"/>
+			<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="0.9922,0.9922" x1="9.492" y1="24" x2="62.574" y2="24"/>
 		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="63.07" y1="24" x2="63.57" y2="24"/>
 		<g>
 			<polygon points="62.58,25.392 68,23.94 62.58,22.486 			"/>
 		</g>
 	</g>
 	
-		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1,1" x1="164" y1="208" x2="4" y2="208"/>
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1,1" x1="164" y1="208" x2="8" y2="208"/>
 	
-		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1,1" x1="4" y1="24" x2="4" y2="208"/>
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1,1" x1="8" y1="24" x2="8" y2="208"/>
+	
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1,1" x1="212" y1="112" x2="200" y2="112"/>
+	
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1,1" x1="200" y1="112" x2="200" y2="152"/>
+	
+		<line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" stroke-dasharray="1,1" x1="200" y1="152" x2="8" y2="152"/>
 </g>
 </svg>

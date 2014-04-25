@@ -24,15 +24,60 @@
 
 /** @mainpage Spherical Cube Map Library
 
-SCM is a C++ class library that provides a non-homogeneous data representation
-and rendering engine for the interactive display of spherical data sets at
-scales of hundreds of gigapixels and beyond. Applications include panoramic
-image display and planetary rendering. The SCM data representation enables out-
-of-core data access at real-time rates. The spherical geometry tessellator
-supports displacement mapping and enables the display of planetary terrain data
-of arbitrary resolution.
+LibSCM renders high-res spherical images. Specifically, LibSCM is a C++ class
+library that provides a heterogeneous data representation and rendering engine
+for the interactive display of spherical data sets at scales of hundreds of
+gigapixels and beyond. Applications include panoramic image display and
+planetary rendering. The SCM data representation enables out-of-core data access
+at real-time rates. The spherical geometry tessellator supports displacement
+mapping and enables the display of planetary terrain data of arbitrary
+resolution.
+
+As an example, here is a screenshot of a interactive rendering of the Moon
+synthesized from 8 gigapixels of Lunar Reconnaissance Orbiter terrain data,
+textured using another 8 gigapixels of LRO surface imagery.
+
+@image html moon.jpg
+
+The structure of a running SCM renderer is as shown in this image. An
+application generally instantiates a single scm_system object, and that object
+manages the rest of the structure.
 
 @image html scm.svg
+
+Here, a box reperesents an object and a stack of boxes reperesents a collection
+of objects. A solid arrow is a strong (owning) reference, and a dotted arrow is
+a weak (non-owning) reference.
+
+- Most fundamentally, an scm_system maintains a collection of scm_file objects,
+  each of which provides access to an SCM TIFF image file. The scm_system also
+  maintains a collection of scm_cache files that maintain the OpenGL texture
+  state needed to render these images. There is exactly one scm_cache for each
+  image format, e.g. 8-bit RGB or 16-bit mono. Each scm_file carries a weak
+  reference to the scm_cache that handles its data.
+
+- The scm_system also maintains a collection of scm_scene objects which allow
+  visualizations to be defined. Each scm_scene consists of a GLSL shader plus a
+  collection of scm_image objects that feed it, where an scm_image associates an
+  scm_file with normalization parameters and GLSL shader binding information. An
+  scm_scene also includes an scm_label object that represents textual
+  annotations and map icons.
+
+- The scm_system's collection of scm_step objects defines a list of points of
+  interest in the defined set of scenes. Each scm_step includes a foreground
+  scene reference, a background scene reference, and a camera configuration
+  giving an interesting view upon these scenes. This sequence of steps allows an
+  application to provide a tour of the scm_scene definitions.
+
+- Finally, the scm_system contains two functional objects. First, the scm_render
+  object manages the production of SCM renderings with dissolve transitions
+  and motion blur, with the help of one or more scm_frame off-screen render
+  targents. Second, the scm_sphere object which manages the adaptive generation
+  of the spherical geometry to which SCM image data is applied.
+
+The scm_cache, scm_image, and scm_scene objects each maintain a weak reference
+to the scm_system that created them. By this reference they access system state,
+most notably scm_file data.
 
 */
 
