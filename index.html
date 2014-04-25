@@ -80,7 +80,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">Spherical Cube Map Library </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>SCM is a C++ class library that provides a heterogeneous data representation and rendering engine for the interactive display of spherical data sets at scales of hundreds of gigapixels and beyond. Applications include panoramic image display and planetary rendering. The SCM data representation enables out-of-core data access at real-time rates. The spherical geometry tessellator supports displacement mapping and enables the display of planetary terrain data of arbitrary resolution.</p>
+<div class="textblock"><p>LibSCM renders high-res spherical images. Specifically, LibSCM is a C++ class library that provides a heterogeneous data representation and rendering engine for the interactive display of spherical data sets at scales of hundreds of gigapixels and beyond. Applications include panoramic image display and planetary rendering. The SCM data representation enables out-of-core data access at real-time rates. The spherical geometry tessellator supports displacement mapping and enables the display of planetary terrain data of arbitrary resolution.</p>
+<p>As an example, here is a screenshot of a interactive rendering of the Moon synthesized from 8 gigapixels of Lunar Reconnaissance Orbiter terrain data, textured using another 8 gigapixels of LRO surface imagery.</p>
+<div class="image">
+<img src="moon.jpg" alt="moon.jpg"/>
+</div>
 <p>The structure of a running SCM renderer is as shown in this image. An application generally instantiates a single <a class="el" href="classscm__system.html" title="An scm_system encapsulates all of the state of an SCM renderer. Its interface is the primary API of t...">scm_system</a> object, and that object manages the rest of the structure.</p>
 <div class="image">
 <img src="scm.svg" alt="scm.svg"/>
