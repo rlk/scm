@@ -45,9 +45,9 @@ manages the rest of the structure.
 
 @image html scm.svg
 
-Here, a box reperesents an object and a stack of boxes reperesents a collection
-of objects. A solid arrow is a strong (owning) reference, and a dotted arrow is
-a weak (non-owning) reference.
+In this figure, a box reperesents an object and a stack of boxes reperesents a
+collection of objects. A solid arrow is a strong (owning) reference, and a
+dotted arrow is a weak (non-owning) reference.
 
 - Most fundamentally, an scm_system maintains a collection of scm_file objects,
   each of which provides access to an SCM TIFF image file. The scm_system also
