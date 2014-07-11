@@ -295,20 +295,28 @@ void scm_render::init_matrices()
     double w = double(width);
     double h = double(height);
 
+    // A transforms a fragment coordinate to a texture coordinate.
+
     A[0] = 1/w; A[4] = 0.0; A[ 8] = 0.0; A[12] =  0.0;
     A[1] = 0.0; A[5] = 1/h; A[ 9] = 0.0; A[13] =  0.0;
     A[2] = 0.0; A[6] = 0.0; A[10] = 1.0; A[14] =  0.0;
     A[3] = 0.0; A[7] = 0.0; A[11] = 0.0; A[15] =  1.0;
+
+    // B transforms a texture coordinate to a normalized device coordinace.
 
     B[0] = 2.0; B[4] = 0.0; B[ 8] = 0.0; B[12] = -1.0;
     B[1] = 0.0; B[5] = 2.0; B[ 9] = 0.0; B[13] = -1.0;
     B[2] = 0.0; B[6] = 0.0; B[10] = 2.0; B[14] = -1.0;
     B[3] = 0.0; B[7] = 0.0; B[11] = 0.0; B[15] =  1.0;
 
+    // C transforms a normalized device coordinate to a texture coordinate
+
     C[0] = 0.5; C[4] = 0.0; C[ 8] = 0.0; C[12] =  0.5;
     C[1] = 0.0; C[5] = 0.5; C[ 9] = 0.0; C[13] =  0.5;
     C[2] = 0.0; C[6] = 0.0; C[10] = 0.5; C[14] =  0.5;
     C[3] = 0.0; C[7] = 0.0; C[11] = 0.0; C[15] =  1.0;
+
+    // D transforms a texture coordinate to a fragment coordinate.
 
     D[0] =   w; D[4] = 0.0; D[ 8] = 0.0; D[12] =  0.0;
     D[1] = 0.0; D[5] =   h; D[ 9] = 0.0; D[13] =  0.0;
@@ -403,7 +411,7 @@ bool scm_render::check_blur(const double *P,
         double I[16];
         double N[16];
 
-        // S is the previous transform. T is the current one. I is its inverse.
+        // T is the current view-projection transform. S is the previous one.
 
         mmultiply(T, P, M);
 
@@ -416,16 +424,17 @@ bool scm_render::check_blur(const double *P,
             T[12] != S[12] || T[13] != S[13] ||
             T[14] != S[14] || T[15] != S[15])
         {
-            // Compose a transform taking current screen coords to previous.
+            // Compose a transform taking current fragment coordinates to the
+            // fragment coordinates of the previous frame.
 
-            minvert (I, T);
-            mcpy    (N, D);
-            mcompose(N, C);
-            mcompose(N, S);
-            mcompose(N, I);
-            mcompose(N, B);
-            mcompose(N, A);
-            mcpy    (S, T);
+            minvert (I, T);    // Inverse of the current view-projection.
+            mcpy    (N, D);    // 6. Texture coordinate to fragment coordinate
+            mcompose(N, C);    // 5. NDC to texture coordinate
+            mcompose(N, S);    // 4. World coordinate to previous NDC
+            mcompose(N, I);    // 3. NDC to current world coordinate
+            mcompose(N, B);    // 2. Texture coordinate to NDC
+            mcompose(N, A);    // 1. Fragment coordinate to texture coordinate
+            mcpy    (S, T);    // Store the current transform til next frame
 
             // Return this transform for use as an OpenGL uniform.
 
