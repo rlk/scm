@@ -48,6 +48,14 @@ scm_render::scm_render(int w, int h) :
 
     for (int i = 0; i < 16; i++)
         midentity(previous_T[i]);
+
+    // Test configuration for atmosphere shader
+
+    atmo_r[0] = 3373043.f;
+    atmo_r[1] = 3573043.f;
+    atmo_c[0] = 0.6f;
+    atmo_c[1] = 0.2f;
+    atmo_c[2] = 0.1f;
 }
 
 /// Finalize all OpenGL state.
@@ -91,12 +99,12 @@ void scm_render::set_wire(bool w)
 
 void scm_render::set_atmo(double r0, double r1, double r, double g, double b)
 {
-    atmo_radius[0] = r0;
-    atmo_radius[1] = r1;
+    atmo_r[0] = GLfloat(r0);
+    atmo_r[1] = GLfloat(r1);
 
-    atmo_color[0] = r;
-    atmo_color[1] = g;
-    atmo_color[2] = b;
+    atmo_c[0] = GLfloat(r);
+    atmo_c[1] = GLfloat(g);
+    atmo_c[2] = GLfloat(b);
 }
 
 //------------------------------------------------------------------------------
@@ -129,7 +137,7 @@ void scm_render::render(scm_sphere *sphere,
     const bool do_blur = check_blur(P, M, blur_T, previous_T[channel]);
     const bool do_atmo = check_atmo(P, M, atmo_T);
 
-    if (!do_fade && !do_blur)
+    if (!do_fade && !do_blur && !do_atmo)
         render(sphere, fore0, back0, P, M, channel, frame);
 
     else
@@ -190,6 +198,12 @@ void scm_render::render(scm_sphere *sphere,
             glUseProgram(render_blur.program);
             glUniform1i       (uniform_blur_n,       blur);
             glUniformMatrix4fv(uniform_blur_T, 1, 0, blur_T);
+        }
+        else
+        {
+            glUseProgram(render_atmo.program);
+            glUniform3fv(uniform_atmo_c, 1, atmo_c);
+            glUniform2fv(uniform_atmo_r, 1, atmo_r);
         }
 
         // Render the blur / fade to the framebuffer.
@@ -346,6 +360,8 @@ void scm_render::init_matrices()
 #include "scm-render-blur-frag.h"
 #include "scm-render-both-vert.h"
 #include "scm-render-both-frag.h"
+#include "scm-render-atmo-vert.h"
+#include "scm-render-atmo-frag.h"
 
 void scm_render::init_ogl()
 {
@@ -361,10 +377,15 @@ void scm_render::init_ogl()
                                              scm_render_both_vert_len,
                               (const char *) scm_render_both_frag,
                                              scm_render_both_frag_len);
+    glsl_source(&render_atmo, (const char *) scm_render_atmo_vert,
+                                             scm_render_atmo_vert_len,
+                              (const char *) scm_render_atmo_frag,
+                                             scm_render_atmo_frag_len);
 
     init_uniforms(render_fade.program);
     init_uniforms(render_blur.program);
     init_uniforms(render_both.program);
+    init_uniforms(render_atmo.program);
 
     glUseProgram(render_fade.program);
     uniform_fade_t = glsl_uniform(render_fade.program, "t");
@@ -377,6 +398,10 @@ void scm_render::init_ogl()
     uniform_both_t = glsl_uniform(render_both.program, "t");
     uniform_both_n = glsl_uniform(render_both.program, "n");
     uniform_both_T = glsl_uniform(render_both.program, "T");
+
+    glUseProgram(render_atmo.program);
+    uniform_atmo_c = glsl_uniform(render_atmo.program, "c");
+    uniform_atmo_r = glsl_uniform(render_atmo.program, "r");
 
     glUseProgram(0);
 
@@ -398,6 +423,7 @@ void scm_render::free_ogl()
     glsl_delete(&render_fade);
     glsl_delete(&render_blur);
     glsl_delete(&render_both);
+    glsl_delete(&render_atmo);
 }
 
 //------------------------------------------------------------------------------
@@ -464,7 +490,7 @@ bool scm_render::check_blur(const double *P,
 
 bool scm_render::check_atmo(const double *P, const double *M, GLfloat *U)
 {
-    if (atmo_radius[1])
+    if (atmo_r[1] > 0)
     {
         double T[16];
         double N[16];

@@ -80,8 +80,8 @@ private:
     int    blur;
     bool   wire;
 
-    double atmo_color [3];
-    double atmo_radius[2];
+    GLfloat atmo_c[3];
+    GLfloat atmo_r[2];
 
     scm_frame *frame0;
     scm_frame *frame1;
@@ -96,10 +96,13 @@ private:
     glsl   render_fade;
     glsl   render_blur;
     glsl   render_both;
+    glsl   render_atmo;
 
     GLint  uniform_fade_t, uniform_both_t;
     GLint  uniform_blur_T, uniform_both_T;
     GLint  uniform_blur_n, uniform_both_n;
+    GLint  uniform_atmo_c;
+    GLint  uniform_atmo_r;
 };
 
 
