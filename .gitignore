@@ -1,4 +1,7 @@
 *.o
 *.d
+*.DS_Store
 html
 libscm.a
+scm-*-frag.h
+scm-*-vert.h
