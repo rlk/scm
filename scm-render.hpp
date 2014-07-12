@@ -46,6 +46,7 @@ public:
     void set_size(int, int);
     void set_blur(int);
     void set_wire(bool);
+    void set_atmo(double, double, double, double, double);
 
     int  get_blur() const { return blur; }
     bool get_wire() const { return wire; }
@@ -66,7 +67,8 @@ public:
 private:
 
     bool check_fade(scm_scene *, scm_scene *, scm_scene *, scm_scene *, double);
-    bool check_blur(const double *, const double *, double *, GLfloat *);
+    bool check_blur(const double *, const double *, GLfloat *, double *);
+    bool check_atmo(const double *, const double *, GLfloat *);
 
     void init_uniforms(GLuint);
     void init_matrices();
@@ -77,6 +79,9 @@ private:
     int    height;
     int    blur;
     bool   wire;
+
+    double atmo_color [3];
+    double atmo_radius[2];
 
     scm_frame *frame0;
     scm_frame *frame1;

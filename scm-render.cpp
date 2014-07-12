@@ -87,6 +87,18 @@ void scm_render::set_wire(bool w)
     wire = w;
 }
 
+/// Set the atmosphere parameters.
+
+void scm_render::set_atmo(double r0, double r1, double r, double g, double b)
+{
+    atmo_radius[0] = r0;
+    atmo_radius[1] = r1;
+
+    atmo_color[0] = r;
+    atmo_color[1] = g;
+    atmo_color[2] = b;
+}
+
 //------------------------------------------------------------------------------
 
 /// Render the foreground and background with optional blur and dissolve.
@@ -110,10 +122,12 @@ void scm_render::render(scm_sphere *sphere,
                       const double *P,
                       const double *M, int channel, int frame, double t)
 {
-    GLfloat T[16];
+    GLfloat blur_T[16];
+    GLfloat atmo_T[16];
 
     const bool do_fade = check_fade(fore0, fore1, back0, back1, t);
-    const bool do_blur = check_blur(P, M, previous_T[channel], T);
+    const bool do_blur = check_blur(P, M, blur_T, previous_T[channel]);
+    const bool do_atmo = check_atmo(P, M, atmo_T);
 
     if (!do_fade && !do_blur)
         render(sphere, fore0, back0, P, M, channel, frame);
@@ -163,8 +177,8 @@ void scm_render::render(scm_sphere *sphere,
         {
             glUseProgram(render_both.program);
             glUniform1f       (uniform_both_t,       t);
-            glUniform1i       (uniform_both_n,    blur);
-            glUniformMatrix4fv(uniform_both_T, 1, 0, T);
+            glUniform1i       (uniform_both_n,       blur);
+            glUniformMatrix4fv(uniform_both_T, 1, 0, blur_T);
         }
         else if (do_fade && !do_blur)
         {
@@ -174,8 +188,8 @@ void scm_render::render(scm_sphere *sphere,
         else if (!do_fade && do_blur)
         {
             glUseProgram(render_blur.program);
-            glUniform1i       (uniform_blur_n,    blur);
-            glUniformMatrix4fv(uniform_blur_T, 1, 0, T);
+            glUniform1i       (uniform_blur_n,       blur);
+            glUniformMatrix4fv(uniform_blur_T, 1, 0, blur_T);
         }
 
         // Render the blur / fade to the framebuffer.
@@ -402,8 +416,7 @@ bool scm_render::check_fade(scm_scene *fore0, scm_scene *fore1,
 /// Determine whether blurring is necessary and compute its transform.
 
 bool scm_render::check_blur(const double *P,
-                            const double *M,
-                                  double *S, GLfloat *U)
+                            const double *M, GLfloat *U, double *S)
 {
     if (blur)
     {
@@ -436,13 +449,39 @@ bool scm_render::check_blur(const double *P,
             mcompose(N, A);    // 1. Fragment coordinate to texture coordinate
             mcpy    (S, T);    // Store the current transform til next frame
 
-            // Return this transform for use as an OpenGL uniform.
+            // Return this matrix for use as an OpenGL uniform.
 
             for (int i = 0; i < 16; i++)
                 U[i] = GLfloat(N[i]);
 
             return true;
         }
+    }
+    return false;
+}
+
+/// Determine whether atmosphere rendering is enabled and compute its tranform.
+
+bool scm_render::check_atmo(const double *P, const double *M, GLfloat *U)
+{
+    if (atmo_radius[1])
+    {
+        double T[16];
+        double N[16];
+
+        // Compose a transform taking fragment coordinates to world coordinates.
+
+        mmultiply(T, P, M);  // Current view-projection transform
+        minvert  (N, T);     // 3. NDC to current world coordinate
+        mcompose (N, B);     // 2. Texture coordinate to NDC
+        mcompose (N, A);     // 1. Fragment coordinate to texture coordinate
+
+        // Return this matrix for use as an OpenGL uniform.
+
+        for (int i = 0; i < 16; i++)
+            U[i] = GLfloat(N[i]);
+
+        return true;
     }
     return false;
 }
