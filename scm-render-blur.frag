@@ -17,13 +17,13 @@ void main()
     pp = pp / pp.w;
 
     vec4 B = vec4(0.0);
+    vec4 b;
 
     for (int i = 0; i < n; i++)
     {
-        vec4 b = texture2DRect(color0, mix(pn.xy, pp.xy, float(i) / float(n)));
-        B += b.a * vec4(b.rgb, 1.0);
+        b  = texture2DRect(color0, mix(pn.xy, pp.xy, float(i) / float(n)));
+        B += vec4(b.rgb, 1.0);
     }
 
-//  gl_FragColor = vec4(B.rgb * c0.a / B.a, 1.0);
     gl_FragColor = vec4(B.rgb / B.a, 1.0);
 }

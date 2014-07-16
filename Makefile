@@ -26,17 +26,22 @@ OBJS= \
 
 DEPS= $(OBJS:.o=.d)
 
-GLSL= \
+LABEL_GLSL= \
 	scm-label-circle-frag.h \
 	scm-label-circle-vert.h \
 	scm-label-sprite-frag.h \
-	scm-label-sprite-vert.h \
+	scm-label-sprite-vert.h
+RENDER_GLSL= \
 	scm-render-blur-frag.h \
 	scm-render-blur-vert.h \
 	scm-render-both-frag.h \
 	scm-render-both-vert.h \
+	scm-render-atmo-frag.h \
+	scm-render-atmo-vert.h \
 	scm-render-fade-frag.h \
 	scm-render-fade-vert.h
+
+GLSL= $(LABEL_GLSL) $(RENDER_GLSL)
 
 #------------------------------------------------------------------------------
 
@@ -56,7 +61,7 @@ TARG= libscm.a
 
 #------------------------------------------------------------------------------
 
-$(TARG) : $(GLSL) $(OBJS)
+$(TARG) : $(OBJS)
 	ar -r $(TARG) $(OBJS)
 
 clean:
@@ -80,6 +85,9 @@ clean:
 	xxd -i $^ > $@
 
 #------------------------------------------------------------------------------
+
+scm-render.o : $(RENDER_GLSL)
+scm-label.o  : $(LABEL_GLSL)
 
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)

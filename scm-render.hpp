@@ -101,8 +101,10 @@ private:
     GLint  uniform_fade_t, uniform_both_t;
     GLint  uniform_blur_T, uniform_both_T;
     GLint  uniform_blur_n, uniform_both_n;
+
     GLint  uniform_atmo_c;
     GLint  uniform_atmo_r;
+    GLint  uniform_atmo_T;
 };
 
 

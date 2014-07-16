@@ -202,8 +202,9 @@ void scm_render::render(scm_sphere *sphere,
         else
         {
             glUseProgram(render_atmo.program);
-            glUniform3fv(uniform_atmo_c, 1, atmo_c);
-            glUniform2fv(uniform_atmo_r, 1, atmo_r);
+            glUniform3fv      (uniform_atmo_c, 1,    atmo_c);
+            glUniform2fv      (uniform_atmo_r, 1,    atmo_r);
+            glUniformMatrix4fv(uniform_atmo_T, 1, 0, atmo_T);
         }
 
         // Render the blur / fade to the framebuffer.
@@ -272,6 +273,15 @@ void scm_render::render(scm_sphere *sphere,
             back->draw_label();
         }
         glPopAttrib();
+
+        // Clear the alpha channel to distinguish background from foreground.
+
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glColorMask(GL_TRUE,  GL_TRUE,  GL_TRUE,  GL_TRUE);
+
+        // TODO: Simplify the fardistance hack using the clear depth buffer?
+        // This change does impact the blur shader.
     }
 
     // Foreground
@@ -402,6 +412,7 @@ void scm_render::init_ogl()
     glUseProgram(render_atmo.program);
     uniform_atmo_c = glsl_uniform(render_atmo.program, "c");
     uniform_atmo_r = glsl_uniform(render_atmo.program, "r");
+    uniform_atmo_T = glsl_uniform(render_atmo.program, "T");
 
     glUseProgram(0);
 
