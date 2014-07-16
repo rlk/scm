@@ -19,17 +19,19 @@ float density(vec3 p, float d)
 
 float density(vec3 p, float d)
 {
+    vec3 L = gl_LightSource[0].position.xyz;
+
     float H = 11100.0;
-    float P = 10.0 * exp(-(length(p) - atmo_r.x) / H);
-    return clamp(P, 0.0, 1.0);
+    float P = exp(-(length(p) - atmo_r.x) / H) / 5000.0;
+
+    float e = dot(normalize(p), L);
+
+    float l = smoothstep(-0.1, 0.1, e);
+    return mix(0.0, clamp(d * P, 0.0, 1.0), l);
 }
 
 void main()
 {
-    // Lightsource direction
-
-    vec3 L = normalize(gl_LightSource[0].position.xyz);
-
     // Color and depth of the current fragment
 
     vec4 c = texture2DRect(color0, gl_TexCoord[0].xy);
