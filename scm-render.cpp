@@ -54,8 +54,8 @@ scm_render::scm_render(int w, int h) :
     atmo_r[0] = 3373043.f;
     atmo_r[1] = 3573043.f;
     atmo_c[0] = 0.6f;
-    atmo_c[1] = 0.2f;
-    atmo_c[2] = 0.1f;
+    atmo_c[1] = 0.4f;
+    atmo_c[2] = 0.3f;
 }
 
 /// Finalize all OpenGL state.
@@ -132,10 +132,11 @@ void scm_render::render(scm_sphere *sphere,
 {
     GLfloat blur_T[16];
     GLfloat atmo_T[16];
+    GLfloat atmo_p[ 4];
 
     const bool do_fade = check_fade(fore0, fore1, back0, back1, t);
     const bool do_blur = check_blur(P, M, blur_T, previous_T[channel]);
-    const bool do_atmo = check_atmo(P, M, atmo_T);
+    const bool do_atmo = check_atmo(P, M, atmo_T, atmo_p);
 
     if (!do_fade && !do_blur && !do_atmo)
         render(sphere, fore0, back0, P, M, channel, frame);
@@ -167,7 +168,7 @@ void scm_render::render(scm_sphere *sphere,
         }
         glPopAttrib();
 
-        // Bind the resurting textures.
+        // Bind the resulting textures.
 
         glActiveTexture(GL_TEXTURE3);
         frame1->bind_depth();
@@ -204,6 +205,7 @@ void scm_render::render(scm_sphere *sphere,
             glUseProgram(render_atmo.program);
             glUniform3fv      (uniform_atmo_c, 1,    atmo_c);
             glUniform2fv      (uniform_atmo_r, 1,    atmo_r);
+            glUniform3fv      (uniform_atmo_p, 1,    atmo_p);
             glUniformMatrix4fv(uniform_atmo_T, 1, 0, atmo_T);
         }
 
@@ -410,9 +412,10 @@ void scm_render::init_ogl()
     uniform_both_T = glsl_uniform(render_both.program, "T");
 
     glUseProgram(render_atmo.program);
-    uniform_atmo_c = glsl_uniform(render_atmo.program, "c");
-    uniform_atmo_r = glsl_uniform(render_atmo.program, "r");
-    uniform_atmo_T = glsl_uniform(render_atmo.program, "T");
+    uniform_atmo_p = glsl_uniform(render_atmo.program, "p");
+    uniform_atmo_c = glsl_uniform(render_atmo.program, "atmo_c");
+    uniform_atmo_r = glsl_uniform(render_atmo.program, "atmo_r");
+    uniform_atmo_T = glsl_uniform(render_atmo.program, "atmo_T");
 
     glUseProgram(0);
 
@@ -499,11 +502,13 @@ bool scm_render::check_blur(const double *P,
 
 /// Determine whether atmosphere rendering is enabled and compute its tranform.
 
-bool scm_render::check_atmo(const double *P, const double *M, GLfloat *U)
+bool scm_render::check_atmo(const double *P,
+                            const double *M, GLfloat *U, GLfloat *p)
 {
     if (atmo_r[1] > 0)
     {
         double T[16];
+        double I[16];
         double N[16];
 
         // Compose a transform taking fragment coordinates to world coordinates.
@@ -517,6 +522,14 @@ bool scm_render::check_atmo(const double *P, const double *M, GLfloat *U)
 
         for (int i = 0; i < 16; i++)
             U[i] = GLfloat(N[i]);
+
+        // Return the view position for use as an OpenGL uniform.
+
+        minvert(I, M);
+
+        p[0] = GLfloat(I[12]);
+        p[1] = GLfloat(I[13]);
+        p[2] = GLfloat(I[14]);
 
         return true;
     }
