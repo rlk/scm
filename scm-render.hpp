@@ -46,7 +46,7 @@ public:
     void set_size(int, int);
     void set_blur(int);
     void set_wire(bool);
-    void set_atmo(double, double, double, double, double);
+    void set_atmo(double, double, double, double, double, double, double);
 
     int  get_blur() const { return blur; }
     bool get_wire() const { return wire; }
@@ -82,6 +82,8 @@ private:
 
     GLfloat atmo_c[3];
     GLfloat atmo_r[2];
+    GLfloat atmo_H;
+    GLfloat atmo_P;
 
     scm_frame *frame0;
     scm_frame *frame1;
@@ -98,14 +100,19 @@ private:
     glsl   render_both;
     glsl   render_atmo;
 
-    GLint  uniform_fade_t, uniform_both_t;
-    GLint  uniform_blur_T, uniform_both_T;
-    GLint  uniform_blur_n, uniform_both_n;
+    GLint  uniform_fade_t;
+    GLint  uniform_both_t;
+    GLint  uniform_blur_T;
+    GLint  uniform_both_T;
+    GLint  uniform_blur_n;
+    GLint  uniform_both_n;
 
     GLint  uniform_atmo_c;
     GLint  uniform_atmo_r;
     GLint  uniform_atmo_T;
     GLint  uniform_atmo_p;
+    GLint  uniform_atmo_P;
+    GLint  uniform_atmo_H;
 };
 
 

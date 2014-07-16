@@ -49,13 +49,15 @@ scm_render::scm_render(int w, int h) :
     for (int i = 0; i < 16; i++)
         midentity(previous_T[i]);
 
-    // Test configuration for atmosphere shader
+    // Default configuration for atmosphere shader (Mars)
 
     atmo_r[0] = 3373043.f;
     atmo_r[1] = 3573043.f;
-    atmo_c[0] = 0.6f;
-    atmo_c[1] = 0.4f;
-    atmo_c[2] = 0.3f;
+    atmo_c[0] =      0.6f;
+    atmo_c[1] =      0.4f;
+    atmo_c[2] =      0.3f;
+    atmo_H    =  11100.0f;
+    atmo_P    =      0.0002f;
 }
 
 /// Finalize all OpenGL state.
@@ -97,10 +99,15 @@ void scm_render::set_wire(bool w)
 
 /// Set the atmosphere parameters.
 
-void scm_render::set_atmo(double r0, double r1, double r, double g, double b)
+void scm_render::set_atmo(double r0, double r1,
+                          double P,  double H,
+                          double r,  double g, double b)
 {
     atmo_r[0] = GLfloat(r0);
     atmo_r[1] = GLfloat(r1);
+
+    atmo_H    = GLfloat(H);
+    atmo_P    = GLfloat(P);
 
     atmo_c[0] = GLfloat(r);
     atmo_c[1] = GLfloat(g);
@@ -206,6 +213,8 @@ void scm_render::render(scm_sphere *sphere,
             glUniform3fv      (uniform_atmo_c, 1,    atmo_c);
             glUniform2fv      (uniform_atmo_r, 1,    atmo_r);
             glUniform3fv      (uniform_atmo_p, 1,    atmo_p);
+            glUniform1f       (uniform_atmo_P,       atmo_P);
+            glUniform1f       (uniform_atmo_H,       atmo_H);
             glUniformMatrix4fv(uniform_atmo_T, 1, 0, atmo_T);
         }
 
@@ -416,6 +425,8 @@ void scm_render::init_ogl()
     uniform_atmo_c = glsl_uniform(render_atmo.program, "atmo_c");
     uniform_atmo_r = glsl_uniform(render_atmo.program, "atmo_r");
     uniform_atmo_T = glsl_uniform(render_atmo.program, "atmo_T");
+    uniform_atmo_P = glsl_uniform(render_atmo.program, "atmo_P");
+    uniform_atmo_H = glsl_uniform(render_atmo.program, "atmo_H");
 
     glUseProgram(0);
 

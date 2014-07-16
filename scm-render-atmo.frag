@@ -5,28 +5,21 @@ uniform sampler2DRect depth0;
 
 uniform vec3 p;
 
-uniform vec3 atmo_c;
-uniform vec2 atmo_r;
-uniform mat4 atmo_T;
-
-/*
-float density(vec3 p, float d)
-{
-    float k = (length(p) - atmo_r.x) / (atmo_r.y - atmo_r.x);
-    return clamp(d * (1.0 - k) / 500000.0, 0.0, 1.0);
-}
-*/
+uniform vec3  atmo_c;
+uniform vec2  atmo_r;
+uniform mat4  atmo_T;
+uniform float atmo_H;
+uniform float atmo_P;
 
 float density(vec3 p, float d)
 {
     vec3 L = gl_LightSource[0].position.xyz;
 
-    float H = 11100.0;
-    float P = exp(-(length(p) - atmo_r.x) / H) / 5000.0;
+    float P = atmo_P * exp(-(length(p) - atmo_r.x) / atmo_H);
 
     float e = dot(normalize(p), L);
-
     float l = smoothstep(-0.1, 0.1, e);
+
     return mix(0.0, clamp(d * P, 0.0, 1.0), l);
 }
 
