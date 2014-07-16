@@ -17,6 +17,12 @@
 #include <cmath>
 #include "util3d/math3d.h"
 
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <unistd.h>
+#endif
+
 #include "scm-step.hpp"
 #include "scm-scene.hpp"
 #include "scm-cache.hpp"
