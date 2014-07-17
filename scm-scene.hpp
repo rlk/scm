@@ -61,6 +61,7 @@ public:
     void               set_label(const std::string &s);
     void               set_vert (const std::string &s);
     void               set_frag (const std::string &s);
+    void               set_atmo (const GLfloat *, GLfloat, GLfloat);
 
     /// @}
     /// @name Query
@@ -71,6 +72,7 @@ public:
     const std::string& get_label() const { return label_file; }
     const std::string& get_vert () const { return  vert_file; }
     const std::string& get_frag () const { return  frag_file; }
+    bool               get_atmo (GLfloat *, GLfloat *, GLfloat *);
 
     /// @}
     /// @name Internal Interface
@@ -107,6 +109,10 @@ private:
     scm_image_v images;
     glsl        render;
     GLuint      color;
+
+    GLfloat atmo_c[3];
+    GLfloat atmo_H;
+    GLfloat atmo_P;
 
     // Uniform locations must be visible to the scm_sphere.
 

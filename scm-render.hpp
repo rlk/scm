@@ -46,7 +46,6 @@ public:
     void set_size(int, int);
     void set_blur(int);
     void set_wire(bool);
-    void set_atmo(double, double, double, double, double, double, double);
 
     int  get_blur() const { return blur; }
     bool get_wire() const { return wire; }
@@ -79,11 +78,6 @@ private:
     int    height;
     int    blur;
     bool   wire;
-
-    GLfloat atmo_c[3];
-    GLfloat atmo_r[2];
-    GLfloat atmo_H;
-    GLfloat atmo_P;
 
     scm_frame *frame0;
     scm_frame *frame1;

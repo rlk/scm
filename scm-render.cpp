@@ -48,16 +48,6 @@ scm_render::scm_render(int w, int h) :
 
     for (int i = 0; i < 16; i++)
         midentity(previous_T[i]);
-
-    // Default configuration for atmosphere shader (Mars)
-
-    atmo_r[0] = 3373043.f;
-    atmo_r[1] = 3573043.f;
-    atmo_c[0] =      0.6f;
-    atmo_c[1] =      0.4f;
-    atmo_c[2] =      0.3f;
-    atmo_H    =  11100.0f;
-    atmo_P    =      0.0002f;
 }
 
 /// Finalize all OpenGL state.
@@ -95,23 +85,6 @@ void scm_render::set_blur(int b)
 void scm_render::set_wire(bool w)
 {
     wire = w;
-}
-
-/// Set the atmosphere parameters.
-
-void scm_render::set_atmo(double r0, double r1,
-                          double P,  double H,
-                          double r,  double g, double b)
-{
-    atmo_r[0] = GLfloat(r0);
-    atmo_r[1] = GLfloat(r1);
-
-    atmo_H    = GLfloat(H);
-    atmo_P    = GLfloat(P);
-
-    atmo_c[0] = GLfloat(r);
-    atmo_c[1] = GLfloat(g);
-    atmo_c[2] = GLfloat(b);
 }
 
 //------------------------------------------------------------------------------
@@ -209,13 +182,24 @@ void scm_render::render(scm_sphere *sphere,
         }
         else
         {
-            glUseProgram(render_atmo.program);
-            glUniform3fv      (uniform_atmo_c, 1,    atmo_c);
-            glUniform2fv      (uniform_atmo_r, 1,    atmo_r);
-            glUniform3fv      (uniform_atmo_p, 1,    atmo_p);
-            glUniform1f       (uniform_atmo_P,       atmo_P);
-            glUniform1f       (uniform_atmo_H,       atmo_H);
-            glUniformMatrix4fv(uniform_atmo_T, 1, 0, atmo_T);
+            GLfloat r[2];
+            GLfloat c[3];
+            GLfloat H;
+            GLfloat P;
+
+            if (fore0->get_atmo(c, &H, &P))
+            {
+                r[0] = fore0->get_minimum_ground();
+                r[1] = r[0] - H * log(0.00000001 / P);
+
+                glUseProgram(render_atmo.program);
+                glUniform2fv      (uniform_atmo_r, 1,    r);
+                glUniform3fv      (uniform_atmo_c, 1,    c);
+                glUniform1f       (uniform_atmo_P,       P);
+                glUniform1f       (uniform_atmo_H,       H);
+                glUniform3fv      (uniform_atmo_p, 1,    atmo_p);
+                glUniformMatrix4fv(uniform_atmo_T, 1, 0, atmo_T);
+            }
         }
 
         // Render the blur / fade to the framebuffer.
@@ -516,35 +500,31 @@ bool scm_render::check_blur(const double *P,
 bool scm_render::check_atmo(const double *P,
                             const double *M, GLfloat *U, GLfloat *p)
 {
-    if (atmo_r[1] > 0)
-    {
-        double T[16];
-        double I[16];
-        double N[16];
+    double T[16];
+    double I[16];
+    double N[16];
 
-        // Compose a transform taking fragment coordinates to world coordinates.
+    // Compose a transform taking fragment coordinates to world coordinates.
 
-        mmultiply(T, P, M);  // Current view-projection transform
-        minvert  (N, T);     // 3. NDC to current world coordinate
-        mcompose (N, B);     // 2. Texture coordinate to NDC
-        mcompose (N, A);     // 1. Fragment coordinate to texture coordinate
+    mmultiply(T, P, M);  // Current view-projection transform
+    minvert  (N, T);     // 3. NDC to current world coordinate
+    mcompose (N, B);     // 2. Texture coordinate to NDC
+    mcompose (N, A);     // 1. Fragment coordinate to texture coordinate
 
-        // Return this matrix for use as an OpenGL uniform.
+    // Return this matrix for use as an OpenGL uniform.
 
-        for (int i = 0; i < 16; i++)
-            U[i] = GLfloat(N[i]);
+    for (int i = 0; i < 16; i++)
+        U[i] = GLfloat(N[i]);
 
-        // Return the view position for use as an OpenGL uniform.
+    // Return the view position for use as an OpenGL uniform.
 
-        minvert(I, M);
+    minvert(I, M);
 
-        p[0] = GLfloat(I[12]);
-        p[1] = GLfloat(I[13]);
-        p[2] = GLfloat(I[14]);
+    p[0] = GLfloat(I[12]);
+    p[1] = GLfloat(I[13]);
+    p[2] = GLfloat(I[14]);
 
-        return true;
-    }
-    return false;
+    return true;
 }
 
 //------------------------------------------------------------------------------

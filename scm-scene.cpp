@@ -25,6 +25,12 @@ scm_scene::scm_scene(scm_system *sys) : sys(sys), label(0), color(0xFFBF00FF)
 {
     memset(&render, 0, sizeof (glsl));
 
+    atmo_c[0] = 0.6f;
+    atmo_c[1] = 0.4f;
+    atmo_c[2] = 0.3f;
+    atmo_H    = 11100.0f;
+    atmo_P    = 0.0002f;
+
     scm_log("scm_scene constructor");
 }
 
@@ -146,6 +152,43 @@ void scm_scene::set_frag(const std::string &s)
         glsl_source(&render, vert_file.c_str(), -1, frag_file.c_str(), -1);
 
     init_uniforms();
+}
+
+/// Set the atmosphere parameters
+///
+/// @param c Color
+/// @param H Scale height
+/// @param P Density at sea level
+
+void scm_scene::set_atmo(const GLfloat *c, GLfloat H, GLfloat P)
+{
+    atmo_c[0] = c[0];
+    atmo_c[1] = c[1];
+    atmo_c[2] = c[2];
+    atmo_H    = H;
+    atmo_P    = P;
+}
+
+/// Return the atmosphere parameters. Return true if these paremeters define
+/// a valid atmosphere.
+///
+/// @param c Color
+/// @param H Scale height
+/// @param P Density at sea level
+
+bool scm_scene::get_atmo(GLfloat *c, GLfloat *H, GLfloat *P)
+{
+    if (atmo_H > 0)
+    {
+        c[0] = atmo_c[0];
+        c[1] = atmo_c[1];
+        c[2] = atmo_c[2];
+        H[0] = atmo_H;
+        P[0] = atmo_P;
+
+        return true;
+    }
+    return false;
 }
 
 //------------------------------------------------------------------------------
