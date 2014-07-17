@@ -190,7 +190,7 @@ void scm_render::render(scm_sphere *sphere,
             if (fore0->get_atmo(c, &H, &P))
             {
                 r[0] = fore0->get_minimum_ground();
-                r[1] = r[0] - H * log(0.00000001 / P);
+                r[1] = r[0] - H * log(0.0001);
             }
 
             glUseProgram(render_atmo.program);
