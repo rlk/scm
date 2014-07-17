@@ -67,7 +67,7 @@ private:
 
     bool check_fade(scm_scene *, scm_scene *, scm_scene *, scm_scene *, double);
     bool check_blur(const double *, const double *, GLfloat *, double *);
-    bool check_atmo(const double *, const double *, GLfloat *, GLfloat *);
+    void check_atmo(const double *, const double *, GLfloat *, GLfloat *);
 
     void init_uniforms(GLuint);
     void init_matrices();

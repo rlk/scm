@@ -133,13 +133,11 @@ void scm_render::render(scm_sphere *sphere,
             glClearColor(0.f, 0.f, 0.f, 0.f);
 
             frame0->bind_frame();
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             render(sphere, fore0, back0, P, M, channel, frame);
 
             if (do_fade)
             {
                 frame1->bind_frame();
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 render(sphere, fore1, back1, P, M, channel, frame);
             }
         }
@@ -206,11 +204,22 @@ void scm_render::render(scm_sphere *sphere,
                       const double *P,
                       const double *M, int channel, int frame)
 {
-    scm_atmo A = fore->get_atmo();
+    scm_atmo atmo = fore->get_atmo();
+    GLint framebuffer;
     double T[16];
 
-    if (wire)
-        wire_on();
+    if (wire) wire_on();
+    else
+    {
+        if (atmo.H > 0)
+        {
+            glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebuffer);
+            frameA->bind_frame();
+        }
+    }
+
+    if (back || fore)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Background
 
@@ -282,33 +291,45 @@ void scm_render::render(scm_sphere *sphere,
     }
 
     // Atmosphere
-#if 0
-    GLfloat atmo_r[ 2];
-    GLfloat atmo_p[ 4];
-    GLfloat atmo_T[16];
 
-    if (fore->get_atmo(atmo_c, &atmo_H, &atmo_P))
+    if (wire) wire_off();
+    else
     {
-    const bool do_atmo = check_atmo(P, M, atmo_T, atmo_p);
-
-        else
+        if (atmo.H > 0)
         {
+            // Bind the color and depth buffers of the sphere rendering.
 
-                r[0] = fore0->get_minimum_ground();
-                r[1] = r[0] - H * log(0.0001);
-            }
+            glActiveTexture(GL_TEXTURE2);
+            frameA->bind_depth();
+            glActiveTexture(GL_TEXTURE0);
+            frameA->bind_color();
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+            // Prepare the atmosphere shader.
+
+            GLfloat atmo_r[ 2];
+            GLfloat atmo_p[ 4];
+            GLfloat atmo_T[16];
+
+            check_atmo(P, M, atmo_T, atmo_p);
+
+            atmo_r[0] = fore->get_minimum_ground();
+            atmo_r[1] = atmo_r[0] - atmo.H * log(0.00001);
 
             glUseProgram(render_atmo.program);
+            glUniform1f       (uniform_atmo_P,       atmo.P);
+            glUniform1f       (uniform_atmo_H,       atmo.H);
+            glUniform3fv      (uniform_atmo_c, 1,    atmo.c);
             glUniform2fv      (uniform_atmo_r, 1,    atmo_r);
-            glUniform3fv      (uniform_atmo_c, 1,    atmo_c);
-            glUniform1f       (uniform_atmo_P,       atmo_P);
-            glUniform1f       (uniform_atmo_H,       atmo_H);
             glUniform3fv      (uniform_atmo_p, 1,    atmo_p);
             glUniformMatrix4fv(uniform_atmo_T, 1, 0, atmo_T);
+
+            // Render the atmosphere to the framebuffer.
+
+            fillscreen(width, height);
+            glUseProgram(0);
         }
-#endif
-    if (wire)
-        wire_off();
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -418,6 +439,7 @@ void scm_render::init_ogl()
 
     glUseProgram(0);
 
+    frameA = new scm_frame(width, height);
     frame0 = new scm_frame(width, height);
     frame1 = new scm_frame(width, height);
 
@@ -428,10 +450,11 @@ void scm_render::free_ogl()
 {
     scm_log("scm_render free_ogl %d %d", width, height);
 
+    delete frameA;
     delete frame0;
     delete frame1;
 
-    frame0 = frame1 = 0;
+    frameA = frame0 = frame1 = 0;
 
     glsl_delete(&render_fade);
     glsl_delete(&render_blur);
@@ -499,9 +522,9 @@ bool scm_render::check_blur(const double *P,
     return false;
 }
 
-/// Determine whether atmosphere rendering is enabled and compute its tranform.
+/// Compute the atmosphere rendering tranform.
 
-bool scm_render::check_atmo(const double *P,
+void scm_render::check_atmo(const double *P,
                             const double *M, GLfloat *U, GLfloat *p)
 {
     double T[16];
@@ -527,8 +550,6 @@ bool scm_render::check_atmo(const double *P,
     p[0] = GLfloat(I[12]);
     p[1] = GLfloat(I[13]);
     p[2] = GLfloat(I[14]);
-
-    return true;
 }
 
 //------------------------------------------------------------------------------
