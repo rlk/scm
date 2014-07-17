@@ -30,6 +30,17 @@ typedef std::vector<scm_image *>::const_iterator scm_image_c;
 
 //------------------------------------------------------------------------------
 
+/// An scm_atmo stores the parameters of a planetary atmosphere definition.
+
+struct scm_atmo
+{
+    GLfloat c[3];
+    GLfloat P;
+    GLfloat H;
+};
+
+//------------------------------------------------------------------------------
+
 /// An scm_scene encapsulates the definition of a sphere and its parameters
 ///
 /// This definition consists primarily of a set of scm_image objects plus the
@@ -61,7 +72,7 @@ public:
     void               set_label(const std::string &s);
     void               set_vert (const std::string &s);
     void               set_frag (const std::string &s);
-    void               set_atmo (const GLfloat *, GLfloat, GLfloat);
+    void               set_atmo (const scm_atmo&);
 
     /// @}
     /// @name Query
@@ -72,7 +83,7 @@ public:
     const std::string& get_label() const { return label_file; }
     const std::string& get_vert () const { return  vert_file; }
     const std::string& get_frag () const { return  frag_file; }
-    bool               get_atmo (GLfloat *, GLfloat *, GLfloat *);
+    const scm_atmo&    get_atmo () const { return atmo;       }
 
     /// @}
     /// @name Internal Interface
@@ -105,14 +116,11 @@ private:
     std::string  vert_file;
     std::string  frag_file;
 
+    scm_atmo    atmo;
     scm_label  *label;
     scm_image_v images;
     glsl        render;
     GLuint      color;
-
-    GLfloat atmo_c[3];
-    GLfloat atmo_H;
-    GLfloat atmo_P;
 
     // Uniform locations must be visible to the scm_sphere.
 

@@ -25,11 +25,11 @@ scm_scene::scm_scene(scm_system *sys) : sys(sys), label(0), color(0xFFBF00FF)
 {
     memset(&render, 0, sizeof (glsl));
 
-    atmo_c[0] = 1;
-    atmo_c[1] = 1;
-    atmo_c[2] = 1;
-    atmo_H    = 0;
-    atmo_P    = 0;
+    atmo.c[0] = 1;
+    atmo.c[1] = 1;
+    atmo.c[2] = 1;
+    atmo.H    = 0;
+    atmo.P    = 0;
 
     scm_log("scm_scene constructor");
 }
@@ -154,41 +154,13 @@ void scm_scene::set_frag(const std::string &s)
     init_uniforms();
 }
 
-/// Set the atmosphere parameters
+/// Set the atmospheric parameters
 ///
-/// @param c Color
-/// @param H Scale height
-/// @param P Density at sea level
+/// @param A Atmospheric parameter structure
 
-void scm_scene::set_atmo(const GLfloat *c, GLfloat H, GLfloat P)
+void scm_scene::set_atmo(const scm_atmo& A)
 {
-    atmo_c[0] = c[0];
-    atmo_c[1] = c[1];
-    atmo_c[2] = c[2];
-    atmo_H    = H;
-    atmo_P    = P;
-}
-
-/// Return the atmosphere parameters. Return true if these paremeters define
-/// a valid atmosphere.
-///
-/// @param c Color
-/// @param H Scale height
-/// @param P Density at sea level
-
-bool scm_scene::get_atmo(GLfloat *c, GLfloat *H, GLfloat *P)
-{
-    if (atmo_H > 0)
-    {
-        c[0] = atmo_c[0];
-        c[1] = atmo_c[1];
-        c[2] = atmo_c[2];
-        H[0] = atmo_H;
-        P[0] = atmo_P;
-
-        return true;
-    }
-    return false;
+    atmo = A;
 }
 
 //------------------------------------------------------------------------------
