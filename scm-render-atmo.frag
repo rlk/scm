@@ -55,24 +55,32 @@ void main()
         float tp = (-B + sqrt(D)) / (2.0 * A);
         float tm = (-B - sqrt(D)) / (2.0 * A);
 
-        float t0 = max(min(tp, tm), 0.0);
-        float t1 =     max(tp, tm);
+        // If either intersection occurs in front of the viewer...
 
-        vec3 a =     p + v * t0;
-        vec3 b = mix(p + v * t1, q, c.a);
-
-        // Integrate over the segment from a to b.
-
-        const int n = 16;
-
-        float d = distance(a, b) / float(n);
-
-        for (int i = 0; i < n; i++)
+        if (tp > 0.0 || tm > 0.0)
         {
-            vec3 u = mix(a, b, float(i) / float(n));
+            // Locate the beginning and end of the atmosphere segment.
 
-            c.rgb = mix(c.rgb, atmo_c, density(u, d));
+            float t0 = max(min(tp, tm), 0.0);
+            float t1 = max(max(tp, tm), 0.0);
+
+            vec3 a =     p + v * t0;
+            vec3 b = mix(p + v * t1, q, c.a);
+
+            // Integrate over the segment from a to b.
+
+            const int n = 16;
+
+            float d = distance(a, b) / float(n);
+
+            for (int i = 0; i < n; i++)
+            {
+                vec3 u = mix(a, b, float(i) / float(n));
+
+                c.rgb = mix(c.rgb, atmo_c, density(u, d));
+            }
         }
     }
+
     gl_FragColor = vec4(c.rgb, 1.0);
 }
