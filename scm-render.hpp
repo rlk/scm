@@ -79,6 +79,7 @@ private:
     int    blur;
     bool   wire;
 
+    scm_frame *frameA;
     scm_frame *frame0;
     scm_frame *frame1;
 

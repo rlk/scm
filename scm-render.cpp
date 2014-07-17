@@ -111,14 +111,11 @@ void scm_render::render(scm_sphere *sphere,
                       const double *M, int channel, int frame, double t)
 {
     GLfloat blur_T[16];
-    GLfloat atmo_T[16];
-    GLfloat atmo_p[ 4];
 
     const bool do_fade = check_fade(fore0, fore1, back0, back1, t);
     const bool do_blur = check_blur(P, M, blur_T, previous_T[channel]);
-    const bool do_atmo = check_atmo(P, M, atmo_T, atmo_p);
 
-    if (!do_fade && !do_blur && !do_atmo)
+    if (!do_fade && !do_blur)
         render(sphere, fore0, back0, P, M, channel, frame);
 
     else
@@ -180,27 +177,6 @@ void scm_render::render(scm_sphere *sphere,
             glUniform1i       (uniform_blur_n,       blur);
             glUniformMatrix4fv(uniform_blur_T, 1, 0, blur_T);
         }
-        else
-        {
-            GLfloat r[2];
-            GLfloat c[3];
-            GLfloat H = 0.0f;
-            GLfloat P = 0.0f;
-
-            if (fore0->get_atmo(c, &H, &P))
-            {
-                r[0] = fore0->get_minimum_ground();
-                r[1] = r[0] - H * log(0.0001);
-            }
-
-            glUseProgram(render_atmo.program);
-            glUniform2fv      (uniform_atmo_r, 1,    r);
-            glUniform3fv      (uniform_atmo_c, 1,    c);
-            glUniform1f       (uniform_atmo_P,       P);
-            glUniform1f       (uniform_atmo_H,       H);
-            glUniform3fv      (uniform_atmo_p, 1,    atmo_p);
-            glUniformMatrix4fv(uniform_atmo_T, 1, 0, atmo_T);
-        }
 
         // Render the blur / fade to the framebuffer.
 
@@ -209,7 +185,8 @@ void scm_render::render(scm_sphere *sphere,
     }
 }
 
-/// Render the foreground and background spheres without blur or dissolve.
+/// Render the background and foreground spheres, with atmosphere if configured,
+/// but without blur or dissolve.
 ///
 /// This function is usually called by the previous function as needed to
 /// produce the desired effects. Calling it directly is a legitimate means
@@ -229,6 +206,7 @@ void scm_render::render(scm_sphere *sphere,
                       const double *P,
                       const double *M, int channel, int frame)
 {
+    scm_atmo A = fore->get_atmo();
     double T[16];
 
     if (wire)
@@ -303,6 +281,32 @@ void scm_render::render(scm_sphere *sphere,
         glPopAttrib();
     }
 
+    // Atmosphere
+#if 0
+    GLfloat atmo_r[ 2];
+    GLfloat atmo_p[ 4];
+    GLfloat atmo_T[16];
+
+    if (fore->get_atmo(atmo_c, &atmo_H, &atmo_P))
+    {
+    const bool do_atmo = check_atmo(P, M, atmo_T, atmo_p);
+
+        else
+        {
+
+                r[0] = fore0->get_minimum_ground();
+                r[1] = r[0] - H * log(0.0001);
+            }
+
+            glUseProgram(render_atmo.program);
+            glUniform2fv      (uniform_atmo_r, 1,    atmo_r);
+            glUniform3fv      (uniform_atmo_c, 1,    atmo_c);
+            glUniform1f       (uniform_atmo_P,       atmo_P);
+            glUniform1f       (uniform_atmo_H,       atmo_H);
+            glUniform3fv      (uniform_atmo_p, 1,    atmo_p);
+            glUniformMatrix4fv(uniform_atmo_T, 1, 0, atmo_T);
+        }
+#endif
     if (wire)
         wire_off();
 }
