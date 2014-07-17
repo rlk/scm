@@ -25,11 +25,11 @@ scm_scene::scm_scene(scm_system *sys) : sys(sys), label(0), color(0xFFBF00FF)
 {
     memset(&render, 0, sizeof (glsl));
 
-    atmo_c[0] = 0.6f;
-    atmo_c[1] = 0.4f;
-    atmo_c[2] = 0.3f;
-    atmo_H    = 11100.0f;
-    atmo_P    = 0.0002f;
+    atmo_c[0] = 1;
+    atmo_c[1] = 1;
+    atmo_c[2] = 1;
+    atmo_H    = 0;
+    atmo_P    = 0;
 
     scm_log("scm_scene constructor");
 }

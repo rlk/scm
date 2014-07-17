@@ -184,22 +184,22 @@ void scm_render::render(scm_sphere *sphere,
         {
             GLfloat r[2];
             GLfloat c[3];
-            GLfloat H;
-            GLfloat P;
+            GLfloat H = 0.0f;
+            GLfloat P = 0.0f;
 
             if (fore0->get_atmo(c, &H, &P))
             {
                 r[0] = fore0->get_minimum_ground();
                 r[1] = r[0] - H * log(0.00000001 / P);
-
-                glUseProgram(render_atmo.program);
-                glUniform2fv      (uniform_atmo_r, 1,    r);
-                glUniform3fv      (uniform_atmo_c, 1,    c);
-                glUniform1f       (uniform_atmo_P,       P);
-                glUniform1f       (uniform_atmo_H,       H);
-                glUniform3fv      (uniform_atmo_p, 1,    atmo_p);
-                glUniformMatrix4fv(uniform_atmo_T, 1, 0, atmo_T);
             }
+
+            glUseProgram(render_atmo.program);
+            glUniform2fv      (uniform_atmo_r, 1,    r);
+            glUniform3fv      (uniform_atmo_c, 1,    c);
+            glUniform1f       (uniform_atmo_P,       P);
+            glUniform1f       (uniform_atmo_H,       H);
+            glUniform3fv      (uniform_atmo_p, 1,    atmo_p);
+            glUniformMatrix4fv(uniform_atmo_T, 1, 0, atmo_T);
         }
 
         // Render the blur / fade to the framebuffer.
