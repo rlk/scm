@@ -204,24 +204,31 @@ void scm_render::render(scm_sphere *sphere,
                       const double *P,
                       const double *M, int channel, int frame)
 {
-    scm_atmo atmo = fore->get_atmo();
-    GLint framebuffer;
     double T[16];
 
-    if (wire) wire_on();
-    else
+    // If there is a foreground sphere, get its atmospheric parameters.
+
+    scm_atmo atmo;
+
+    if (fore)
+        atmo = fore->get_atmo();
+
+    // If there is an atmosphere, bind the temporary render target.
+
+    GLint framebuffer;
+
+    if (atmo.H > 0)
     {
-        if (atmo.H > 0)
-        {
-            glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebuffer);
-            frameA->bind_frame();
-        }
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebuffer);
+        frameA->bind_frame();
     }
+
+    // If we're going to be doing rendering, clear the buffers.
 
     if (back || fore)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Background
+    // Render the background
 
     if (back)
     {
@@ -251,7 +258,11 @@ void scm_render::render(scm_sphere *sphere,
             glDepthFunc(GL_LEQUAL);
             glDepthMask(GL_FALSE);
             glFrontFace(GL_CCW);
+
+            if (wire) wire_on();
             sphere->draw(back, T, width, height, channel, frame);
+            if (wire) wire_off();
+
             back->draw_label();
         }
         glPopAttrib();
@@ -266,7 +277,7 @@ void scm_render::render(scm_sphere *sphere,
         // This change does impact the blur shader.
     }
 
-    // Foreground
+    // Render the foreground
 
     if (fore)
     {
@@ -284,51 +295,51 @@ void scm_render::render(scm_sphere *sphere,
         glPushAttrib(GL_POLYGON_BIT);
         {
             glFrontFace(GL_CW);
+
+            if (wire) wire_on();
             sphere->draw(fore, T, width, height, channel, frame);
+            if (wire) wire_off();
+
             fore->draw_label();
         }
         glPopAttrib();
     }
 
-    // Atmosphere
+    // Render the atmosphere
 
-    if (wire) wire_off();
-    else
+    if (atmo.H > 0)
     {
-        if (atmo.H > 0)
-        {
-            // Bind the color and depth buffers of the sphere rendering.
+        // Bind the color and depth buffers of the temporary render target.
 
-            glActiveTexture(GL_TEXTURE2);
-            frameA->bind_depth();
-            glActiveTexture(GL_TEXTURE0);
-            frameA->bind_color();
-            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glActiveTexture(GL_TEXTURE2);
+        frameA->bind_depth();
+        glActiveTexture(GL_TEXTURE0);
+        frameA->bind_color();
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-            // Prepare the atmosphere shader.
+        // Prepare the atmosphere shader.
 
-            GLfloat atmo_r[ 2];
-            GLfloat atmo_p[ 4];
-            GLfloat atmo_T[16];
+        GLfloat atmo_r[ 2];
+        GLfloat atmo_p[ 4];
+        GLfloat atmo_T[16];
 
-            check_atmo(P, M, atmo_T, atmo_p);
+        check_atmo(P, M, atmo_T, atmo_p);
 
-            atmo_r[0] = fore->get_minimum_ground();
-            atmo_r[1] = atmo_r[0] - atmo.H * log(0.00001);
+        atmo_r[0] = fore->get_minimum_ground();
+        atmo_r[1] = atmo_r[0] - atmo.H * log(0.00001);
 
-            glUseProgram(render_atmo.program);
-            glUniform1f       (uniform_atmo_P,       atmo.P);
-            glUniform1f       (uniform_atmo_H,       atmo.H);
-            glUniform3fv      (uniform_atmo_c, 1,    atmo.c);
-            glUniform2fv      (uniform_atmo_r, 1,    atmo_r);
-            glUniform3fv      (uniform_atmo_p, 1,    atmo_p);
-            glUniformMatrix4fv(uniform_atmo_T, 1, 0, atmo_T);
+        glUseProgram(render_atmo.program);
+        glUniform1f       (uniform_atmo_P,       atmo.P);
+        glUniform1f       (uniform_atmo_H,       atmo.H);
+        glUniform3fv      (uniform_atmo_c, 1,    atmo.c);
+        glUniform2fv      (uniform_atmo_r, 1,    atmo_r);
+        glUniform3fv      (uniform_atmo_p, 1,    atmo_p);
+        glUniformMatrix4fv(uniform_atmo_T, 1, 0, atmo_T);
 
-            // Render the atmosphere to the framebuffer.
+        // Render the atmosphere to the framebuffer.
 
-            fillscreen(width, height);
-            glUseProgram(0);
-        }
+        fillscreen(width, height);
+        glUseProgram(0);
     }
 }
 

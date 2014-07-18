@@ -34,6 +34,15 @@ typedef std::vector<scm_image *>::const_iterator scm_image_c;
 
 struct scm_atmo
 {
+    scm_atmo()
+    {
+        c[0] = 1.0f;
+        c[1] = 1.0f;
+        c[2] = 1.0f;
+        P    = 0.0f;
+        H    = 0.0f;
+    }
+
     GLfloat c[3];
     GLfloat P;
     GLfloat H;
