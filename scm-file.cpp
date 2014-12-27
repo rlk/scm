@@ -12,6 +12,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <cmath>
 
 #include "util3d/math3d.h"
@@ -60,33 +61,33 @@ scm_file::scm_file(const std::string& tiff) :
 
             if (TIFFGetField(T, 0xFFB1, &n, &p))
             {
-                if ((xv = (uint64 *) malloc(n * sizeof (uint64))))
+                if ((xv = (uint64 *) malloc(size_t(n) * sizeof (uint64))))
                 {
-                    memcpy(xv, p, n * sizeof (uint64));
+                    memcpy(xv, p, size_t(n) * sizeof (uint64));
                     xc = n;
                 }
             }
             if (TIFFGetField(T, 0xFFB2, &n, &p))
             {
-                if ((ov = (uint64 *) malloc(n * sizeof (uint64))))
+                if ((ov = (uint64 *) malloc(size_t(n) * sizeof (uint64))))
                 {
-                    memcpy(ov, p, n * sizeof (uint64));
+                    memcpy(ov, p, size_t(n) * sizeof (uint64));
                     oc = n;
                 }
             }
             if (TIFFGetField(T, 0xFFB3, &n, &p))
             {
-                if ((av = malloc(n * b / 8)))
+                if ((av = malloc(size_t(n) * size_t(b) / 8)))
                 {
-                    memcpy(av, p, n * b / 8);
+                    memcpy(av, p, size_t(n) * size_t(b) / 8);
                     ac = n;
                 }
             }
             if (TIFFGetField(T, 0xFFB4, &n, &p))
             {
-                if ((zv = malloc(n * b / 8)))
+                if ((zv = malloc(size_t(n) * size_t(b) / 8)))
                 {
-                    memcpy(zv, p, n * b / 8);
+                    memcpy(zv, p, size_t(n) * size_t(b) / 8);
                     zc = n;
                 }
             }
@@ -278,7 +279,7 @@ uint64 scm_file::toindex(uint64 i) const
 
     if (xc)
     {
-        if ((p = bsearch(&i, xv, xc, sizeof (uint64), xcmp)))
+        if ((p = bsearch(&i, xv, size_t(xc), sizeof (uint64), xcmp)))
         {
             return (uint64) ((uint64 *) p - xv);
         }
@@ -468,7 +469,7 @@ static void set_text(const char *s, int x, int y,
                 if (32 <= s[0] && s[0] < 127 && 0 <= x + j && x + j < w
                                              && 0 <= y + i && y + i < h)
                 {
-                    bool d = bitfont[s[0] - 32][i] & (1 << (7 - j));
+                    bool d = (bitfont[s[0] - 32][i] & (1 << (7 - j))) != 0;
 
                     set_pixel(d ? 1.f : 0.f, x + j,     y + i, w, c, b, p);
                     set_pixel(d ? 1.f : 0.f, x + j, h - y - i, w, c, b, p);
@@ -506,9 +507,13 @@ void scm_page_text(const char *mesg,
         set_pixel(1.f, j, h - 2, w, c, b, p);
     }
 
-    // Draw the text.
+    // Draw the text. Unsafe under Windows due to shoddy standards compliance.
 
+#ifdef WIN32
+     sprintf(diag,      "%d %d %d %d %d", int(i), w, h, c, b);
+#else
     snprintf(diag, 256, "%d %d %d %d %d", int(i), w, h, c, b);
+#endif
 
     int msz = strlen(mesg);
     int nsz = strlen(name);

@@ -105,9 +105,9 @@ struct circle
         if (c[0] == 'A' && c[1] == 'A') a /= 1;
         if (c[0] == 'S' && c[1] == 'F') a /= 2;
 
-        p[0].v[0] = M.M[0] * (-s) + M.M[4] * (-s) + M.M[12];
-        p[0].v[1] = M.M[1] * (-s) + M.M[5] * (-s) + M.M[13];
-        p[0].v[2] = M.M[2] * (-s) + M.M[6] * (-s) + M.M[14];
+        p[0].v[0] = float(M.M[0] * (-s) + M.M[4] * (-s) + M.M[12]);
+        p[0].v[1] = float(M.M[1] * (-s) + M.M[5] * (-s) + M.M[13]);
+        p[0].v[2] = float(M.M[2] * (-s) + M.M[6] * (-s) + M.M[14]);
         p[0].t[0] = 0;
         p[0].t[1] = 0;
         p[0].c[0] = 255;
@@ -115,9 +115,9 @@ struct circle
         p[0].c[2] = 255;
         p[0].c[3] = a;
 
-        p[1].v[0] = M.M[0] * ( s) + M.M[4] * (-s) + M.M[12];
-        p[1].v[1] = M.M[1] * ( s) + M.M[5] * (-s) + M.M[13];
-        p[1].v[2] = M.M[2] * ( s) + M.M[6] * (-s) + M.M[14];
+        p[1].v[0] = float(M.M[0] * ( s) + M.M[4] * (-s) + M.M[12]);
+        p[1].v[1] = float(M.M[1] * ( s) + M.M[5] * (-s) + M.M[13]);
+        p[1].v[2] = float(M.M[2] * ( s) + M.M[6] * (-s) + M.M[14]);
         p[1].t[0] = 0;
         p[1].t[1] = 1;
         p[1].c[0] = 255;
@@ -125,9 +125,9 @@ struct circle
         p[1].c[2] = 255;
         p[1].c[3] = a;
 
-        p[2].v[0] = M.M[0] * ( s) + M.M[4] * ( s) + M.M[12];
-        p[2].v[1] = M.M[1] * ( s) + M.M[5] * ( s) + M.M[13];
-        p[2].v[2] = M.M[2] * ( s) + M.M[6] * ( s) + M.M[14];
+        p[2].v[0] = float(M.M[0] * ( s) + M.M[4] * ( s) + M.M[12]);
+        p[2].v[1] = float(M.M[1] * ( s) + M.M[5] * ( s) + M.M[13]);
+        p[2].v[2] = float(M.M[2] * ( s) + M.M[6] * ( s) + M.M[14]);
         p[2].t[0] = 1;
         p[2].t[1] = 1;
         p[2].c[0] = 255;
@@ -135,9 +135,9 @@ struct circle
         p[2].c[2] = 255;
         p[2].c[3] = a;
 
-        p[3].v[0] = M.M[0] * (-s) + M.M[4] * ( s) + M.M[12];
-        p[3].v[1] = M.M[1] * (-s) + M.M[5] * ( s) + M.M[13];
-        p[3].v[2] = M.M[2] * (-s) + M.M[6] * ( s) + M.M[14];
+        p[3].v[0] = float(M.M[0] * (-s) + M.M[4] * ( s) + M.M[12]);
+        p[3].v[1] = float(M.M[1] * (-s) + M.M[5] * ( s) + M.M[13]);
+        p[3].v[2] = float(M.M[2] * (-s) + M.M[6] * ( s) + M.M[14]);
         p[3].t[0] = 1;
         p[3].t[1] = 0;
         p[3].c[0] = 255;
@@ -161,9 +161,9 @@ struct sprite
         if (c[0] == '@' && c[1] == '*') x = 2.0;
         if (c[0] == '@' && c[1] == 'C') x = 3.0;
 
-        p.v[0] = M.M[12];
-        p.v[1] = M.M[13];
-        p.v[2] = M.M[14];
+        p.v[0] = float(M.M[12]);
+        p.v[1] = float(M.M[13]);
+        p.v[2] = float(M.M[14]);
         p.t[0] = x;
         p.t[1] = y;
         p.c[0] = 255;
@@ -179,8 +179,8 @@ struct latlon
 
     latlon(float lat, float lon, float rad)
     {
-        float P = 0.0f;
-        float T = 0.0f;
+        double P = 0.0;
+        double T = 0.0;
 
         for (int i = 0; i < 360; ++i)
         {
@@ -195,9 +195,9 @@ struct latlon
                 T = radians(i);
             }
 
-            p[i].v[0] = rad * sinf(T) * cosf(P);
-            p[i].v[1] = rad *           sinf(P);
-            p[i].v[2] = rad * cosf(T) * cosf(P);
+            p[i].v[0] = float(rad * sin(T) * cos(P));
+            p[i].v[1] = float(rad *          sin(P));
+            p[i].v[2] = float(rad * cos(T) * cos(P));
             p[i].t[0] =   0;
             p[i].t[1] =   0;
             p[i].c[0] = 127;
@@ -451,7 +451,7 @@ void scm_label::draw(GLubyte r, GLubyte g, GLubyte b, GLubyte a)
             glTexCoordPointer(2, GL_FLOAT,         sz, (GLvoid *) 12);
             glColorPointer   (4, GL_UNSIGNED_BYTE, sz, (GLvoid *) 20);
 
-            glPointSize(sprite_size);
+            glPointSize(GLfloat(sprite_size));
             glEnable(GL_POINT_SPRITE);
             glBindTexture(GL_TEXTURE_2D, sprite_tex);
 

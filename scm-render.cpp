@@ -10,6 +10,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 // more details.
 
+#include <cstdlib>
 #include <cmath>
 #include <cstring>
 
@@ -160,14 +161,14 @@ void scm_render::render(scm_sphere *sphere,
         if      (do_fade && do_blur)
         {
             glUseProgram(render_both.program);
-            glUniform1f       (uniform_both_t,       t);
+            glUniform1f       (uniform_both_t,       GLfloat(t));
             glUniform1i       (uniform_both_n,       blur);
             glUniformMatrix4fv(uniform_both_T, 1, 0, blur_T);
         }
         else if (do_fade && !do_blur)
         {
             glUseProgram(render_fade.program);
-            glUniform1f       (uniform_fade_t,       t);
+            glUniform1f       (uniform_fade_t,       GLfloat(t));
         }
         else if (!do_fade && do_blur)
         {
@@ -326,7 +327,7 @@ void scm_render::render(scm_sphere *sphere,
         check_atmo(P, M, atmo_T, atmo_p);
 
         atmo_r[0] = fore->get_minimum_ground();
-        atmo_r[1] = atmo_r[0] - atmo.H * log(0.00001);
+        atmo_r[1] = atmo_r[0] - atmo.H * logf(0.00001f);
 
         glUseProgram(render_atmo.program);
         glUniform1f       (uniform_atmo_P,       atmo.P);

@@ -70,7 +70,7 @@ void scm_frame::init_color()
     glBindTexture(GL_TEXTURE_RECTANGLE, color);
 
     glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, width, height,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -85,7 +85,7 @@ void scm_frame::init_depth()
     glBindTexture(GL_TEXTURE_RECTANGLE, depth);
 
     glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT24, width, height,
-                 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+                 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
 
     glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

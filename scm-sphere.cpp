@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cassert>
+#include <algorithm>
 #include <limits>
 
 #include "util3d/math3d.h"
