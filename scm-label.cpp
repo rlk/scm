@@ -231,7 +231,10 @@ scm_label::scm_label(const std::string& file, int size) :
     num_circles(0),
     num_sprites(0),
     num_latlons(0),
-    sprite_size(size)
+    sprite_size(size),
+    circle_vbo(0),
+    sprite_vbo(0),
+    latlon_vbo(0)
 {
     // Initialize the font.
 
@@ -337,24 +340,31 @@ scm_label::scm_label(const std::string& file, int size) :
 
     // Create a VBO for the circles.
 
-    glGenBuffers(1,              &circle_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, circle_vbo);
-    glBufferData(GL_ARRAY_BUFFER, 4 * sz * circle_v.size(),
-                                          &circle_v.front(), GL_STATIC_DRAW);
+    if (!circle_v.empty())
+    {
+        glGenBuffers(1,              &circle_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, circle_vbo);
+        glBufferData(GL_ARRAY_BUFFER, 4 * sz * circle_v.size(),
+                                              &circle_v.front(), GL_STATIC_DRAW);
+    }
 
     // Create a VBO for the sprites.
 
-    glGenBuffers(1,              &sprite_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, sprite_vbo);
-    glBufferData(GL_ARRAY_BUFFER, 1 * sz * sprite_v.size(),
-                                          &sprite_v.front(), GL_STATIC_DRAW);
+    if (!sprite_v.empty()) {
+        glGenBuffers(1,              &sprite_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, sprite_vbo);
+        glBufferData(GL_ARRAY_BUFFER, 1 * sz * sprite_v.size(),
+                                              &sprite_v.front(), GL_STATIC_DRAW);
+    }
 
     // Create a VBO for the latlons.
 
-    glGenBuffers(1,              &latlon_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, latlon_vbo);
-    glBufferData(GL_ARRAY_BUFFER, 360 * sz * latlon_v.size(),
-                                            &latlon_v.front(), GL_STATIC_DRAW);
+    if (!latlon_v.empty()) {
+        glGenBuffers(1,              &latlon_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, latlon_vbo);
+        glBufferData(GL_ARRAY_BUFFER, 360 * sz * latlon_v.size(),
+                                                &latlon_v.front(), GL_STATIC_DRAW);
+    }
 
     // Create a texture for the sprites.
 
@@ -375,9 +385,9 @@ scm_label::~scm_label()
 {
     scm_log("scm_label destructor");
 
-    glDeleteBuffers(1, &latlon_vbo);
-    glDeleteBuffers(1, &sprite_vbo);
-    glDeleteBuffers(1, &circle_vbo);
+    if (latlon_vbo) glDeleteBuffers(1, &latlon_vbo);
+    if (sprite_vbo) glDeleteBuffers(1, &sprite_vbo);
+    if (circle_vbo) glDeleteBuffers(1, &circle_vbo);
 
     line_delete(label_line);
     font_delete(label_font);
