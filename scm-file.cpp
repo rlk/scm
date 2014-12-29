@@ -558,7 +558,12 @@ bool scm_load_page(const char *name, long long i,
                 tsize_t S = TIFFStripSize(T);
 
                 for (int l = 0; l < N; ++l)
-                    TIFFReadEncodedStrip(T, l, (uint8 *) p + l * S, -1);
+                {
+                    if (TIFFReadEncodedStrip(T, l, (uint8 *) p + l * S, -1) == -1)
+                    {
+                        break;
+                    }
+                }
             }
             else scm_page_text("Bad page format", name, i, W, H, C, B, p);
         }

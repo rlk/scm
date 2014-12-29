@@ -15,11 +15,29 @@
 
 //------------------------------------------------------------------------------
 
+#ifdef WIN32
+#include <Windows.h>
+
 void scm_log(const char *fmt, ...)
 {
-#ifndef WIN32
+    char err[1024];
+    char str[1024];
+
+    va_list  ap;
+    va_start(ap, fmt);
+    vsnprintf(err, 1024, fmt, ap);
+    va_end  (ap);
+
+    sprintf(str, "(SCM) %s\n", err);
+
+    OutputDebugStringA(str);
+}
+
+#else
+
+void scm_log(const char *fmt, ...)
+{
     flockfile(stderr);
-#endif
     {
         va_list  ap;
         va_start(ap, fmt);
@@ -27,9 +45,27 @@ void scm_log(const char *fmt, ...)
          fprintf(stderr, "\n");
         va_end  (ap);
     }
-#ifndef WIN32
     funlockfile(stderr);
+}
+
 #endif
+
+//------------------------------------------------------------------------------
+
+void tiff_error(const char *module, const char *fmt, va_list args)
+{
+    char err[1024];
+
+    sprintf(err, "%s Error: %s", module, fmt);
+    scm_log(err, args);
+}
+
+void tiff_warning(const char *module, const char *fmt, va_list args)
+{
+    char err[1024];
+
+    sprintf(err, "%s Warning: %s", module, fmt);
+    scm_log(err, args);
 }
 
 //------------------------------------------------------------------------------

@@ -18,7 +18,9 @@
 #include <cmath>
 #include "util3d/math3d.h"
 
-#ifdef _WIN32
+#include <tiffio.h>
+
+#ifdef WIN32
 #include <direct.h>
 #else
 #include <unistd.h>
@@ -31,12 +33,6 @@
 #include "scm-render.hpp"
 #include "scm-system.hpp"
 #include "scm-log.hpp"
-
-#ifdef WIN32
-#include <direct.h>
-#else
-#include <unistd.h>
-#endif
 
 //------------------------------------------------------------------------------
 
@@ -54,6 +50,9 @@
 scm_system::scm_system(int w, int h, int d, int l) :
     serial(1), frame(0), sync(false), fade(0)
 {
+    TIFFSetWarningHandler(tiff_warning);
+    TIFFSetErrorHandler  (tiff_error);
+
     scm_log("scm_system working directory is %s", getcwd(0, 0));
 
     mutex  = SDL_CreateMutex();

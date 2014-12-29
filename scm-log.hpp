@@ -13,9 +13,14 @@
 #ifndef SCM_LOG_HPP
 #define SCM_LOG_HPP
 
+#include <stdarg.h>
+
 //------------------------------------------------------------------------------
 
 void scm_log(const char *, ...);
+
+void tiff_error  (const char *, const char *, va_list);
+void tiff_warning(const char *, const char *, va_list);
 
 //------------------------------------------------------------------------------
 
