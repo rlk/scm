@@ -1,0 +1,128 @@
+
+LOCAL_INCLUDE = C:\Include
+
+#------------------------------------------------------------------------------
+
+CFLAGS = /nologo /W3 /EHsc /Z7 /Od /MTd \
+	/DGLEW_STATIC \
+	/D_CRT_SECURE_NO_WARNINGS \
+	/D_CRT_NONSTDC_NO_DEPRECATE \
+	/D_USE_MATH_DEFINES \
+	/DNOMINMAX \
+	/DWIN32 \
+	/D_DEBUG \
+	/D_LIB
+
+LINK = lib /nologo
+
+#------------------------------------------------------------------------------
+
+TARG= scm.lib
+
+OBJS = \
+	scm-cache.obj \
+	scm-file.obj \
+	scm-frame.obj \
+	scm-image.obj \
+	scm-index.obj \
+	scm-label.obj \
+	scm-log.obj \
+	scm-path.obj \
+	scm-render.obj \
+	scm-sample.obj \
+	scm-scene.obj \
+	scm-set.obj \
+	scm-sphere.obj \
+	scm-step.obj \
+	scm-system.obj \
+	scm-task.obj \
+	glsl.obj \
+	type.obj \
+	math3d.obj
+
+LABEL_GLSL = \
+	scm-label-circle-frag.h \
+	scm-label-circle-vert.h \
+	scm-label-sprite-frag.h \
+	scm-label-sprite-vert.h
+
+RENDER_GLSL = \
+	scm-render-blur-frag.h \
+	scm-render-blur-vert.h \
+	scm-render-both-frag.h \
+	scm-render-both-vert.h \
+	scm-render-atmo-frag.h \
+	scm-render-atmo-vert.h \
+	scm-render-fade-frag.h \
+	scm-render-fade-vert.h
+
+GLSL = $(LABEL_GLSL) $(RENDER_GLSL)
+
+CFLAGS = $(CFLAGS) \
+	/I$(LOCAL_INCLUDE)\freetype2 \
+	/I$(LOCAL_INCLUDE)\SDL2 \
+	/I$(LOCAL_INCLUDE)
+
+CPPFLAGS = $(CFLAGS)
+
+$(TARG) : $(OBJS)
+	$(LINK) /out:$(TARG) $(OBJS)
+
+#------------------------------------------------------------------------------
+
+# Compile the bin2c tool, which helps embed binary data in C headers.
+
+B2C = etc\bin2c.exe
+
+$(B2C) : etc\bin2c.c
+	$(CC) /nologo /Fe$(B2C) etc\bin2c.c
+
+#------------------------------------------------------------------------------
+
+clean:
+	-del $(TARG) $(GLSL) $(OBJS) $(B2C)
+
+#------------------------------------------------------------------------------
+
+# Embed GLSL sources in C headers. (An inference rule would help here.)
+
+scm-label-circle-frag.h : scm-label-circle-frag.glsl
+	$(B2C) scm_label_circle_frag < $? > $@
+scm-label-circle-vert.h : scm-label-circle-vert.glsl
+	$(B2C) scm_label_circle_vert < $? > $@
+scm-label-sprite-frag.h : scm-label-sprite-frag.glsl
+	$(B2C) scm_label_sprite_frag < $? > $@
+scm-label-sprite-vert.h : scm-label-sprite-vert.glsl
+	$(B2C) scm_label_sprite_vert < $? > $@
+
+scm-render-atmo-frag.h : scm-render-atmo-frag.glsl
+	$(B2C) scm_render_atmo_frag < $? > $@
+scm-render-atmo-vert.h : scm-render-atmo-vert.glsl
+	$(B2C) scm_render_atmo_vert < $? > $@
+scm-render-blur-frag.h : scm-render-blur-frag.glsl
+	$(B2C) scm_render_blur_frag < $? > $@
+scm-render-blur-vert.h : scm-render-blur-vert.glsl
+	$(B2C) scm_render_blur_vert < $? > $@
+scm-render-both-frag.h : scm-render-both-frag.glsl
+	$(B2C) scm_render_both_frag < $? > $@
+scm-render-both-vert.h : scm-render-both-vert.glsl
+	$(B2C) scm_render_both_vert < $? > $@
+scm-render-fade-frag.h : scm-render-fade-frag.glsl
+	$(B2C) scm_render_fade_frag < $? > $@
+scm-render-fade-vert.h : scm-render-fade-vert.glsl
+	$(B2C) scm_render_fade_vert < $? > $@
+
+scm-render.obj : $(B2C) $(RENDER_GLSL)
+scm-label.obj  : $(B2C) $(LABEL_GLSL)
+
+#------------------------------------------------------------------------------
+
+# An inference rule to compile C source in the util3d directory. 
+
+{util3d\}.c{}.obj ::
+	$(CC) $(CFLAGS) /c $<
+
+math3d.obj : util3d\math3d.c
+glsl.obj   : util3d\glsl.c
+type.obj   : util3d\type.c
+
