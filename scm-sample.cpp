@@ -165,10 +165,11 @@ float scm_sample::get(const double *v)
 
                     // Cache the request and its result.
 
-                    last_k    = lerp(lerp(s00, s01, cc), lerp(s10, s11, cc), rr);
                     last_v[0] = v[0];
                     last_v[1] = v[1];
                     last_v[2] = v[2];
+                    last_k    = float(lerp(lerp(s00, s01, cc),
+                                           lerp(s10, s11, cc), rr));
                 }
             }
         }
