@@ -31,12 +31,21 @@
 
 static bool exists(const std::string& path)
 {
+#ifdef _WIN32
+    struct __stat64 info;
+
+    if (_stat64(path.c_str(), &info) == 0)
+        return ((info.st_mode & S_IFMT) == S_IFREG);
+    else
+        return false;
+#else
     struct stat info;
 
     if (stat(path.c_str(), &info) == 0)
         return ((info.st_mode & S_IFMT) == S_IFREG);
     else
         return false;
+#endif
 }
 
 //------------------------------------------------------------------------------

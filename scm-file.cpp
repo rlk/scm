@@ -561,6 +561,7 @@ bool scm_load_page(const char *name, long long i,
                 {
                     if (TIFFReadEncodedStrip(T, l, (uint8 *) p + l * S, -1) == -1)
                     {
+                        scm_page_text("Page read failure", name, i, W, H, C, B, p);
                         break;
                     }
                 }
