@@ -13,17 +13,18 @@ CPPFLAGS = /nologo /W3 /EHsc \
 	/DNOMINMAX \
 	/DWIN32
 
+LINK     = lib /nologo
+TARGET   = scm.lib
+
 !ifdef DEBUG
+CONFIG   = Debug
 CPPFLAGS = $(CPPFLAGS) /Od /MTd /Z7
 !else
+CONFIG   = Release
 CPPFLAGS = $(CPPFLAGS) /Ox /MT
 !endif
 
-LINK = lib /nologo
-
 #------------------------------------------------------------------------------
-
-TARG= scm.lib
 
 OBJS = \
 	scm-cache.obj \
@@ -69,8 +70,8 @@ CPPFLAGS = $(CPPFLAGS) \
 	/I$(LOCAL_INCLUDE)\SDL2 \
 	/I$(LOCAL_INCLUDE)
 
-$(TARG) : $(OBJS)
-	$(LINK) /out:$(TARG) $(OBJS)
+$(TARGET) : $(OBJS)
+	$(LINK) /out:$(CONFIG)\$(TARGET) $(OBJS)
 
 #------------------------------------------------------------------------------
 
@@ -84,7 +85,7 @@ $(B2C) : etc\bin2c.c
 #------------------------------------------------------------------------------
 
 clean:
-	-del $(TARG) $(GLSL) $(OBJS) $(B2C)
+	-del $(TARGET) $(GLSL) $(OBJS) $(B2C)
 
 #------------------------------------------------------------------------------
 
