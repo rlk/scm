@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <fcntl.h>
+#include <io.h>
 
 int main(int argc, char **argv)
 {
@@ -6,7 +8,11 @@ int main(int argc, char **argv)
     int c;
 
     if (argc > 1)
-        printf("const char %s[] = {\n", argv[1]);
+        printf("unsigned char %s[] = {\n", argv[1]);
+
+#ifdef _WIN32
+    _setmode(_fileno(stdin), _O_BINARY);
+#endif
 
     do
     {
@@ -24,7 +30,7 @@ int main(int argc, char **argv)
     while (c != EOF);
 
     if (argc > 1)
-        printf("};\nconst int %s_len = %d;\n", argv[1], n);
+        printf("};\nunsigned int %s_len = %d;\n", argv[1], n);
 
     return 0;
 }
