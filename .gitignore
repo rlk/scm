@@ -5,3 +5,6 @@ html
 libscm.a
 scm-*-frag.h
 scm-*-vert.h
+*.obj
+*.lib
+*.exe
