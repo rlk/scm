@@ -4,15 +4,20 @@ LOCAL_INCLUDE = C:\Include
 
 #------------------------------------------------------------------------------
 
-CFLAGS = /nologo /W3 /EHsc /Z7 /Od /MTd \
+CPPFLAGS = /nologo /W3 /EHsc \
 	/DGLEW_STATIC \
 	/D_CRT_SECURE_NO_WARNINGS \
 	/D_CRT_NONSTDC_NO_DEPRECATE \
 	/D_USE_MATH_DEFINES \
+	/DHAVE_M_PI \
 	/DNOMINMAX \
-	/DWIN32 \
-	/D_DEBUG \
-	/D_LIB
+	/DWIN32
+
+!ifdef DEBUG
+CPPFLAGS = $(CPPFLAGS) /Od /MTd /Z7
+!else
+CPPFLAGS = $(CPPFLAGS) /Ox /MT
+!endif
 
 LINK = lib /nologo
 
@@ -59,12 +64,10 @@ RENDER_GLSL = \
 
 GLSL = $(LABEL_GLSL) $(RENDER_GLSL)
 
-CFLAGS = $(CFLAGS) \
+CPPFLAGS = $(CPPFLAGS) \
 	/I$(LOCAL_INCLUDE)\freetype2 \
 	/I$(LOCAL_INCLUDE)\SDL2 \
 	/I$(LOCAL_INCLUDE)
-
-CPPFLAGS = $(CFLAGS)
 
 $(TARG) : $(OBJS)
 	$(LINK) /out:$(TARG) $(OBJS)
@@ -121,7 +124,7 @@ scm-label.obj  : $(B2C) $(LABEL_GLSL)
 # An inference rule to compile C source in the util3d directory. 
 
 {util3d\}.c{}.obj ::
-	$(CC) $(CFLAGS) /c $<
+	$(CC) $(CPPFLAGS) /c $<
 
 math3d.obj : util3d\math3d.c
 glsl.obj   : util3d\glsl.c
