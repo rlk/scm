@@ -1,3 +1,4 @@
+# scm.lib -- Visual Studio Makefile
 
 LOCAL_INCLUDE = C:\Include
 
