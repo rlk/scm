@@ -91,30 +91,30 @@ clean:
 
 # Embed GLSL sources in C headers. (An inference rule would help here.)
 
-scm-label-circle-frag.h : scm-label-circle-frag.glsl
+scm_label_circle_frag.h : scm_label_circle_frag.glsl
 	$(B2C) scm_label_circle_frag < $? > $@
-scm-label-circle-vert.h : scm-label-circle-vert.glsl
+scm_label_circle_vert.h : scm_label_circle_vert.glsl
 	$(B2C) scm_label_circle_vert < $? > $@
-scm-label-sprite-frag.h : scm-label-sprite-frag.glsl
+scm_label_sprite_frag.h : scm_label_sprite_frag.glsl
 	$(B2C) scm_label_sprite_frag < $? > $@
-scm-label-sprite-vert.h : scm-label-sprite-vert.glsl
+scm_label_sprite_vert.h : scm_label_sprite_vert.glsl
 	$(B2C) scm_label_sprite_vert < $? > $@
 
-scm-render-atmo-frag.h : scm-render-atmo-frag.glsl
+scm_render_atmo_frag.h : scm_render_atmo_frag.glsl
 	$(B2C) scm_render_atmo_frag < $? > $@
-scm-render-atmo-vert.h : scm-render-atmo-vert.glsl
+scm_render_atmo_vert.h : scm_render_atmo_vert.glsl
 	$(B2C) scm_render_atmo_vert < $? > $@
-scm-render-blur-frag.h : scm-render-blur-frag.glsl
+scm_render_blur_frag.h : scm_render_blur_frag.glsl
 	$(B2C) scm_render_blur_frag < $? > $@
-scm-render-blur-vert.h : scm-render-blur-vert.glsl
+scm_render_blur_vert.h : scm_render_blur_vert.glsl
 	$(B2C) scm_render_blur_vert < $? > $@
-scm-render-both-frag.h : scm-render-both-frag.glsl
+scm_render_both_frag.h : scm_render_both_frag.glsl
 	$(B2C) scm_render_both_frag < $? > $@
-scm-render-both-vert.h : scm-render-both-vert.glsl
+scm_render_both_vert.h : scm_render_both_vert.glsl
 	$(B2C) scm_render_both_vert < $? > $@
-scm-render-fade-frag.h : scm-render-fade-frag.glsl
+scm_render_fade_frag.h : scm_render_fade_frag.glsl
 	$(B2C) scm_render_fade_frag < $? > $@
-scm-render-fade-vert.h : scm-render-fade-vert.glsl
+scm_render_fade_vert.h : scm_render_fade_vert.glsl
 	$(B2C) scm_render_fade_vert < $? > $@
 
 scm-render.obj : $(B2C) $(RENDER_GLSL)
@@ -122,7 +122,7 @@ scm-label.obj  : $(B2C) $(LABEL_GLSL)
 
 #------------------------------------------------------------------------------
 
-# An inference rule to compile C source in the util3d directory. 
+# An inference rule to compile C source in the util3d directory.
 
 {util3d\}.c{}.obj ::
 	$(CC) $(CPPFLAGS) /c $<

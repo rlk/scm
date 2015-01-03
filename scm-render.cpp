@@ -396,14 +396,14 @@ void scm_render::init_matrices()
 
 //------------------------------------------------------------------------------
 
-#include "scm-render-fade-vert.h"
-#include "scm-render-fade-frag.h"
-#include "scm-render-blur-vert.h"
-#include "scm-render-blur-frag.h"
-#include "scm-render-both-vert.h"
-#include "scm-render-both-frag.h"
-#include "scm-render-atmo-vert.h"
-#include "scm-render-atmo-frag.h"
+#include "scm_render_fade_vert.h"
+#include "scm_render_fade_frag.h"
+#include "scm_render_blur_vert.h"
+#include "scm_render_blur_frag.h"
+#include "scm_render_both_vert.h"
+#include "scm_render_both_frag.h"
+#include "scm_render_atmo_vert.h"
+#include "scm_render_atmo_frag.h"
 
 void scm_render::init_ogl()
 {

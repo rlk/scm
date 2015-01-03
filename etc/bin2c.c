@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <fcntl.h>
+
+#ifdef _WIN32
 #include <io.h>
+#endif
 
 int main(int argc, char **argv)
 {

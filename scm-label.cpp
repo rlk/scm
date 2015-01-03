@@ -28,10 +28,10 @@
 #include "scm-label-icons.h"
 #include "scm-label-font.h"
 
-#include "scm-label-circle-vert.h"
-#include "scm-label-circle-frag.h"
-#include "scm-label-sprite-vert.h"
-#include "scm-label-sprite-frag.h"
+#include "scm_label_circle_vert.h"
+#include "scm_label_circle_frag.h"
+#include "scm_label_sprite_vert.h"
+#include "scm_label_sprite_frag.h"
 
 //------------------------------------------------------------------------------
 /// @cond INTERNAL

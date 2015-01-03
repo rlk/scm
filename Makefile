@@ -1,5 +1,12 @@
+# libscm -- Linux / Mac OSX Makefile
 
-# This Makefile expects a CFLAGS export or set in the environment.
+ifdef DEBUG
+	CONFIG  = Debug
+	CFLAGS += -g
+else
+	CONFIG  = Release
+	CFLAGS += -O2 -DNDEBUG
+endif
 
 #------------------------------------------------------------------------------
 
@@ -27,19 +34,19 @@ OBJS= \
 DEPS= $(OBJS:.o=.d)
 
 LABEL_GLSL= \
-	scm-label-circle-frag.h \
-	scm-label-circle-vert.h \
-	scm-label-sprite-frag.h \
-	scm-label-sprite-vert.h
+	scm_label_circle_frag.h \
+	scm_label_circle_vert.h \
+	scm_label_sprite_frag.h \
+	scm_label_sprite_vert.h
 RENDER_GLSL= \
-	scm-render-blur-frag.h \
-	scm-render-blur-vert.h \
-	scm-render-both-frag.h \
-	scm-render-both-vert.h \
-	scm-render-atmo-frag.h \
-	scm-render-atmo-vert.h \
-	scm-render-fade-frag.h \
-	scm-render-fade-vert.h
+	scm_render_blur_frag.h \
+	scm_render_blur_vert.h \
+	scm_render_both_frag.h \
+	scm_render_both_vert.h \
+	scm_render_atmo_frag.h \
+	scm_render_atmo_vert.h \
+	scm_render_fade_frag.h \
+	scm_render_fade_vert.h
 
 GLSL= $(LABEL_GLSL) $(RENDER_GLSL)
 
@@ -57,15 +64,27 @@ FT2CONF = $(firstword $(wildcard /usr/local/bin/freetype-config  \
 CONF =	$(shell $(SDLCONF) --cflags) \
 	$(shell $(FT2CONF) --cflags)
 
-TARG= libscm.a
+TARGDIR = $(CONFIG)
+TARG    = libscm.a
 
 #------------------------------------------------------------------------------
 
-$(TARG) : $(OBJS)
-	ar -r $(TARG) $(OBJS)
+$(TARGDIR)/$(TARG) : $(TARGDIR) $(OBJS)
+	ar -r $(TARGDIR)/$(TARG) $(OBJS)
+
+$(TARGDIR) :
+	mkdir -p $(TARGDIR)
 
 clean:
-	$(RM) $(TARG) $(GLSL) $(OBJS) $(DEPS)
+	$(RM) $(TARGDIR)/$(TARG) $(GLSL) $(OBJS) $(DEPS)
+
+#------------------------------------------------------------------------------
+# The bin2c tool embeds binary data in C sources.
+
+B2C = etc/bin2c
+
+$(B2C) : etc/bin2c.c
+	$(CC) -o $(B2C) etc/bin2c.c
 
 #------------------------------------------------------------------------------
 
@@ -75,14 +94,8 @@ clean:
 %.o : %.c
 	$(CC)  $(CFLAGS) $(CONF) -c $< -o $@
 
-#------------------------------------------------------------------------------
-# Embed shaders within C headers for direct inclusion.
-
-%-vert.h : %.vert
-	xxd -i $^ > $@
-
-%-frag.h : %.frag
-	xxd -i $^ > $@
+%.h : %.glsl $(B2C)
+	$(B2C) $(basename $@) < $^ > $@
 
 #------------------------------------------------------------------------------
 
