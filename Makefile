@@ -1,4 +1,4 @@
-# libscm -- Linux / Mac OSX Makefile
+# libscm -- Linux / OS X Makefile
 
 ifdef DEBUG
 	CONFIG  = Debug

@@ -17,9 +17,9 @@ Here are a few YouTube videos of this renderer in action:
 
 ## Build
 
-### Linux and Mac OSX
+### Linux and OS X
 
-To build `Release/libscm.a` under Linux or Mac OSX:
+To build `Release/libscm.a` under Linux or OS X:
 
 	make
 

@@ -235,7 +235,7 @@ void scm_render::render(scm_sphere *sphere,
     {
         // Center the sphere at the origin and scale it to the far plane.
 
-        double N[16], k = fardistance(P);
+        double N[16], k = 0.5 * fardistance(P);
 
         midentity(N);
         vmul(N + 0, M + 0, k / vlen(M + 0));
@@ -621,7 +621,7 @@ static void wire_off()
     glPopAttrib();
 }
 
-/// Calculate the distance to the far clipping plane of the give projection.
+/// Calculate the distance to the far clipping plane of the given projection.
 
 static double fardistance(const double *P)
 {
