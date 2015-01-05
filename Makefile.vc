@@ -48,20 +48,20 @@ OBJS = \
 	math3d.obj
 
 LABEL_GLSL = \
-	scm-label-circle-frag.h \
-	scm-label-circle-vert.h \
-	scm-label-sprite-frag.h \
-	scm-label-sprite-vert.h
+	scm_label_circle_frag.h \
+	scm_label_circle_vert.h \
+	scm_label_sprite_frag.h \
+	scm_label_sprite_vert.h
 
 RENDER_GLSL = \
-	scm-render-blur-frag.h \
-	scm-render-blur-vert.h \
-	scm-render-both-frag.h \
-	scm-render-both-vert.h \
-	scm-render-atmo-frag.h \
-	scm-render-atmo-vert.h \
-	scm-render-fade-frag.h \
-	scm-render-fade-vert.h
+	scm_render_blur_frag.h \
+	scm_render_blur_vert.h \
+	scm_render_both_frag.h \
+	scm_render_both_vert.h \
+	scm_render_atmo_frag.h \
+	scm_render_atmo_vert.h \
+	scm_render_fade_frag.h \
+	scm_render_fade_vert.h
 
 GLSL = $(LABEL_GLSL) $(RENDER_GLSL)
 
