@@ -15,6 +15,7 @@ CPPFLAGS = /nologo /W3 /EHsc \
 
 LINK     = lib /nologo
 TARGET   = scm.lib
+TARGDIR  = $(CONFIG)
 
 !ifdef DEBUG
 CONFIG   = Debug
@@ -70,8 +71,11 @@ CPPFLAGS = $(CPPFLAGS) \
 	/I$(LOCAL_INCLUDE)\SDL2 \
 	/I$(LOCAL_INCLUDE)
 
-$(TARGET) : $(OBJS)
-	$(LINK) /out:$(CONFIG)\$(TARGET) $(OBJS)
+$(TARGDIR)\$(TARGET) : $(TARGDIR) $(OBJS)
+	$(LINK) /out:$(TARGDIR)\$(TARGET) $(OBJS)
+
+$(TARGDIR) :
+	mkdir $(TARGDIR)
 
 #------------------------------------------------------------------------------
 
