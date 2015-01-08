@@ -233,31 +233,42 @@ void scm_render::render(scm_sphere *sphere,
 
     if (back)
     {
-        // Center the sphere at the origin and scale it to the far plane.
+        // Extract only the rotation of the view matrix.
 
-        double N[16], k = 0.5 * fardistance(P);
+        double N[16], Q[16], T[16], I[16];
 
         midentity(N);
-        vmul(N + 0, M + 0, k / vlen(M + 0));
-        vmul(N + 4, M + 4, k / vlen(M + 4));
-        vmul(N + 8, M + 8, k / vlen(M + 8));
+        vnormalize(N + 0, M + 0);
+        vnormalize(N + 4, M + 4);
+        vnormalize(N + 8, M + 8);
+
+        // Remove any offset in the projection matrix.
+
+        double w[4], v[4] = { 0.0, 0.0, -1.0, 0.0 };
+
+        minvert(I, P);
+        wtransform(w, I, v);
+        w[0] /= w[3];
+        w[1] /= w[3];
+        w[2] /= w[3];
+        mtranslate(T, w);
+        mmultiply(Q, P, T);
 
         // Apply the transform.
 
         glMatrixMode(GL_PROJECTION);
-        glLoadMatrixd(P);
+        glLoadMatrixd(Q);
         glMatrixMode(GL_MODELVIEW);
         glLoadMatrixd(N);
 
-        mmultiply(T, P, N);
+        mmultiply(T, Q, N);
 
         // Render the inside of the sphere.
 
         glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_POLYGON_BIT);
         {
             glEnable(GL_DEPTH_CLAMP);
-            glDepthFunc(GL_LEQUAL);
-            glDepthMask(GL_FALSE);
+            glDisable(GL_DEPTH_TEST);
             glFrontFace(GL_CCW);
 
             if (wire) wire_on();
@@ -273,9 +284,6 @@ void scm_render::render(scm_sphere *sphere,
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glColorMask(GL_TRUE,  GL_TRUE,  GL_TRUE,  GL_TRUE);
-
-        // TODO: Simplify the fardistance hack using the clear depth buffer?
-        // This change does impact the blur shader.
     }
 
     // Render the foreground
@@ -557,11 +565,11 @@ void scm_render::check_atmo(const double *P,
 
     // Return the view position for use as an OpenGL uniform.
 
-    minvert(I, M);
+    minvert(I, T);
 
-    p[0] = GLfloat(I[12]);
-    p[1] = GLfloat(I[13]);
-    p[2] = GLfloat(I[14]);
+    p[0] = GLfloat(I[ 8] / I[11]);
+    p[1] = GLfloat(I[ 9] / I[11]);
+    p[2] = GLfloat(I[10] / I[11]);
 }
 
 //------------------------------------------------------------------------------
@@ -619,20 +627,6 @@ static void wire_on()
 static void wire_off()
 {
     glPopAttrib();
-}
-
-/// Calculate the distance to the far clipping plane of the given projection.
-
-static double fardistance(const double *P)
-{
-    double c[4] = { 0.0, 0.0, 1.0, 1.0 };
-    double e[4] = { 0.0, 0.0, 0.0, 0.0 };
-    double I[16];
-
-    minvert   (I, P);
-    wtransform(e, I, c);
-
-    return vlen(e) / e[3];
 }
 
 //------------------------------------------------------------------------------
