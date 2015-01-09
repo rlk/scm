@@ -433,7 +433,7 @@ void scm_label::draw(GLubyte r, GLubyte g, GLubyte b, GLubyte a)
 
             // Draw the latlons.
 
-            // glEnable(GL_CLIP_PLANE0);
+            glEnable(GL_CLIP_PLANE0);
 
             glBindBuffer(GL_ARRAY_BUFFER, latlon_vbo);
             glVertexPointer  (3, GL_FLOAT,         sz, (GLvoid *)  0);

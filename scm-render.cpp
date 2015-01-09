@@ -301,7 +301,7 @@ void scm_render::render(scm_sphere *sphere,
 
         // Render the outside of the sphere.
 
-        glPushAttrib(GL_POLYGON_BIT);
+        glPushAttrib(GL_ENABLE_BIT | GL_POLYGON_BIT);
         {
             glFrontFace(GL_CW);
 
@@ -309,6 +309,7 @@ void scm_render::render(scm_sphere *sphere,
             sphere->draw(fore, T, width, height, channel, frame);
             if (wire) wire_off();
 
+            glEnable(GL_CLIP_PLANE0);
             fore->draw_label();
         }
         glPopAttrib();
