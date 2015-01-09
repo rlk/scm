@@ -22,9 +22,11 @@
 #include <sys/stat.h>
 
 #ifdef _WIN32
-#define PATH_LIST_SEP ';'
+#define PATH_SEPARATOR '\\'
+#define PATH_LIST_SEPARATOR ';'
 #else
-#define PATH_LIST_SEP ':'
+#define PATH_SEPARATOR '/'
+#define PATH_LIST_SEPARATOR ':'
 #endif
 
 // Does the given path name an existing regular file?
@@ -65,9 +67,9 @@ std::string scm_path_search(const std::string& file)
         std::string       path;
         std::string       temp;
 
-        while (std::getline(list, path, PATH_LIST_SEP))
+        while (std::getline(list, path, PATH_LIST_SEPARATOR))
         {
-            temp = path + "/" + file;
+            temp = path + PATH_SEPARATOR + file;
 
             if (exists(temp))
             {
