@@ -129,8 +129,6 @@ void scm_render::render(scm_sphere *sphere,
 
         glPushAttrib(GL_VIEWPORT_BIT | GL_SCISSOR_BIT);
         {
-            glViewport(0, 0, width, height);
-            glScissor (0, 0, width, height);
             glClearColor(0.f, 0.f, 0.f, 0.f);
 
             frame0->bind_frame();
@@ -220,6 +218,7 @@ void scm_render::render(scm_sphere *sphere,
 
     if (atmo.H > 0)
     {
+        glPushAttrib(GL_VIEWPORT_BIT | GL_SCISSOR_BIT);
         glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebuffer);
         frameA->bind_frame();
     }
@@ -319,6 +318,8 @@ void scm_render::render(scm_sphere *sphere,
 
     if (atmo.H > 0)
     {
+        glPopAttrib();
+
         // Bind the color and depth buffers of the temporary render target.
 
         glActiveTexture(GL_TEXTURE2);

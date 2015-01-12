@@ -32,7 +32,7 @@ void main()
 
     // World-space position of the current fragment
 
-    vec4 w = atmo_T * vec4(gl_FragCoord.xy, d.r, 1.0);
+    vec4 w = atmo_T * vec4(gl_TexCoord[0].xy, d.r, 1.0);
     vec3 q = w.xyz / w.w;
 
     // Ray to cast from p toward q.

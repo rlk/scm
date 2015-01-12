@@ -40,11 +40,13 @@ scm_frame::~scm_frame()
     if (frame) glDeleteFramebuffers(1, &frame);
 }
 
-/// Bind the framebuffer object as render target
+/// Bind the framebuffer as render target and set the Viewport and Scissor
 
 void scm_frame::bind_frame() const
 {
     glBindFramebuffer(GL_FRAMEBUFFER, frame);
+    glViewport(0, 0, width, height);
+    glScissor (0, 0, width, height);
 }
 
 /// Bind the color texture
