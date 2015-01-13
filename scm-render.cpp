@@ -29,8 +29,6 @@ static void fillscreen(int, int);
 static void wire_on();
 static void wire_off();
 
-static double fardistance(const double *);
-
 //------------------------------------------------------------------------------
 
 /// Create a new render manager. Initialize the necessary OpenGL state

@@ -101,6 +101,8 @@ void scm_scene::set_color(GLuint c)
 }
 
 /// Set the scene name
+///
+/// @param s Scene's new name, silly.
 
 void scm_scene::set_name(const std::string &s)
 {
@@ -109,17 +111,19 @@ void scm_scene::set_name(const std::string &s)
 
 /// Set the label text
 ///
-/// The scm_label object itself is not instantiated until actually used.
-///
-/// @param s CSV string giving annotations
+/// @param s CSV string giving a table of annotations
 
 void scm_scene::set_label(const std::string &s)
 {
     if (label)
         delete label;
 
+    if (s.empty())
+        label = 0;
+    else
+        label = new scm_label(s, 16);
+
     label_file = s;
-    label      = 0;
 }
 
 /// Set the vertex shader and reinitialize the uniforms
@@ -189,20 +193,14 @@ void scm_scene::init_uniforms()
 
 void scm_scene::draw_label()
 {
-    if (!label_file.empty())
+    if (label)
     {
-        if (label == 0)
-            label = new scm_label(label_file, 16);
+        GLubyte r = (color & 0xFF000000) >> 24;
+        GLubyte g = (color & 0x00FF0000) >> 16;
+        GLubyte b = (color & 0x0000FF00) >>  8;
+        GLubyte a = (color & 0x000000FF) >>  0;
 
-        if (label)
-        {
-            GLubyte r = (color & 0xFF000000) >> 24;
-            GLubyte g = (color & 0x00FF0000) >> 16;
-            GLubyte b = (color & 0x0000FF00) >>  8;
-            GLubyte a = (color & 0x000000FF) >>  0;
-
-            label->draw(r, g, b, a);
-        }
+        label->draw(r, g, b, a);
     }
 }
 
