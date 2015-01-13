@@ -21,6 +21,7 @@
 
 #include "scm-file.hpp"
 #include "scm-step.hpp"
+#include "scm-path.hpp"
 
 /** @mainpage Spherical Cube Map Library
 
@@ -239,6 +240,14 @@ public:
     float       get_minimum_ground()               const;
 
     /// @}
+    /// @name Data path handlers
+    /// @{
+
+    std::string search_path(const std::string&) const;
+    void          push_path(const std::string&);
+    void           pop_path();
+
+    /// @}
     /// @name Internal Interface
     /// @{
 
@@ -265,6 +274,7 @@ private:
 
     scm_render    *render;
     scm_sphere    *sphere;
+    scm_path      *path;
     scm_scene     *fore0;
     scm_scene     *fore1;
     scm_scene     *back0;

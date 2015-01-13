@@ -14,10 +14,25 @@
 #define SCM_PATH_HPP
 
 #include <string>
+#include <list>
 
 //------------------------------------------------------------------------------
 
-std::string scm_path_search(const std::string&);
+class scm_path
+{
+public:
+
+	scm_path();
+
+	std::string search(const std::string&);
+
+	void push(const std::string&);
+	void pop();
+
+private:
+
+	std::list<std::string> directories;
+};
 
 //------------------------------------------------------------------------------
 

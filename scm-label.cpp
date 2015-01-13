@@ -223,10 +223,10 @@ static double clamp(double k, double a, double b)
 /// Render all strings to a font atlas and initialize any OpenGL state needed
 /// to render all annotations.
 ///
-/// @param file CSV data string
+/// @param path Fully resolved path to CSV file
 /// @param size Icon size (in pixels)
 
-scm_label::scm_label(const std::string& file, int size) :
+scm_label::scm_label(const std::string& path, int size) :
     label_line(0),
     num_circles(0),
     num_sprites(0),
@@ -259,7 +259,7 @@ scm_label::scm_label(const std::string& file, int size) :
 
     // Parse the data file into labels.
 
-    parse(file);
+    parse(path);
 
     // Generate an annotation for each label.
 
@@ -376,7 +376,7 @@ scm_label::scm_label(const std::string& file, int size) :
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    scm_log("scm_label constructor %s", file.c_str());
+    scm_log("scm_label constructor %s", path.c_str());
 }
 
 /// Finalize all OpenGL state
@@ -504,10 +504,8 @@ int scm_label::scan(FILE *fp, label& L)
 
 /// Parse the label definition
 
-void scm_label::parse(const std::string& file)
+void scm_label::parse(const std::string& path)
 {
-    std::string path = scm_path_search(file);
-
     if (!path.empty())
     {
         FILE *fp;

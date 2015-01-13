@@ -13,6 +13,7 @@
 #include <cstring>
 
 #include "scm-scene.hpp"
+#include "scm-system.hpp"
 #include "scm-image.hpp"
 #include "scm-label.hpp"
 #include "scm-log.hpp"
@@ -111,7 +112,7 @@ void scm_scene::set_name(const std::string &s)
 
 /// Set the label text
 ///
-/// @param s CSV string giving a table of annotations
+/// @param s CSV file giving a table of annotations
 
 void scm_scene::set_label(const std::string &s)
 {
@@ -121,7 +122,7 @@ void scm_scene::set_label(const std::string &s)
     if (s.empty())
         label = 0;
     else
-        label = new scm_label(s, 16);
+        label = new scm_label(sys->search_path(s), 16);
 
     label_file = s;
 }

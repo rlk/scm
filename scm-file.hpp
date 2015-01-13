@@ -38,7 +38,8 @@ class scm_file
 {
 public:
 
-    scm_file(const std::string& name);
+    scm_file(const std::string&,
+             const std::string&);
 
     virtual ~scm_file();
 

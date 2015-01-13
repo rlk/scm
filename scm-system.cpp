@@ -58,10 +58,11 @@ scm_system::scm_system(int w, int h, int d, int l) :
     mutex  = SDL_CreateMutex();
     render = new scm_render(w, h);
     sphere = new scm_sphere(d, l);
-    fore0 = 0;
-    fore1 = 0;
-    back0 = 0;
-    back1 = 0;
+    path   = new scm_path();
+    fore0  = 0;
+    fore1  = 0;
+    back0  = 0;
+    back1  = 0;
 }
 
 /// Finalize all SCM system state.
@@ -71,6 +72,7 @@ scm_system::~scm_system()
     while (get_scene_count())
         del_scene(0);
 
+    delete path;
     delete sphere;
     delete render;
 
@@ -481,6 +483,33 @@ float scm_system::get_minimum_ground() const
 
 //------------------------------------------------------------------------------
 
+/// Determine a fully-resolved path for the given file name
+///
+/// @param name File name
+
+std::string scm_system::search_path(const std::string& name) const
+{
+    return path->search(name);
+}
+
+/// Push a directory onto the front of the path list.
+///
+/// @param directory directory name
+
+void scm_system::push_path(const std::string& directory)
+{
+    path->push(directory);
+}
+
+/// Pop a directory off of the front of the path list.
+
+void scm_system::pop_path()
+{
+    path->pop();
+}
+
+//------------------------------------------------------------------------------
+
 /// Internal: Load the named SCM file, if not already loaded.
 ///
 /// Add a new scm_file object to the collection and return its index. If needed,
@@ -500,33 +529,38 @@ int scm_system::acquire_scm(const std::string& name)
     {
         // Otherwise load the file.
 
-        if (scm_file *file = new scm_file(name))
+        std::string pathname = path->search(name);
+
+        if (!pathname.empty())
         {
-            int index = serial++;
-
-            files[name].file  = file;
-            files[name].index = index;
-            files[name].uses  = 1;
-
-            // Make sure we have a compatible cache.
-
-            cache_param cp(file);
-
-            if (caches[cp].cache)
-                caches[cp].uses++;
-            else
+            if (scm_file *file = new scm_file(name, pathname))
             {
-                caches[cp].cache = new scm_cache(this, cp.n, cp.c, cp.b);
-                caches[cp].uses  = 1;
+                int index = serial++;
+
+                files[name].file  = file;
+                files[name].index = index;
+                files[name].uses  = 1;
+
+                // Make sure we have a compatible cache.
+
+                cache_param cp(file);
+
+                if (caches[cp].cache)
+                    caches[cp].uses++;
+                else
+                {
+                    caches[cp].cache = new scm_cache(this, cp.n, cp.c, cp.b);
+                    caches[cp].uses  = 1;
+                }
+
+                // Associate the index, file, and cache in the reverse look-up.
+
+                SDL_mutexP(mutex);
+                pairs[index] = active_pair(files[name].file, caches[cp].cache);
+                SDL_mutexV(mutex);
+
+                file->activate(caches[cp].cache);
             }
-
-            // Associate the index, file, and cache in the reverse look-up.
-
-            SDL_mutexP(mutex);
-            pairs[index] = active_pair(files[name].file, caches[cp].cache);
-            SDL_mutexV(mutex);
-
-            file->activate(caches[cp].cache);
         }
     }
     return files[name].index;

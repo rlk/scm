@@ -15,6 +15,7 @@
 #include <sstream>
 
 #include "scm-log.hpp"
+#include "scm-path.hpp"
 
 //------------------------------------------------------------------------------
 
@@ -52,7 +53,11 @@ static bool exists(const std::string& path)
 
 //------------------------------------------------------------------------------
 
-std::string scm_path_search(const std::string& file)
+scm_path::scm_path()
+{
+}
+
+std::string scm_path::search(const std::string& file)
 {
     // If the given file name is absolute, use it.
 
@@ -81,8 +86,16 @@ std::string scm_path_search(const std::string& file)
 
     // Return the empty string upon failure.
 
-    scm_log("* scm_path %s not found", file.c_str());
+    scm_log("* scm_path \"%s\" not found", file.c_str());
     return std::string();
+}
+
+void scm_path::push(const std::string& directory)
+{
+}
+
+void scm_path::pop()
+{
 }
 
 //------------------------------------------------------------------------------

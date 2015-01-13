@@ -27,9 +27,14 @@
 /// Construct a file table entry
 ///
 /// Open the TIFF briefly to determine its format and cache its meta-data.
+///
+/// @param name TIFF file name
+/// @param path Fully resolved path and name of TIFF file
 
-scm_file::scm_file(const std::string& tiff) :
-    name(tiff),
+scm_file::scm_file(const std::string& name,
+                   const std::string& path) :
+    name(name),
+    path(path),
     needs(32),
     active(true),
     sampler(0),
@@ -40,8 +45,6 @@ scm_file::scm_file(const std::string& tiff) :
     zv(0), zc(0)
 {
     // Attempt to find and load the located TIFF.
-
-    path = scm_path_search(tiff);
 
     if (!path.empty())
     {
@@ -94,8 +97,6 @@ scm_file::scm_file(const std::string& tiff) :
             TIFFClose(T);
         }
     }
-    else path = name;
-
     scm_log("scm_file constructor %s", path.c_str());
 }
 
