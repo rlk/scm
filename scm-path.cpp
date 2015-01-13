@@ -12,6 +12,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cassert>
 #include <sstream>
 
 #include "scm-log.hpp"
@@ -53,12 +54,24 @@ static bool exists(const std::string& path)
 
 //------------------------------------------------------------------------------
 
+/// Initialize an SCM path search manager
+
 scm_path::scm_path()
 {
+    if (char *val = getenv("SCMPATH"))
+    {
+        std::stringstream list(val);
+        std::string       directory;
+
+        while (std::getline(list, directory, PATH_LIST_SEPARATOR))
+            directories.push_back(directory);
+    }
 }
 
 std::string scm_path::search(const std::string& file)
 {
+    std::list<std::string>::iterator i;
+
     // If the given file name is absolute, use it.
 
     if (exists(file))
@@ -66,21 +79,14 @@ std::string scm_path::search(const std::string& file)
 
     // Otherwise, search the SCM path for the file.
 
-    if (char *val = getenv("SCMPATH"))
+    for (i = directories.begin(); i != directories.end(); ++i)
     {
-        std::stringstream list(val);
-        std::string       path;
-        std::string       temp;
+        std::string path = (*i) + PATH_SEPARATOR + file;
 
-        while (std::getline(list, path, PATH_LIST_SEPARATOR))
+        if (exists(path))
         {
-            temp = path + PATH_SEPARATOR + file;
-
-            if (exists(temp))
-            {
-                scm_log("scm_path %s found in %s", file.c_str(), path.c_str());
-                return temp;
-            }
+            scm_log("scm_path %s found at %s", file.c_str(), path.c_str());
+            return path;
         }
     }
 
@@ -90,12 +96,18 @@ std::string scm_path::search(const std::string& file)
     return std::string();
 }
 
-void scm_path::push(const std::string& directory)
+void scm_path::push(const std::string& dir)
 {
+    directories.push_front(dir);
+    scm_log("scm_path push %s", directories.front().c_str());
 }
 
 void scm_path::pop()
 {
+    assert(!directories.empty());
+
+    scm_log("scm_path pop %s", directories.front().c_str());
+    directories.pop_front();
 }
 
 //------------------------------------------------------------------------------
