@@ -202,7 +202,9 @@ int scm_cache::get_page(int f, long long i, int t, int& u)
             scm_page page(f, i, 0);
 
             if (file->add_need(task))
+            {
                 waits.insert(page, t);
+            }
             else
             {
                 task.dump_page();

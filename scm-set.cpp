@@ -100,4 +100,18 @@ bool scm_set::empty() const
     return m.empty();
 }
 
+/// Dump the contents of the set to stdout.
+
+void scm_set::dump() const
+{
+    std::map<scm_page, int>::const_iterator i;
+
+    printf("%lu : ", m.size());
+
+    for (i = m.begin(); i != m.end(); ++i)
+        printf("%d/%lld ", i->first.f, i->first.i);
+
+    printf("\n");
+}
+
 //------------------------------------------------------------------------------

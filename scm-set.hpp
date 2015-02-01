@@ -49,6 +49,7 @@ public:
     scm_page eject(int, long long);
 
     bool empty() const;
+    void dump()  const;
 
 private:
 

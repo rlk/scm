@@ -261,9 +261,14 @@ void scm_scene::unbind_page(int channel, int depth) const
 
 void scm_scene::touch_page(int channel, int frame, long long i) const
 {
+#if 0
     for (int j = 0; j < get_image_count(); ++j)
         if (images[j]->is_channel(channel))
             images[j]->touch_page(frame, i);
+#else
+    for (int j = 0; j < get_image_count(); ++j)
+        images[j]->touch_page(frame, i);
+#endif
 }
 
 //------------------------------------------------------------------------------
