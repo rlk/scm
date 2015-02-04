@@ -77,17 +77,20 @@ public:
     /// @{
 
     void               set_color(GLuint c);
+    void               set_clear(GLuint c);
     void               set_name (const std::string &s);
     void               set_label(const std::string &s);
     void               set_vert (const std::string &s);
     void               set_frag (const std::string &s);
     void               set_atmo (const scm_atmo&);
 
+
     /// @}
     /// @name Query
     /// @{
 
     GLuint             get_color() const { return color;      }
+    GLuint             get_clear() const { return clear;      }
     const std::string& get_name () const { return name;       }
     const std::string& get_label() const { return label_file; }
     const std::string& get_vert () const { return  vert_file; }
@@ -130,6 +133,7 @@ private:
     scm_image_v images;
     glsl        render;
     GLuint      color;
+    GLuint      clear;
 
     // Uniform locations must be visible to the scm_sphere.
 

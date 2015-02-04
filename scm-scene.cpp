@@ -22,7 +22,8 @@
 
 /// Create a new SCM scene for use in the given SCM system.
 
-scm_scene::scm_scene(scm_system *sys) : sys(sys), label(0), color(0xFFBF00FF)
+scm_scene::scm_scene(scm_system *sys) :
+    sys(sys), label(0), color(0xFFBF00FF), clear(0x00000000)
 {
     memset(&render, 0, sizeof (glsl));
 
@@ -99,6 +100,15 @@ int scm_scene::get_image_count() const
 void scm_scene::set_color(GLuint c)
 {
     color = c;
+}
+
+/// Set the clear color
+///
+/// @param c Color in 32-bit RGBA form
+
+void scm_scene::set_clear(GLuint c)
+{
+    clear = c;
 }
 
 /// Set the scene name
