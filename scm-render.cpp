@@ -47,6 +47,11 @@ scm_render::scm_render(int w, int h) :
 
     for (int i = 0; i < 16; i++)
         midentity(previous_T[i]);
+
+    clear[0] = 0;
+    clear[1] = 0;
+    clear[2] = 0;
+    clear[3] = 0;
 }
 
 /// Finalize all OpenGL state.
@@ -88,6 +93,29 @@ void scm_render::set_wire(bool w)
 
 //------------------------------------------------------------------------------
 
+/// Set the clear color. This color will only be visible if a no background
+/// scene is specified.
+
+void scm_render::set_clear(const double *c)
+{
+    clear[0] = c[0];
+    clear[1] = c[1];
+    clear[2] = c[2];
+    clear[3] = c[3];
+}
+
+/// Get the clear color.
+
+void scm_render::get_clear(double *c) const
+{
+    c[0] = clear[0];
+    c[1] = clear[1];
+    c[2] = clear[2];
+    c[3] = clear[3];
+}
+
+//------------------------------------------------------------------------------
+
 /// Render the foreground and background with optional blur and dissolve.
 ///
 /// @param sphere  Sphere geometry manager to perform the rendering
@@ -114,6 +142,11 @@ void scm_render::render(scm_sphere *sphere,
     const bool do_fade = check_fade(fore0, fore1, back0, back1, t);
     const bool do_blur = check_blur(P, M, blur_T, previous_T[channel]);
 
+    glClearColor(GLfloat(clear[0]),
+                 GLfloat(clear[1]),
+                 GLfloat(clear[2]),
+                 GLfloat(clear[3]));
+
     if (!do_fade && !do_blur)
         render(sphere, fore0, back0, P, M, channel, frame);
 
@@ -127,8 +160,6 @@ void scm_render::render(scm_sphere *sphere,
 
         glPushAttrib(GL_VIEWPORT_BIT | GL_SCISSOR_BIT);
         {
-            glClearColor(0.f, 0.f, 0.f, 0.f);
-
             frame0->bind_frame();
             render(sphere, fore0, back0, P, M, channel, frame);
 

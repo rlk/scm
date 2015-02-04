@@ -50,6 +50,9 @@ public:
     int  get_blur() const { return blur; }
     bool get_wire() const { return wire; }
 
+    void set_clear(const double *);
+    void get_clear(      double *) const;
+
     void render(scm_sphere *,
                 scm_scene  *,
                 scm_scene  *,
@@ -78,6 +81,7 @@ private:
     int    height;
     int    blur;
     bool   wire;
+    double clear[4];
 
     scm_frame *frameA;
     scm_frame *frame0;
