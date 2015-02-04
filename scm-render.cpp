@@ -205,7 +205,7 @@ void scm_render::render(scm_sphere *sphere,
 
     scm_atmo atmo;
 
-    if (fore)
+    if (fore && !wire)
         atmo = fore->get_atmo();
 
     // If there is an atmosphere, bind the temporary render target.
