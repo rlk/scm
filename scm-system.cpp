@@ -97,8 +97,13 @@ scm_system::~scm_system()
 void scm_system::render_sphere(const double *P,
                                const double *M, int channel) const
 {
-    render->render(sphere, fore0, fore1,
-                           back0, back1, P, M, channel, frame, fade);
+    if (scenes.empty())
+    {
+        glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    else render->render(sphere, fore0, fore1,
+                                back0, back1, P, M, channel, frame, fade);
 }
 
 //------------------------------------------------------------------------------
