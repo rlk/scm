@@ -17,6 +17,10 @@ Here are a few YouTube videos of this renderer in action:
 
 ## Build
 
+This module has a submodule that must be initialized after a new clone:
+
+	git submodule update --init
+
 ### Linux and OS X
 
 To build `Release/libscm.a` under Linux or OS X:
