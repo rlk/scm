@@ -482,7 +482,7 @@ static void set_text(const char *s, int x, int y,
 
 //------------------------------------------------------------------------------
 
-/// Write a message with diagnostics to the given image buffer.
+/// Write a message with diagnostics to the given image buffer
 
 void scm_page_text(const char *mesg,
                    const char *name,

@@ -140,7 +140,7 @@ struct active_cache
 
 struct cache_param
 {
-    cache_param(scm_file *file) : n(int(file->get_w()) - 2),
+    cache_param(scm_file *file) : n(int(file->get_w())),
                                   c(int(file->get_c())),
                                   b(int(file->get_b())) { }
 
