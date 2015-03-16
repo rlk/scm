@@ -199,8 +199,8 @@ void scm_image::bind_page(GLuint program, int d, int t, long long i) const
         const int n = cache->get_page_size();
 
         glUniform1f(ua[d], GLfloat(a));
-        glUniform2f(ub[d], GLfloat((l % s) * (n + 2) + 1) / (s * (n + 2)),
-                           GLfloat((l / s) * (n + 2) + 1) / (s * (n + 2)));
+        glUniform2f(ub[d], GLfloat((l % s) * n + 1) / (s * n),
+                           GLfloat((l / s) * n + 1) / (s * n));
     }
 }
 

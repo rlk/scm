@@ -50,7 +50,7 @@ scm_task::scm_task(int f, long long i, uint64 o, int n, int c, int b, GLuint u, 
 {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, u);
     {
-        const size_t s = size_t(n + 2) * size_t(n + 2) * scm_pixel_size(c, b);
+        const size_t s = size_t(n) * size_t(n) * scm_pixel_size(c, b);
         glBufferData(GL_PIXEL_UNPACK_BUFFER, s, 0, GL_STREAM_DRAW);
         p = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
     }
@@ -67,7 +67,7 @@ void scm_task::make_page(int x, int y)
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, u);
     {
         glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, n + 2, n + 2,
+        glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, n, n,
                                      scm_external_form(c, b),
                                      scm_external_type(c, b), 0);
     }
@@ -100,7 +100,7 @@ void scm_task::dump_page()
 
 bool scm_task::load_page(const char *name, TIFF *T)
 {
-    return (d = scm_load_page(name, i, T, o, n + 2, n + 2, c, b, p));
+    return (d = scm_load_page(name, i, T, o, n, n, c, b, p));
 }
 
 //------------------------------------------------------------------------------

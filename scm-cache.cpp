@@ -93,16 +93,12 @@ scm_cache::scm_cache(scm_system *sys, int n, int c, int b) :
 
     glGenTextures  (1, &texture);
     glBindTexture  (GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16);
-//  glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
     // Initialize it with a buffer of zeros.
 
-    const int m = s * (n + 2);
+    const int m = s * n;
 
     if (GLubyte *p = (GLubyte *) calloc(m * m, scm_pixel_size(c, b)))
     {
@@ -274,8 +270,8 @@ void scm_cache::update(int t, bool b)
                 page.l = l;
                 page.t = t;
                 pages.insert(page, t);
-                task.make_page((l % s) * (n + 2),
-                               (l / s) * (n + 2));
+                task.make_page((l % s) * n,
+                               (l / s) * n);
             }
             else task.dump_page();
         }
