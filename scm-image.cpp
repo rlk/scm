@@ -147,11 +147,9 @@ void scm_image::bind(GLuint unit, GLuint program) const
 
     if (cache)
     {
-        const GLfloat r = GLfloat(cache->get_page_size())
-                        / GLfloat(cache->get_page_size() + 2)
-                        / GLfloat(cache->get_grid_size());
+        const GLfloat r = 1.0 / GLfloat(cache->get_grid_size());
 
-        glUniform2f(ur,  r, r);
+        glUniform2f(ur, r, r);
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(GL_TEXTURE_2D, cache->get_texture());
     }
@@ -199,8 +197,8 @@ void scm_image::bind_page(GLuint program, int d, int t, long long i) const
         const int n = cache->get_page_size();
 
         glUniform1f(ua[d], GLfloat(a));
-        glUniform2f(ub[d], GLfloat((l % s) * n + 1) / (s * n),
-                           GLfloat((l / s) * n + 1) / (s * n));
+        glUniform2f(ub[d], GLfloat((l % s) * n) / (s * n),
+                           GLfloat((l / s) * n) / (s * n));
     }
 }
 
