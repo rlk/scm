@@ -583,7 +583,7 @@ static void init_vertices(int n)
         GLfloat y;
     };
 
-    const size_t s = (n + 1) * (n + 1) * sizeof (vertex);
+    const size_t s = n * n * sizeof (vertex);
 
     if (vertex *p = (vertex *) malloc(s))
     {
@@ -633,20 +633,20 @@ static void init_elements(int n, int b)
             }
 
         // Rewind the indices to reduce edge resolution as necessary.
-/*
-        element *N = p;
-        element *W = p + n;
-        element *E = p;
-        element *S = p + n * n;
 
-        for (int i = 0; i < n - 1; ++i, N += 1, S += 1, E += n, W += n)
+        element *N = p;
+        element *W = p + (n - 2);
+        element *E = p;
+        element *S = p + (n - 2) * (n - 1);
+
+        for (int i = 0; i < n - 1; ++i, N += 1, S += 1, E += n - 1, W += n - 1)
         {
             if (b & 1) { if (i & 1) N->a -= 1; else N->b -= 1; }
             if (b & 2) { if (i & 1) S->c += 1; else S->d += 1; }
             if (b & 4) { if (i & 1) E->a += n; else E->c += n; }
             if (b & 8) { if (i & 1) W->b -= n; else W->d -= n; }
         }
-*/
+
         // Upload the indices to the element buffer.
 
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, s, p, GL_STATIC_DRAW);
