@@ -12,7 +12,7 @@
 
 #include <GL/glew.h>
 #include <cassert>
-
+#include <stdio.h>
 #include "scm-set.hpp"
 #include "scm-index.hpp"
 
