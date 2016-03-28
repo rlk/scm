@@ -40,3 +40,10 @@ To build `Release\scm.lib` under Windows, use the Visual Studio project or the i
 To build `Debug\scm.lib`:
 
 	nmake /f Makefile.vc DEBUG=1
+
+## Dependencies
+
+The SCM repo has a submodule ([util3d](https://github.com/rlk/util3d)) that must be explicitly added to a fresh clone:
+
+    git submodule update --init
+
