@@ -89,9 +89,6 @@ class scm_cache;
 class scm_sphere;
 class scm_render;
 
-typedef std::vector<scm_step *>           scm_step_v;
-typedef std::vector<scm_step *>::iterator scm_step_i;
-
 typedef std::vector<scm_scene *>           scm_scene_v;
 typedef std::vector<scm_scene *>::iterator scm_scene_i;
 
