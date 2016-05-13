@@ -26,7 +26,7 @@
 #include <unistd.h>
 #endif
 
-#include "scm-step.hpp"
+#include "scm-state.hpp"
 #include "scm-scene.hpp"
 #include "scm-cache.hpp"
 #include "scm-sphere.hpp"

@@ -20,7 +20,7 @@
 #include <SDL_thread.h>
 
 #include "scm-file.hpp"
-#include "scm-step.hpp"
+#include "scm-state.hpp"
 #include "scm-path.hpp"
 
 /** @mainpage Spherical Cube Map Library

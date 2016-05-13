@@ -27,7 +27,7 @@ OBJS= \
 	scm-scene.o \
 	scm-set.o \
 	scm-sphere.o \
-	scm-step.o \
+	scm-state.o \
 	scm-system.o \
 	scm-task.o
 

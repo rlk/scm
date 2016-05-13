@@ -41,7 +41,7 @@ OBJS = \
 	scm-scene.obj \
 	scm-set.obj \
 	scm-sphere.obj \
-	scm-step.obj \
+	scm-state.obj \
 	scm-system.obj \
 	scm-task.obj \
 	glsl.obj \

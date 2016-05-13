@@ -30,7 +30,7 @@
     <ClInclude Include="scm-scene.hpp" />
     <ClInclude Include="scm-set.hpp" />
     <ClInclude Include="scm-sphere.hpp" />
-    <ClInclude Include="scm-step.hpp" />
+    <ClInclude Include="scm-state.hpp" />
     <ClInclude Include="scm-system.hpp" />
     <ClInclude Include="scm-task.hpp" />
     <ClInclude Include="util3d\glsl.h" />
@@ -51,7 +51,7 @@
     <ClCompile Include="scm-scene.cpp" />
     <ClCompile Include="scm-set.cpp" />
     <ClCompile Include="scm-sphere.cpp" />
-    <ClCompile Include="scm-step.cpp" />
+    <ClCompile Include="scm-state.cpp" />
     <ClCompile Include="scm-system.cpp" />
     <ClCompile Include="scm-task.cpp" />
     <ClCompile Include="util3d\glsl.c" />
