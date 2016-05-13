@@ -84,7 +84,6 @@ public:
     void               set_frag (const std::string &s);
     void               set_atmo (const scm_atmo&);
 
-
     /// @}
     /// @name Query
     /// @{

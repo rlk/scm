@@ -18,28 +18,7 @@
 #include "util3d/math3d.h"
 
 #include "scm-state.hpp"
-
-//------------------------------------------------------------------------------
-
-static double hermite(double a, double b,
-                      double c, double d,
-                      double t, double tension, double bias)
-{
-    double e = (b - a) * (1.0 + bias) * (1.0 - tension) / 2.0
-             + (c - b) * (1.0 - bias) * (1.0 - tension) / 2.0;
-    double f = (c - b) * (1.0 + bias) * (1.0 - tension) / 2.0
-             + (d - c) * (1.0 - bias) * (1.0 - tension) / 2.0;
-
-    double t2 = t * t;
-    double t3 = t * t2;
-
-    double x0 =  2.0 * t3 - 3.0 * t2 + 1.0;
-    double x1 =        t3 - 2.0 * t2 + t;
-    double x2 =        t3 -       t2;
-    double x3 = -2.0 * t3 + 3.0 * t2;
-
-    return x0 * b + x1 * e + x2 * f + x3 * c;
-}
+#include "scm-scene.hpp"
 
 //------------------------------------------------------------------------------
 
@@ -47,6 +26,11 @@ static double hermite(double a, double b,
 
 scm_state::scm_state()
 {
+    foreground0    = 0;
+    foreground1    = 0;
+    background0    = 0;
+    background1    = 0;
+
     orientation[0] = 0.0;
     orientation[1] = 0.0;
     orientation[2] = 0.0;
@@ -60,133 +44,75 @@ scm_state::scm_state()
     light[1]       = 2.0;
     light[2]       = 1.0;
 
-    speed          = 1.0;
     distance       = 0.0;
-    tension        = 0.0;
-    bias           = 0.0;
     zoom           = 1.0;
+    fade           = 0.0;
 
     vnormalize(light, light);
 }
 
-/// Initialize a new SCM viewer step as a copy of the given step.
+/// Initialize a new SCM viewer state as a copy of the given state.
 
 scm_state::scm_state(const scm_state *a)
 {
+    name        = a->name;
+    foreground0 = a->foreground0;
+    foreground1 = a->foreground1;
+    background0 = a->background0;
+    background1 = a->background1;
+    distance    = a->distance;
+    zoom        = a->zoom;
+    fade        = a->fade;
+
     qcpy(orientation, a->orientation);
     vcpy(position,    a->position);
     vcpy(light,       a->light);
-
-    name       = a->name;
-    foreground = a->foreground;
-    background = a->background;
-    speed      = a->speed;
-    distance   = a->distance;
-    tension    = a->tension;
-    bias       = a->bias;
-    zoom       = a->zoom;
 }
 
-/// Initialize a new SCM viewer step using linear interpolation of given steps.
+/// Initialize a new SCM viewer state using linear interpolation of given states.
 
 scm_state::scm_state(const scm_state *a, const scm_state *b, double t)
 {
     assert(a);
     assert(b);
 
+    foreground0 = a->foreground0;
+    foreground1 = b->foreground0;
+    background0 = a->background0;
+    background1 = b->background0;
+
+    distance    = lerp(a->distance, b->distance, t);
+    zoom        = lerp(a->zoom,     b->zoom,     t);
+    fade        = lerp(a->fade,     b->fade,     t);
+
     qslerp(orientation, a->orientation, b->orientation, t);
     vslerp(position,    a->position,    b->position,    t);
     vslerp(light,       a->light,       b->light,       t);
 
-    speed        = lerp(a->speed,          b->speed,          t);
-    distance     = lerp(a->distance,       b->distance,       t);
-    tension      = lerp(a->tension,        b->tension,        t);
-    bias         = lerp(a->bias,           b->bias,           t);
-    zoom         = lerp(a->zoom,           b->zoom,           t);
-
     qnormalize(orientation, orientation);
     vnormalize(position,    position);
     vnormalize(light,       light);
 }
 
-/// Initialize a new SCM viewer step using cubic interpolation of given steps.
-
-scm_state::scm_state(const scm_state *a,
-                   const scm_state *b,
-                   const scm_state *c,
-                   const scm_state *d, double t)
-{
-    assert(a);
-    assert(b);
-    assert(c);
-    assert(d);
-
-    double A[4];
-    double B[4];
-    double C[4];
-    double D[4];
-
-    qcpy (A,    a->orientation);
-    qsign(B, A, b->orientation);
-    qsign(C, B, c->orientation);
-    qsign(D, C, d->orientation);
-
-    orientation[0] = hermite(A[0], B[0], C[0], D[0], t, b->tension, b->bias);
-    orientation[1] = hermite(A[1], B[1], C[1], D[1], t, b->tension, b->bias);
-    orientation[2] = hermite(A[2], B[2], C[2], D[2], t, b->tension, b->bias);
-    orientation[3] = hermite(A[3], B[3], C[3], D[3], t, b->tension, b->bias);
-
-    position[0]    = hermite(a->position[0],
-                             b->position[0],
-                             c->position[0],
-                             d->position[0], t, b->tension, b->bias);
-    position[1]    = hermite(a->position[1],
-                             b->position[1],
-                             c->position[1],
-                             d->position[1], t, b->tension, b->bias);
-    position[2]    = hermite(a->position[2],
-                             b->position[2],
-                             c->position[2],
-                             d->position[2], t, b->tension, b->bias);
-
-    light[0]       = hermite(a->light[0],
-                             b->light[0],
-                             c->light[0],
-                             d->light[0], t, b->tension, b->bias);
-    light[1]       = hermite(a->light[1],
-                             b->light[1],
-                             c->light[1],
-                             d->light[1], t, b->tension, b->bias);
-    light[2]       = hermite(a->light[2],
-                             b->light[2],
-                             c->light[2],
-                             d->light[2], t, b->tension, b->bias);
-
-    distance       = hermite(a->distance,
-                             b->distance,
-                             c->distance,
-                             d->distance, t, b->tension, b->bias);
-
-    speed          = lerp(b->speed,   c->speed,   t);
-    tension        = lerp(b->tension, c->tension, t);
-    bias           = lerp(b->bias,    c->bias,    t);
-    zoom           = lerp(b->zoom,    c->zoom,    t);
-
-    qnormalize(orientation, orientation);
-    vnormalize(position,    position);
-    vnormalize(light,       light);
-}
-
-/// Initialize a new SCM viewer step using the given camera configuration. position, camera
+/// Initialize a new SCM viewer state using the given camera configuration. position, camera
 /// orientation, and lightsource orientation.
 ///
 /// @param t Camera position (3D vector)
 /// @param r Camera orientation (Euler angles)
-/// @param l Light direction (3D vector)
+/// @param l Light direction (Euler angles)
 
 scm_state::scm_state(const double *t, const double *r, const double *l)
 {
+    assert(t);
+    assert(r);
+    assert(l);
+
     double M[16];
+
+    foreground0 = 0;
+    foreground1 = 0;
+    background0 = 0;
+    background1 = 0;
 
     qeuler(orientation, r);
     meuler(M,           l);
@@ -195,27 +121,11 @@ scm_state::scm_state(const double *t, const double *r, const double *l)
     vnormalize(position, t);
 
     distance = vlen(t);
-    speed    = 1.0;
-    tension  = 0.0;
-    bias     = 0.0;
     zoom     = 1.0;
+    fade     = 0.0;
 }
 
-//------------------------------------------------------------------------------
-#if 0
-void scm_state::draw()
-{
-    double v[3];
 
-    get_position(v);
-
-    v[0] *= distance;
-    v[1] *= distance;
-    v[2] *= distance;
-
-    glVertex3dv(v);
-}
-#endif
 //------------------------------------------------------------------------------
 
 /// Return the orientation quaternion.
@@ -241,25 +151,39 @@ void scm_state::get_light(double *v) const
 
 //------------------------------------------------------------------------------
 
-/// Set the name of the step.
+/// Set the name of the state.
 
 void scm_state::set_name(const std::string& s)
 {
     name = s;
 }
 
-/// Set the name of the foreground scene. @see scm_scene::set_name
+/// Set the starting foreground scene.
 
-void scm_state::set_foreground(const std::string& s)
+void scm_state::set_foreground0(scm_scene *s)
 {
-    foreground = s;
+    foreground0 = s;
 }
 
-/// Set the name of the background scene. @see scm_scene::set_name
+/// Set the ending foreground scene.
 
-void scm_state::set_background(const std::string& s)
+void scm_state::set_foreground1(scm_scene *s)
 {
-    background = s;
+    foreground1 = s;
+}
+
+/// Set the starting background scene.
+
+void scm_state::set_background0(scm_scene *s)
+{
+    background0 = s;
+}
+
+/// Set the ending background scene.
+
+void scm_state::set_background1(scm_scene *s)
+{
+    background1 = s;
 }
 
 /// Set the orientation quaternion.
@@ -285,30 +209,9 @@ void scm_state::set_light(const double *v)
 
 /// Set the distance of the camera from the center of the sphere.
 
-void scm_state::set_distance(double r)
+void scm_state::set_distance(double d)
 {
-    distance = r;
-}
-
-/// Set the speed of the Hermitian interpolation.
-
-void scm_state::set_speed(double s)
-{
-    speed = s;
-}
-
-/// Set the tension of the Hermitian interpolation.
-
-void scm_state::set_tension(double t)
-{
-    tension  = t;
-}
-
-/// Set the bias of the Hermitian interpolation.
-
-void scm_state::set_bias(double b)
-{
-    bias = b;
+    distance = d;
 }
 
 /// Set the camera zoom.
@@ -316,6 +219,13 @@ void scm_state::set_bias(double b)
 void scm_state::set_zoom(double z)
 {
     zoom = z;
+}
+
+/// Set the transition progress.
+
+void scm_state::set_fade(double f)
+{
+    fade = f;
 }
 
 //------------------------------------------------------------------------------
@@ -363,6 +273,42 @@ void scm_state::get_forward(double *v) const
 {
     vquaternionz(v, orientation);
     vneg(v, v);
+}
+
+//------------------------------------------------------------------------------
+
+/// Return the ground level of current scene at the given location. O(log n).
+/// This may incur data access in the render thread.
+///
+/// @param v Vector from the center of the planet to the query position.
+
+float scm_state::get_current_ground(const double *v) const
+{
+    if (foreground0 && foreground1)
+        return std::max(foreground0->get_current_ground(v),
+                        foreground1->get_current_ground(v));
+    if (foreground0)
+        return foreground0->get_current_ground(v);
+    if (foreground1)
+        return foreground1->get_current_ground(v);
+
+    return 1.f;
+}
+
+/// Return the minimum ground level of the current scene, e.g. the radius of
+/// the planet at the bottom of the deepest valley. O(1).
+
+float scm_state::get_minimum_ground() const
+{
+    if (foreground0 && foreground1)
+        return std::min(foreground0->get_minimum_ground(),
+                        foreground1->get_minimum_ground());
+    if (foreground0)
+        return foreground0->get_minimum_ground();
+    if (foreground1)
+        return foreground1->get_minimum_ground();
+
+    return 1.f;
 }
 
 //------------------------------------------------------------------------------
@@ -456,7 +402,7 @@ void scm_state::transform_light(const double *M)
 
 //------------------------------------------------------------------------------
 
-/// Return the linear distance between two steps
+/// Return the linear distance between two states
 
 double operator-(const scm_state& a, const scm_state& b)
 {

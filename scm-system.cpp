@@ -59,10 +59,6 @@ scm_system::scm_system(int w, int h, int d, int l) :
     render = new scm_render(w, h);
     sphere = new scm_sphere(d, l);
     path   = new scm_path();
-    fore0  = 0;
-    fore1  = 0;
-    back0  = 0;
-    back1  = 0;
 }
 
 /// Finalize all SCM system state.
@@ -122,20 +118,6 @@ scm_render *scm_system::get_render() const
     return render;
 }
 
-/// Return a pointer to the current foreground scene.
-
-scm_scene *scm_system::get_fore() const
-{
-    return fore0;
-}
-
-/// Return a pointer to the current background scene.
-
-scm_scene *scm_system::get_back() const
-{
-    return back0;
-}
-
 //------------------------------------------------------------------------------
 
 /// Allocate and insert a new scene before index i. Return its index.
@@ -148,9 +130,6 @@ int scm_system::add_scene(int i)
     {
         scm_scene_i it = scenes.insert(scenes.begin() + std::max(i, 0), scene);
         j         = it - scenes.begin();
-
-        if (fore0 == 0) fore0 = scene;
-        if (fore1 == 0) fore1 = scene;
     }
     scm_log("scm_system add_scene %d = %d", i, j);
 
@@ -162,11 +141,6 @@ int scm_system::add_scene(int i)
 void scm_system::del_scene(int i)
 {
     scm_log("scm_system del_scene %d", i);
-
-    if (scenes[i] == fore0) fore0 = 0;
-    if (scenes[i] == back0) back0 = 0;
-    if (scenes[i] == fore1) fore1 = 0;
-    if (scenes[i] == back1) back1 = 0;
 
     delete scenes[i];
     scenes.erase(scenes.begin() + i);
@@ -187,34 +161,6 @@ scm_scene *scm_system::get_scene(int i)
 int scm_system::get_scene_count() const
 {
     return int(scenes.size());
-}
-
-/// Set the scene caches and fade coefficient to produce a rendering of the
-/// current step queue at time t.
-
-double scm_system::set_scene_blend(double t)
-{
-    if (!queue.empty())
-    {
-        t = std::max(t, 0.0);
-        t = std::min(t, double(queue.size() - 1));
-
-        scm_state *step0 = queue[int(floor(t))];
-        scm_state *step1 = queue[int( ceil(t))];
-
-        fore0 = find_scene(step0->get_foreground());
-        fore1 = find_scene(step1->get_foreground());
-        back0 = find_scene(step0->get_background());
-        back1 = find_scene(step1->get_background());
-
-        fade = t - floor(t);
-        return t;
-    }
-    else
-    {
-        fade = 0;
-        return 0;
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -260,142 +206,6 @@ scm_state *scm_system::get_step(int i)
 int scm_system::get_step_count() const
 {
     return int(steps.size());
-}
-
-/// Compute the interpolated values of the current step queue at the given time.
-/// Extrapolate the first and last steps to produce a clean start and stop.
-
-#if 0
-scm_state scm_system::get_step_blend(double t) const
-{
-    t = std::max(t, 0.0);
-    t = std::min(t, double(queue.size() - 1));
-
-    int    i = int(floor(t));
-    double k = t - floor(t);
-
-    if (queue.size() == 0) return scm_state();
-    if (queue.size() == 1) return *queue[0];
-    if (t            == 0) return *queue[0];
-    if (k            == 0) return *queue[i];
-
-    int n = queue.size() - 2;
-    int m = queue.size() - 1;
-
-    scm_state a = (i > 0) ? *queue[i - 1] : scm_state(queue[0], queue[1], -1.0);
-    scm_state b =           *queue[i    ];
-    scm_state c =           *queue[i + 1];
-    scm_state d = (i < n) ? *queue[i + 2] : scm_state(queue[n], queue[m], +2.0);
-
-    return scm_state(&a, &b, &c, &d, k);
-}
-#else
-scm_state scm_system::get_step_blend(double t) const
-{
-    t = std::max(t, 0.0);
-    t = std::min(t, double(queue.size() - 1));
-
-    int i = int(floor(t));
-
-    return queue[i];
-}
-#endif
-
-//------------------------------------------------------------------------------
-
-/// Parse the given string as a series of camera states. Enqueue each. This
-/// function ingests Maya MOV exports.
-
-void scm_system::import_queue(const std::string& data)
-{
-    std::stringstream file(data);
-    std::string       line;
-
-    queue.clear();
-
-    int n = 0;
-
-    while (std::getline(file, line))
-    {
-        std::stringstream in(line);
-
-        double t[3] = { 0, 0, 0 };
-        double r[3] = { 0, 0, 0 };
-        double l[3] = { 0, 0, 0 };
-
-        if (in) in >> t[0] >> t[1] >> t[2];
-        if (in) in >> r[0] >> r[1] >> r[2];
-        if (in) in >> l[0] >> l[1] >> l[2];
-
-        r[0] = radians(r[0]);
-        r[1] = radians(r[1]);
-        r[2] = radians(r[2]);
-
-        l[0] = radians(l[0]);
-        l[1] = radians(l[1]);
-        l[2] = radians(l[2]);
-
-        scm_state *S = new scm_state(t, r, l);
-
-        if (fore0) S->set_foreground(fore0->get_name());
-        if (back0) S->set_background(back0->get_name());
-
-        append_queue(S);
-
-        n++;
-    }
-}
-
-/// Print all steps on the current queue to the given string using the same
-/// format expected by import_queue.
-
-void scm_system::export_queue(std::string& data)
-{
-    std::stringstream file;
-
-    for (size_t i = 0; i < queue.size(); ++i)
-    {
-        double d = queue[i]->get_distance();
-        double p[3];
-        double q[4];
-        double r[3];
-
-        queue[i]->get_position(p);
-        queue[i]->get_orientation(q);
-
-        p[0] *= d;
-        p[1] *= d;
-        p[2] *= d;
-
-        equaternion(r, q);
-
-        file << std::setprecision(std::numeric_limits<long double>::digits10)
-             << p[0] << " "
-             << p[1] << " "
-             << p[2] << " "
-             << degrees(r[0]) << " "
-             << degrees(r[1]) << " "
-             << degrees(r[2]) << " "
-             << "0.0 0.0 0.0" << std::endl;
-    }
-    data = file.str();
-}
-
-/// Take ownership of the given step and append it to the current queue.
-
-void scm_system::append_queue(scm_state *s)
-{
-    queue.push_back(s);
-}
-
-/// Flush the current step queue, deleting all steps in it.
-
-void scm_system::flush_queue()
-{
-    for (size_t i = 0; i < queue.size(); i++)
-        delete queue[i];
-
-    queue.clear();
 }
 
 //------------------------------------------------------------------------------
@@ -450,40 +260,6 @@ void scm_system::set_synchronous(bool b)
 bool scm_system::get_synchronous() const
 {
     return sync;
-}
-
-//------------------------------------------------------------------------------
-
-/// Return the ground level of current scene at the given location. O(log n).
-/// This may incur data access in the render thread.
-///
-/// @param v Vector from the center of the planet to the query position.
-
-float scm_system::get_current_ground(const double *v) const
-{
-    if (fore0 && fore1)
-        return std::max(fore0->get_current_ground(v),
-                        fore1->get_current_ground(v));
-    if (fore0)
-        return fore0->get_current_ground(v);
-    if (fore1)
-        return fore1->get_current_ground(v);
-    return 1.f;
-}
-
-/// Return the minimum ground level of the current scene, e.g. the radius of
-/// the planet at the bottom of the deepest valley. O(1).
-
-float scm_system::get_minimum_ground() const
-{
-    if (fore0 && fore1)
-        return std::min(fore0->get_minimum_ground(),
-                        fore1->get_minimum_ground());
-    if (fore0)
-        return fore0->get_minimum_ground();
-    if (fore1)
-        return fore1->get_minimum_ground();
-    return 1.f;
 }
 
 //------------------------------------------------------------------------------

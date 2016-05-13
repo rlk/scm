@@ -184,8 +184,6 @@ public:
 
     scm_sphere *get_sphere() const;
     scm_render *get_render() const;
-    scm_scene  *get_fore()   const;
-    scm_scene  *get_back()   const;
 
     /// @}
     /// @name Scene collection handlers
@@ -196,7 +194,6 @@ public:
     scm_scene  *get_scene(int i);
 
     int         get_scene_count() const;
-    double      set_scene_blend(double);
 
     /// @}
     /// @name Step collection handlers
@@ -206,8 +203,7 @@ public:
     void        del_step(int i);
     scm_state   *get_step(int i);
 
-    int         get_step_count()       const;
-    scm_state    get_step_blend(double) const;
+    int         get_step_count() const;
 
     /// @}
     /// @name Step queue handlers
@@ -228,13 +224,6 @@ public:
 
     void        set_synchronous(bool);
     bool        get_synchronous() const;
-
-    /// @}
-    /// @name Data queries
-    /// @{
-
-    float       get_current_ground(const double *) const;
-    float       get_minimum_ground()               const;
 
     /// @}
     /// @name Data path handlers
@@ -266,16 +255,15 @@ private:
     SDL_mutex     *mutex;
 
     scm_state_v     steps;
-    scm_state_v     queue;
     scm_scene_v    scenes;
 
     scm_render    *render;
     scm_sphere    *sphere;
     scm_path      *path;
-    scm_scene     *fore0;
-    scm_scene     *fore1;
-    scm_scene     *back0;
-    scm_scene     *back1;
+    // scm_scene     *fore0;
+    // scm_scene     *fore1;
+    // scm_scene     *back0;
+    // scm_scene     *back1;
 
     active_file_m  files;
     active_cache_m caches;
