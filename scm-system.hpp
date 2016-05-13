@@ -64,8 +64,8 @@ dotted arrow is a weak (non-owning) reference.
   scm_scene also includes an scm_label object that represents textual
   annotations and map icons.
 
-- The scm_system's collection of scm_step objects defines a list of points of
-  interest in the defined set of scenes. Each scm_step includes a foreground
+- The scm_system's collection of scm_state objects defines a list of points of
+  interest in the defined set of scenes. Each scm_state includes a foreground
   scene reference, a background scene reference, and a camera configuration
   giving an interesting view upon these scenes. This sequence of steps allows an
   application to provide a tour of the scm_scene definitions.
@@ -204,10 +204,10 @@ public:
 
     int         add_step(int i);
     void        del_step(int i);
-    scm_step   *get_step(int i);
+    scm_state   *get_step(int i);
 
     int         get_step_count()       const;
-    scm_step    get_step_blend(double) const;
+    scm_state    get_step_blend(double) const;
 
     /// @}
     /// @name Step queue handlers
@@ -215,7 +215,7 @@ public:
 
     void     import_queue(const std::string&);
     void     export_queue(      std::string&);
-    void     append_queue(scm_step *);
+    void     append_queue(scm_state *);
     void      flush_queue();
 
     /// @}
@@ -265,8 +265,8 @@ private:
 
     SDL_mutex     *mutex;
 
-    scm_step_v     steps;
-    scm_step_v     queue;
+    scm_state_v     steps;
+    scm_state_v     queue;
     scm_scene_v    scenes;
 
     scm_render    *render;

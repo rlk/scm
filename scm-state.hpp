@@ -10,41 +10,41 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 // more details.
 
-#ifndef SCM_STEP_HPP
-#define SCM_STEP_HPP
+#ifndef scm_state_HPP
+#define scm_state_HPP
 
 #include <string>
 #include <vector>
 
 //------------------------------------------------------------------------------
 
-/// An scm_step defines a view configuration
+/// An scm_state defines a view configuration
 ///
 /// A view configuration consists of the name of an scm_scene to be applied to
 /// the foreground sphere, the name of an scm_scene to be applied to the back-
 /// ground sphere, and the position and orientation of the viewer.
 ///
 /// This mechanism is intended to permit the creation of scripted paths among
-/// points of interest through a series of visualizations. As such, the scm_step
+/// points of interest through a series of visualizations. As such, the scm_state
 /// object includes parameters that ture a Hermitian interpolation of view
 /// configurations, which is where the name "step" comes from.
 
-class scm_step
+class scm_state
 {
 public:
 
     /// @name Constructors
     /// @{
 
-    scm_step();
-    scm_step(const scm_step *a);
-    scm_step(const scm_step *a,
-             const scm_step *b, double t);
-    scm_step(const scm_step *a,
-             const scm_step *b,
-             const scm_step *c,
-             const scm_step *d, double t);
-    scm_step(const double *t,
+    scm_state();
+    scm_state(const scm_state *a);
+    scm_state(const scm_state *a,
+             const scm_state *b, double t);
+    scm_state(const scm_state *a,
+             const scm_state *b,
+             const scm_state *c,
+             const scm_state *d, double t);
+    scm_state(const double *t,
              const double *r,
              const double *l);
 
@@ -102,7 +102,7 @@ public:
 
     /// @}
 
-    friend double operator-(const scm_step&, const scm_step&);
+    friend double operator-(const scm_state&, const scm_state&);
 
 private:
 
@@ -120,9 +120,9 @@ private:
     double zoom;             ///< Magnification
 };
 
-typedef std::vector<scm_step *>                 scm_step_v;
-typedef std::vector<scm_step *>::iterator       scm_step_i;
-typedef std::vector<scm_step *>::const_iterator scm_step_c;
+typedef std::vector<scm_state *>                 scm_state_v;
+typedef std::vector<scm_state *>::iterator       scm_state_i;
+typedef std::vector<scm_state *>::const_iterator scm_state_c;
 
 //------------------------------------------------------------------------------
 

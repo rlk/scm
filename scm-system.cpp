@@ -199,8 +199,8 @@ double scm_system::set_scene_blend(double t)
         t = std::max(t, 0.0);
         t = std::min(t, double(queue.size() - 1));
 
-        scm_step *step0 = queue[int(floor(t))];
-        scm_step *step1 = queue[int( ceil(t))];
+        scm_state *step0 = queue[int(floor(t))];
+        scm_state *step1 = queue[int( ceil(t))];
 
         fore0 = find_scene(step0->get_foreground());
         fore1 = find_scene(step1->get_foreground());
@@ -225,9 +225,9 @@ int scm_system::add_step(int i)
 {
     int j = -1;
 
-    if (scm_step *step = new scm_step())
+    if (scm_state *step = new scm_state())
     {
-        scm_step_i it = steps.insert(steps.begin() + std::max(i, 0), step);
+        scm_state_i it = steps.insert(steps.begin() + std::max(i, 0), step);
         j        = it - steps.begin();
     }
     scm_log("scm_system add_step %d = %d", i, j);
@@ -247,7 +247,7 @@ void scm_system::del_step(int i)
 
 /// Return a pointer to the step at index i.
 
-scm_step *scm_system::get_step(int i)
+scm_state *scm_system::get_step(int i)
 {
     if (0 <= i && i < int(steps.size()))
         return steps[i];
@@ -266,7 +266,7 @@ int scm_system::get_step_count() const
 /// Extrapolate the first and last steps to produce a clean start and stop.
 
 #if 0
-scm_step scm_system::get_step_blend(double t) const
+scm_state scm_system::get_step_blend(double t) const
 {
     t = std::max(t, 0.0);
     t = std::min(t, double(queue.size() - 1));
@@ -274,7 +274,7 @@ scm_step scm_system::get_step_blend(double t) const
     int    i = int(floor(t));
     double k = t - floor(t);
 
-    if (queue.size() == 0) return scm_step();
+    if (queue.size() == 0) return scm_state();
     if (queue.size() == 1) return *queue[0];
     if (t            == 0) return *queue[0];
     if (k            == 0) return *queue[i];
@@ -282,15 +282,15 @@ scm_step scm_system::get_step_blend(double t) const
     int n = queue.size() - 2;
     int m = queue.size() - 1;
 
-    scm_step a = (i > 0) ? *queue[i - 1] : scm_step(queue[0], queue[1], -1.0);
-    scm_step b =           *queue[i    ];
-    scm_step c =           *queue[i + 1];
-    scm_step d = (i < n) ? *queue[i + 2] : scm_step(queue[n], queue[m], +2.0);
+    scm_state a = (i > 0) ? *queue[i - 1] : scm_state(queue[0], queue[1], -1.0);
+    scm_state b =           *queue[i    ];
+    scm_state c =           *queue[i + 1];
+    scm_state d = (i < n) ? *queue[i + 2] : scm_state(queue[n], queue[m], +2.0);
 
-    return scm_step(&a, &b, &c, &d, k);
+    return scm_state(&a, &b, &c, &d, k);
 }
 #else
-scm_step scm_system::get_step_blend(double t) const
+scm_state scm_system::get_step_blend(double t) const
 {
     t = std::max(t, 0.0);
     t = std::min(t, double(queue.size() - 1));
@@ -335,7 +335,7 @@ void scm_system::import_queue(const std::string& data)
         l[1] = radians(l[1]);
         l[2] = radians(l[2]);
 
-        scm_step *S = new scm_step(t, r, l);
+        scm_state *S = new scm_state(t, r, l);
 
         if (fore0) S->set_foreground(fore0->get_name());
         if (back0) S->set_background(back0->get_name());
@@ -383,7 +383,7 @@ void scm_system::export_queue(std::string& data)
 
 /// Take ownership of the given step and append it to the current queue.
 
-void scm_system::append_queue(scm_step *s)
+void scm_system::append_queue(scm_state *s)
 {
     queue.push_back(s);
 }
