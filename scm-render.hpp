@@ -21,6 +21,7 @@
 
 class scm_sphere;
 class scm_scene;
+class scm_state;
 class scm_frame;
 
 //------------------------------------------------------------------------------
@@ -51,12 +52,9 @@ public:
     bool get_wire() const { return wire; }
 
     void render(scm_sphere *,
-                scm_scene  *,
-                scm_scene  *,
-                scm_scene  *,
-                scm_scene  *,
+                scm_state  *,
               const double *,
-              const double *, int, int, double);
+              const double *, int, int);
     void render(scm_sphere *,
                 scm_scene  *,
                 scm_scene  *,
@@ -65,9 +63,10 @@ public:
 
 private:
 
-    bool check_fade(scm_scene *, scm_scene *, scm_scene *, scm_scene *, double);
-    bool check_blur(const double *, const double *, GLfloat *, double *);
+    bool check_blur(const double *, const double *, GLfloat *, double  *);
     void check_atmo(const double *, const double *, GLfloat *, GLfloat *);
+    bool check_fade(const scm_scene *, const scm_scene *,
+                    const scm_scene *, const scm_scene *, double);
 
     void init_uniforms(GLuint);
     void init_matrices();

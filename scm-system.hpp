@@ -177,7 +177,8 @@ public:
     scm_system(int w, int h, int d, int l);
    ~scm_system();
 
-    void     render_sphere(const double *, const double *, int) const;
+    void     render_sphere(scm_state *, const double *,
+                                        const double *, int) const;
 
     /// @name System queries
     /// @{
@@ -198,22 +199,22 @@ public:
     /// @}
     /// @name Step collection handlers
     /// @{
-
+    /*
     int         add_step(int i);
     void        del_step(int i);
     scm_state   *get_step(int i);
 
     int         get_step_count() const;
-
+    */
     /// @}
     /// @name Step queue handlers
     /// @{
-
+    /*
     void     import_queue(const std::string&);
     void     export_queue(      std::string&);
     void     append_queue(scm_state *);
     void      flush_queue();
-
+    */
     /// @}
     /// @name Cache handlers
     /// @{
@@ -254,7 +255,7 @@ private:
 
     SDL_mutex     *mutex;
 
-    scm_state_v     steps;
+    // scm_state_v     steps;
     scm_scene_v    scenes;
 
     scm_render    *render;
@@ -272,7 +273,6 @@ private:
     int            serial;
     int            frame;
     bool           sync;
-    double         fade;
 };
 
 //------------------------------------------------------------------------------

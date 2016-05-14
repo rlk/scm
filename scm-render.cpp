@@ -19,6 +19,7 @@
 #include "scm-render.hpp"
 #include "scm-sphere.hpp"
 #include "scm-scene.hpp"
+#include "scm-state.hpp"
 #include "scm-frame.hpp"
 #include "scm-log.hpp"
 
@@ -91,31 +92,32 @@ void scm_render::set_wire(bool w)
 /// Render the foreground and background with optional blur and dissolve.
 ///
 /// @param sphere  Sphere geometry manager to perform the rendering
-/// @param fore0   Foreground scene at the beginning of a dissolve
-/// @param fore1   Foreground scene at the end of a dissolve
-/// @param back0   Background scene at the beginning of a dissolve
-/// @param back1   Background scene at the end of a dissolve
+/// @param state   Viewer and environment state
 /// @param P       Projection matrix in OpenGL column-major order
 /// @param M       Model-view matrix in OpenGL column-major order
 /// @param channel Channel index
 /// @param frame   Frame number
-/// @param t       Dissolve time between 0 and 1
 
 void scm_render::render(scm_sphere *sphere,
-                        scm_scene  *fore0,
-                        scm_scene  *fore1,
-                        scm_scene  *back0,
-                        scm_scene  *back1,
+                        scm_state  *state,
                       const double *P,
-                      const double *M, int channel, int frame, double t)
+                      const double *M, int channel, int frame)
 {
+    scm_scene *foreground0 = state->get_foreground0();
+    scm_scene *foreground1 = state->get_foreground1();
+    scm_scene *background0 = state->get_background0();
+    scm_scene *background1 = state->get_background1();
+
+    const double t = state->get_fade();
+
     GLfloat blur_T[16];
 
-    const bool do_fade = check_fade(fore0, fore1, back0, back1, t);
     const bool do_blur = check_blur(P, M, blur_T, previous_T[channel]);
+    const bool do_fade = check_fade(foreground0, foreground1,
+                                    background0, background1, t);
 
     if (!do_fade && !do_blur)
-        render(sphere, fore0, back0, P, M, channel, frame);
+        render(sphere, foreground0, background0, P, M, channel, frame);
 
     else
     {
@@ -128,12 +130,12 @@ void scm_render::render(scm_sphere *sphere,
         glPushAttrib(GL_VIEWPORT_BIT | GL_SCISSOR_BIT);
         {
             frame0->bind_frame();
-            render(sphere, fore0, back0, P, M, channel, frame);
+            render(sphere, foreground0, background0, P, M, channel, frame);
 
             if (do_fade)
             {
                 frame1->bind_frame();
-                render(sphere, fore1, back1, P, M, channel, frame);
+                render(sphere, foreground1, background1, P, M, channel, frame);
             }
         }
         glPopAttrib();
@@ -185,17 +187,17 @@ void scm_render::render(scm_sphere *sphere,
 /// produce the desired effects. Calling it directly is a legitimate means
 /// of circumventing these options.
 ///
-/// @param sphere  Sphere geometry manager to perform the rendering
-/// @param fore    Foreground scene
-/// @param back    Background scene
-/// @param P       Projection matrix in OpenGL column-major order
-/// @param M       Model-view matrix in OpenGL column-major order
-/// @param channel Channel index
-/// @param frame   Frame number
+/// @param sphere     Sphere geometry manager to perform the rendering
+/// @param foreground Foreground scene
+/// @param background Background scene
+/// @param P          Projection matrix in OpenGL column-major order
+/// @param M          Model-view matrix in OpenGL column-major order
+/// @param channel    Channel index
+/// @param frame      Frame number
 
 void scm_render::render(scm_sphere *sphere,
-                        scm_scene  *fore,
-                        scm_scene  *back,
+                        scm_scene  *foreground,
+                        scm_scene  *background,
                       const double *P,
                       const double *M, int channel, int frame)
 {
@@ -205,8 +207,8 @@ void scm_render::render(scm_sphere *sphere,
 
     scm_atmo atmo;
 
-    if (fore && !wire)
-        atmo = fore->get_atmo();
+    if (foreground && !wire)
+        atmo = foreground->get_atmo();
 
     // If there is an atmosphere, bind the temporary render target.
 
@@ -221,10 +223,10 @@ void scm_render::render(scm_sphere *sphere,
 
     // If we're going to be doing rendering, clear the buffers.
 
-    if (back || fore)
+    if (background || foreground)
     {
-        GLuint c = back ? back->get_clear() :
-                   fore ? fore->get_clear() : 0;
+        GLuint c = background ? background->get_clear() :
+                   foreground ? foreground->get_clear() : 0;
 
         glClearColor(GLfloat((c & 0xFF000000) >> 24) / 255.0,
                      GLfloat((c & 0x00FF0000) >> 16) / 255.0,
@@ -236,7 +238,7 @@ void scm_render::render(scm_sphere *sphere,
 
     // Render the background
 
-    if (back)
+    if (background)
     {
         // Extract only the rotation of the view matrix.
 
@@ -277,10 +279,10 @@ void scm_render::render(scm_sphere *sphere,
             glFrontFace(GL_CCW);
 
             if (wire) wire_on();
-            sphere->draw(back, T, width, height, channel, frame);
+            sphere->draw(background, T, width, height, channel, frame);
             if (wire) wire_off();
 
-            back->draw_label();
+            background->draw_label();
         }
         glPopAttrib();
 
@@ -293,7 +295,7 @@ void scm_render::render(scm_sphere *sphere,
 
     // Render the foreground
 
-    if (fore)
+    if (foreground)
     {
         // Apply the transform.
 
@@ -311,11 +313,11 @@ void scm_render::render(scm_sphere *sphere,
             glFrontFace(GL_CW);
 
             if (wire) wire_on();
-            sphere->draw(fore, T, width, height, channel, frame);
+            sphere->draw(foreground, T, width, height, channel, frame);
             if (wire) wire_off();
 
             glEnable(GL_CLIP_PLANE0);
-            fore->draw_label();
+            foreground->draw_label();
         }
         glPopAttrib();
     }
@@ -342,7 +344,7 @@ void scm_render::render(scm_sphere *sphere,
 
         check_atmo(P, M, atmo_T, atmo_p);
 
-        atmo_r[0] = fore->get_minimum_ground();
+        atmo_r[0] = foreground->get_minimum_ground();
         atmo_r[1] = atmo_r[0] - atmo.H * logf(0.00001f);
 
         glUseProgram(render_atmo.program);
@@ -494,12 +496,14 @@ void scm_render::free_ogl()
 
 /// Determine whether fading is necessary.
 
-bool scm_render::check_fade(scm_scene *fore0, scm_scene *fore1,
-                            scm_scene *back0, scm_scene *back1, double t)
+bool scm_render::check_fade(const scm_scene *foreground0,
+                            const scm_scene *foreground1,
+                            const scm_scene *background0,
+                            const scm_scene *background1, double t)
 {
     if (t < 1.0 / 255)  return false;
-    if (fore0 != fore1) return true;
-    if (back0 != back1) return true;
+    if (foreground0 != foreground1) return true;
+    if (background0 != background1) return true;
     return false;
 }
 

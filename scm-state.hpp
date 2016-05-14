@@ -72,10 +72,10 @@ public:
     /// @{
 
     const std::string& get_name()        const { return name;        }
-    const scm_scene   *get_foreground0() const { return foreground0; }
-    const scm_scene   *get_foreground1() const { return foreground1; }
-    const scm_scene   *get_background0() const { return background0; }
-    const scm_scene   *get_background1() const { return background1; }
+    scm_scene         *get_foreground0() const { return foreground0; }
+    scm_scene         *get_foreground1() const { return foreground1; }
+    scm_scene         *get_background0() const { return background0; }
+    scm_scene         *get_background1() const { return background1; }
     double             get_distance()    const { return distance;    }
     double             get_zoom()        const { return zoom;        }
     double             get_fade()        const { return fade;        }

@@ -48,7 +48,7 @@
 /// @param l  Limit at which sphere pages are subdivided (in pixels)
 
 scm_system::scm_system(int w, int h, int d, int l) :
-    serial(1), frame(0), sync(false), fade(0)
+    serial(1), frame(0), sync(false)
 {
     TIFFSetWarningHandler(0);
     TIFFSetErrorHandler  (0);
@@ -82,24 +82,26 @@ scm_system::~scm_system()
 /// be called once per frame.
 ///
 /// The request is forwarded directly to the render handler, augmented with the
-/// current foreground and background scenes and cross-fade parameters.
+/// given state information.
 ///
 /// @see scm_render::render
 ///
+/// @param state    Viewer and environment state
 /// @param P        Projection matrix in column-major OpenGL form
 /// @param M        Model-view matrix in column-major OpenGL form
 /// @param channel  Channel index (e.g. 0 for left eye, 1 for right eye)
 
-void scm_system::render_sphere(const double *P,
-                               const double *M, int channel) const
+void scm_system::render_sphere(scm_state *state, const double *P,
+                                                 const double *M,
+                                                 int channel) const
 {
-    if (scenes.empty())
+    if (state)
+        render->render(sphere, state, P, M, channel, frame);
+    else
     {
         glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
     }
-    else render->render(sphere, fore0, fore1,
-                                back0, back1, P, M, channel, frame, fade);
 }
 
 //------------------------------------------------------------------------------
@@ -166,7 +168,7 @@ int scm_system::get_scene_count() const
 //------------------------------------------------------------------------------
 
 /// Allocate and insert a new step before index i. Return its index.
-
+#if 0
 int scm_system::add_step(int i)
 {
     int j = -1;
@@ -174,7 +176,7 @@ int scm_system::add_step(int i)
     if (scm_state *step = new scm_state())
     {
         scm_state_i it = steps.insert(steps.begin() + std::max(i, 0), step);
-        j        = it - steps.begin();
+        j         = it - steps.begin();
     }
     scm_log("scm_system add_step %d = %d", i, j);
 
@@ -207,7 +209,7 @@ int scm_system::get_step_count() const
 {
     return int(steps.size());
 }
-
+#endif
 //------------------------------------------------------------------------------
 
 /// Update all image caches. This is among the most significant entry points of
