@@ -29,6 +29,7 @@ CPPFLAGS = $(CPPFLAGS) /Ox /MT
 
 OBJS = \
 	scm-cache.obj \
+	scm-deque.obj \
 	scm-file.obj \
 	scm-frame.obj \
 	scm-image.obj \

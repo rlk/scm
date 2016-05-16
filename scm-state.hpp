@@ -14,7 +14,7 @@
 #define scm_state_HPP
 
 #include <string>
-#include <vector>
+#include <list>
 
 //------------------------------------------------------------------------------
 
@@ -84,6 +84,11 @@ public:
     void   get_position   (double *) const;
     void   get_light      (double *) const;
 
+    bool renderable() const { return foreground0
+                                  || foreground1
+                                  || background0
+                                  || background1; }
+
     /// @}
     /// @name Derived methods
     /// @{
@@ -93,8 +98,8 @@ public:
     void   get_right  (double *) const;
     void   get_forward(double *) const;
 
-    float  get_current_ground(const double *) const;
-    float  get_minimum_ground()               const;
+    float  get_current_ground() const;
+    float  get_minimum_ground() const;
 
     void   set_pitch(double);
     void   set_matrix(const double *);
@@ -123,10 +128,6 @@ private:
     double zoom;             ///< Magnification
     double fade;             ///< Transition progress
 };
-
-typedef std::vector<scm_state *>                 scm_state_v;
-typedef std::vector<scm_state *>::iterator       scm_state_i;
-typedef std::vector<scm_state *>::const_iterator scm_state_c;
 
 //------------------------------------------------------------------------------
 

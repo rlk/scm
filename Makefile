@@ -15,6 +15,7 @@ OBJS= \
 	util3d/math3d.o \
 	util3d/type.o \
 	scm-cache.o \
+	scm-deque.o \
 	scm-file.o \
 	scm-frame.o \
 	scm-image.o \

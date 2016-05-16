@@ -164,11 +164,10 @@ typedef std::map<cache_param, active_cache>::iterator active_cache_i;
 /// An scm_system encapsulates all of the state of an SCM renderer. Its
 /// interface is the primary API of the SCM rendering library.
 ///
-/// The SCM system maintains the list of scenes and steps currently held open
-/// by an application, all of the image that these scenes and steps refer to,
-/// all of the caches that store the data of these images, the sphere manager
-/// used to render it, and the render handler that manages this rendering.
-/// A queue of steps enables the recording and playback of camera motion.
+/// The SCM system maintains the list of scenes currently held open by an
+/// application, all of the image that these scenes refer to, all of the caches
+/// that store the data of these images, the sphere manager used to render it,
+/// and the render handler that manages this rendering.
 
 class scm_system
 {
@@ -196,25 +195,6 @@ public:
 
     int         get_scene_count() const;
 
-    /// @}
-    /// @name Step collection handlers
-    /// @{
-    /*
-    int         add_step(int i);
-    void        del_step(int i);
-    scm_state   *get_step(int i);
-
-    int         get_step_count() const;
-    */
-    /// @}
-    /// @name Step queue handlers
-    /// @{
-    /*
-    void     import_queue(const std::string&);
-    void     export_queue(      std::string&);
-    void     append_queue(scm_state *);
-    void      flush_queue();
-    */
     /// @}
     /// @name Cache handlers
     /// @{
@@ -255,16 +235,10 @@ private:
 
     SDL_mutex     *mutex;
 
-    // scm_state_v     steps;
     scm_scene_v    scenes;
-
     scm_render    *render;
     scm_sphere    *sphere;
     scm_path      *path;
-    // scm_scene     *fore0;
-    // scm_scene     *fore1;
-    // scm_scene     *back0;
-    // scm_scene     *back1;
 
     active_file_m  files;
     active_cache_m caches;

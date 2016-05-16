@@ -279,18 +279,16 @@ void scm_state::get_forward(double *v) const
 
 /// Return the ground level of current scene at the given location. O(log n).
 /// This may incur data access in the render thread.
-///
-/// @param v Vector from the center of the planet to the query position.
 
-float scm_state::get_current_ground(const double *v) const
+float scm_state::get_current_ground() const
 {
     if (foreground0 && foreground1)
-        return std::max(foreground0->get_current_ground(v),
-                        foreground1->get_current_ground(v));
+        return std::max(foreground0->get_current_ground(position),
+                        foreground1->get_current_ground(position));
     if (foreground0)
-        return foreground0->get_current_ground(v);
+        return foreground0->get_current_ground(position);
     if (foreground1)
-        return foreground1->get_current_ground(v);
+        return foreground1->get_current_ground(position);
 
     return 1.f;
 }

@@ -95,7 +95,7 @@ void scm_system::render_sphere(scm_state *state, const double *P,
                                                  const double *M,
                                                  int channel) const
 {
-    if (state)
+    if (state->renderable())
         render->render(sphere, state, P, M, channel, frame);
     else
     {
@@ -165,51 +165,6 @@ int scm_system::get_scene_count() const
     return int(scenes.size());
 }
 
-//------------------------------------------------------------------------------
-
-/// Allocate and insert a new step before index i. Return its index.
-#if 0
-int scm_system::add_step(int i)
-{
-    int j = -1;
-
-    if (scm_state *step = new scm_state())
-    {
-        scm_state_i it = steps.insert(steps.begin() + std::max(i, 0), step);
-        j         = it - steps.begin();
-    }
-    scm_log("scm_system add_step %d = %d", i, j);
-
-    return j;
-}
-
-/// Delete the step at index i.
-
-void scm_system::del_step(int i)
-{
-    scm_log("scm_system del_step %d", i);
-
-    delete steps[i];
-    steps.erase(steps.begin() + i);
-}
-
-/// Return a pointer to the step at index i.
-
-scm_state *scm_system::get_step(int i)
-{
-    if (0 <= i && i < int(steps.size()))
-        return steps[i];
-    else
-        return 0;
-}
-
-/// Return the number of steps in the collection.
-
-int scm_system::get_step_count() const
-{
-    return int(steps.size());
-}
-#endif
 //------------------------------------------------------------------------------
 
 /// Update all image caches. This is among the most significant entry points of
