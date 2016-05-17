@@ -53,13 +53,6 @@ public:
 
     void clear()                  { sequence.clear(); }
 
-    /// @}
-    /// @name Derived methods
-    /// @{
-
-    void import_mov(const std::string&);
-    void export_mov(      std::string&);
-
 private:
 
     std::list<scm_state> sequence; ///< Sequence of states

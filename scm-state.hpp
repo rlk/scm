@@ -14,7 +14,7 @@
 #define scm_state_HPP
 
 #include <string>
-#include <list>
+#include <vector>
 
 //------------------------------------------------------------------------------
 
@@ -114,7 +114,7 @@ public:
 
 private:
 
-    std::string name;        ///< Step name
+    std::string name;        ///< State name
 
     scm_scene *foreground0;  ///< Starting foreground scene
     scm_scene *foreground1;  ///< Ending foreground scene
@@ -128,6 +128,12 @@ private:
     double zoom;             ///< Magnification
     double fade;             ///< Transition progress
 };
+
+//------------------------------------------------------------------------------
+
+typedef std::vector<scm_state>                 scm_state_v;
+typedef std::vector<scm_state>::iterator       scm_state_i;
+typedef std::vector<scm_state>::const_iterator scm_state_c;
 
 //------------------------------------------------------------------------------
 
