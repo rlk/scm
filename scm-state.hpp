@@ -38,13 +38,9 @@ public:
     /// @{
 
     scm_state();
-    scm_state(const scm_state *a);
-    scm_state(const scm_state *a,
-              const scm_state *b, double t);
-    scm_state(const scm_state *a,
-              const scm_state *b,
-              const scm_state *c,
-              const scm_state *d, double t);
+    scm_state(const scm_state&);
+    scm_state(const scm_state&,
+              const scm_state&, double t);
     scm_state(const double *t,
               const double *r,
               const double *l);

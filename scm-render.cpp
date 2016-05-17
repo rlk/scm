@@ -501,7 +501,7 @@ bool scm_render::check_fade(const scm_scene *foreground0,
                             const scm_scene *background0,
                             const scm_scene *background1, double t)
 {
-    if (t < 1.0 / 255)  return false;
+    if (t < 1.0 / 255.0) return false;
     if (foreground0 != foreground1) return true;
     if (background0 != background1) return true;
     return false;

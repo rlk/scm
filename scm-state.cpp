@@ -53,41 +53,38 @@ scm_state::scm_state()
 
 /// Initialize a new SCM viewer state as a copy of the given state.
 
-scm_state::scm_state(const scm_state *a)
+scm_state::scm_state(const scm_state& a)
 {
-    name        = a->name;
-    foreground0 = a->foreground0;
-    foreground1 = a->foreground1;
-    background0 = a->background0;
-    background1 = a->background1;
-    distance    = a->distance;
-    zoom        = a->zoom;
-    fade        = a->fade;
+    name        = a.name;
+    foreground0 = a.foreground0;
+    foreground1 = a.foreground1;
+    background0 = a.background0;
+    background1 = a.background1;
+    distance    = a.distance;
+    zoom        = a.zoom;
+    fade        = a.fade;
 
-    qcpy(orientation, a->orientation);
-    vcpy(position,    a->position);
-    vcpy(light,       a->light);
+    qcpy(orientation, a.orientation);
+    vcpy(position,    a.position);
+    vcpy(light,       a.light);
 }
 
 /// Initialize a new SCM viewer state using linear interpolation of given states.
 
-scm_state::scm_state(const scm_state *a, const scm_state *b, double t)
+scm_state::scm_state(const scm_state& a, const scm_state& b, double t)
 {
-    assert(a);
-    assert(b);
+    foreground0 = a.foreground0;
+    foreground1 = b.foreground0;
+    background0 = a.background0;
+    background1 = b.background0;
 
-    foreground0 = a->foreground0;
-    foreground1 = b->foreground0;
-    background0 = a->background0;
-    background1 = b->background0;
+    distance    = lerp(a.distance, b.distance, t);
+    zoom        = lerp(a.zoom,     b.zoom,     t);
+    fade        = lerp(a.fade,     b.fade,     t);
 
-    distance    = lerp(a->distance, b->distance, t);
-    zoom        = lerp(a->zoom,     b->zoom,     t);
-    fade        = lerp(a->fade,     b->fade,     t);
-
-    qslerp(orientation, a->orientation, b->orientation, t);
-    vslerp(position,    a->position,    b->position,    t);
-    vslerp(light,       a->light,       b->light,       t);
+    qslerp(orientation, a.orientation, b.orientation, t);
+    vslerp(position,    a.position,    b.position,    t);
+    vslerp(light,       a.light,       b.light,       t);
 
     qnormalize(orientation, orientation);
     vnormalize(position,    position);
