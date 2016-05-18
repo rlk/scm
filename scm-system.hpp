@@ -176,8 +176,8 @@ public:
     scm_system(int w, int h, int d, int l);
    ~scm_system();
 
-    void     render_sphere(scm_state *, const double *,
-                                        const double *, int) const;
+    void     render_sphere(const scm_state *, const double *,
+                                              const double *, int) const;
 
     /// @name System queries
     /// @{

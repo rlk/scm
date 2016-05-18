@@ -10,8 +10,8 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 // more details.
 
-#ifndef scm_state_HPP
-#define scm_state_HPP
+#ifndef SCM_STATE_HPP
+#define SCM_STATE_HPP
 
 #include <string>
 #include <vector>

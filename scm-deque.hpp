@@ -45,13 +45,13 @@ public:
     /// @name Basic mutators
     /// @{
 
-    void push_front(scm_state& s) { sequence.push_front(s); }
-    void push_back (scm_state& s) { sequence.push_back (s); }
+    void push_front(const scm_state& s) { sequence.push_front(s); }
+    void push_back (const scm_state& s) { sequence.push_back (s); }
 
-    void pop_front()              { sequence.pop_front(); }
-    void pop_back ()              { sequence.pop_back (); }
+    void pop_front() { sequence.pop_front(); }
+    void pop_back () { sequence.pop_back (); }
 
-    void clear()                  { sequence.clear(); }
+    void clear() { sequence.clear(); }
 
 private:
 

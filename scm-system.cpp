@@ -91,9 +91,9 @@ scm_system::~scm_system()
 /// @param M        Model-view matrix in column-major OpenGL form
 /// @param channel  Channel index (e.g. 0 for left eye, 1 for right eye)
 
-void scm_system::render_sphere(scm_state *state, const double *P,
-                                                 const double *M,
-                                                 int channel) const
+void scm_system::render_sphere(const scm_state *state, const double *P,
+                                                       const double *M,
+                                                       int channel) const
 {
     if (state->renderable())
         render->render(sphere, state, P, M, channel, frame);

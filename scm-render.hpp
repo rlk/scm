@@ -52,9 +52,9 @@ public:
     bool get_wire() const { return wire; }
 
     void render(scm_sphere *,
-                scm_state  *,
-              const double *,
-              const double *, int, int);
+          const scm_state  *,
+          const     double *,
+          const     double *, int, int);
     void render(scm_sphere *,
                 scm_scene  *,
                 scm_scene  *,

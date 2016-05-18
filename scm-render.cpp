@@ -99,9 +99,9 @@ void scm_render::set_wire(bool w)
 /// @param frame   Frame number
 
 void scm_render::render(scm_sphere *sphere,
-                        scm_state  *state,
-                      const double *P,
-                      const double *M, int channel, int frame)
+                  const scm_state  *state,
+                  const double     *P,
+                  const double     *M, int channel, int frame)
 {
     scm_scene *foreground0 = state->get_foreground0();
     scm_scene *foreground1 = state->get_foreground1();
