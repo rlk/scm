@@ -74,12 +74,12 @@ void scm_locate(long long *a, double *y, double *x, const double *v)
     u[1] = v[1];
     u[2] = v[2];
 
-    if      (v[0] >  fabs(v[1]) && v[0] >  fabs(v[2])) *a = 0;
-    else if (v[0] < -fabs(v[1]) && v[0] < -fabs(v[2])) *a = 1;
-    else if (v[1] >  fabs(v[0]) && v[1] >  fabs(v[2])) *a = 2;
-    else if (v[1] < -fabs(v[0]) && v[1] < -fabs(v[2])) *a = 3;
-    else if (v[2] >  fabs(v[0]) && v[2] >  fabs(v[1])) *a = 4;
-    else if (v[2] < -fabs(v[0]) && v[2] < -fabs(v[1])) *a = 5;
+    if      (v[0] >=  fabs(v[1]) && v[0] >=  fabs(v[2])) *a = 0;
+    else if (v[0] <= -fabs(v[1]) && v[0] <= -fabs(v[2])) *a = 1;
+    else if (v[1] >=  fabs(v[0]) && v[1] >=  fabs(v[2])) *a = 2;
+    else if (v[1] <= -fabs(v[0]) && v[1] <= -fabs(v[2])) *a = 3;
+    else if (v[2] >=  fabs(v[0]) && v[2] >=  fabs(v[1])) *a = 4;
+    else if (v[2] <= -fabs(v[0]) && v[2] <= -fabs(v[1])) *a = 5;
 
     world_to_face(*a, v, u);
 
