@@ -43,6 +43,11 @@ To build `Debug\scm.lib`:
 
 ## Dependencies
 
+Dependencies for SCM include
+
+- Freetype2
+- SDL2
+
 The SCM repo has a submodule ([util3d](https://github.com/rlk/util3d)) that must be explicitly added to a fresh clone:
 
     git submodule update --init
