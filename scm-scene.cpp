@@ -197,6 +197,7 @@ void scm_scene::init_uniforms()
         uM     = glsl_uniform(render.program, "M");
         uzoomv = glsl_uniform(render.program, "zoomv");
         uzoomk = glsl_uniform(render.program, "zoomk");
+        urange = glsl_uniform(render.program, "range");
     }
 }
 

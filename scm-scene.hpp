@@ -143,6 +143,7 @@ private:
     GLint uM;
     GLint uzoomv;
     GLint uzoomk;
+    GLint urange;
 };
 
 //------------------------------------------------------------------------------

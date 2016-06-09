@@ -127,6 +127,13 @@ void scm_sphere::draw(scm_scene *scene, const double *M,
 {
     glEnable(GL_COLOR_MATERIAL);
 
+    // Calculate the current view range.
+
+    double I[16];
+    minvert(I, M);
+
+    double range = fabs(vlen(I + 8) / I[11]);
+
     // Perform the visibility pre-pass.
 
     prep(scene, M, width, height, channel, scene->uzoomk >= 0);
@@ -157,6 +164,7 @@ void scm_sphere::draw(scm_scene *scene, const double *M,
             { -1.f,  0.f,  0.f,  0.f,  1.f,  0.f,  0.f,  0.f, -1.f },
         };
 
+        glUniform1f(scene->urange, GLfloat(range));
         glUniform1f(scene->uzoomk, GLfloat(zoomk));
         glUniform3f(scene->uzoomv, GLfloat(zoomv[0]),
                                    GLfloat(zoomv[1]),
